@@ -70,7 +70,7 @@ button:focus-visible, tr.team:focus-visible { outline: 2px solid var(--accent); 
 .sum { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; align-content: start; }
 .sum span { font-size: 12.5px; color: var(--muted); }
 .sum b { font-family: var(--font-display); font-weight: 400; font-size: 22px; }
-.sum em { font-style: normal; font-family: var(--font-data); font-size: 12.5px; color: var(--muted); }
+.sum em { font-style: normal; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
 
 .tablebox { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; }
@@ -138,6 +138,32 @@ tr.detail td { white-space: normal; background: var(--bg); padding: 16px; }
 .kpi b { font-family: var(--font-data); font-size: 17px; font-weight: 500; }
 .ok { color: var(--win); font-weight: 700; }
 .bad { color: var(--loss); font-weight: 700; }
+/* 휴대폰: 표 대신 팀별 카드 */
+.cards { display: none; gap: 10px; }
+.tcard { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--zone); border-radius: 10px; padding: 12px 14px; display: grid; gap: 10px; min-width: 0; }
+.tcard-head { display: flex; align-items: center; gap: 8px; border: 0; background: none; color: var(--fg); padding: 0; text-align: left; width: 100%; }
+.tcard-head .tname { font-size: 16px; }
+.tcard-head .chev { color: var(--muted); font-size: 12px; transition: transform .15s; }
+.tcard.open .tcard-head .chev { transform: rotate(180deg); }
+.tcard-pts { margin-left: auto; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.tcard-pts b { font-size: 18px; color: var(--fg); margin-right: 1px; }
+.tcard-meta { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); }
+.tcard-probs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+.tcard-probs .lab { display: block; font-size: 11.5px; color: var(--muted); margin-bottom: 3px; }
+.tcard-magic { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; }
+.tcard .dgrid { border-top: 1px solid var(--line); padding-top: 12px; }
+@media (max-width: 760px) {
+  #mainBox { display: none; }
+  .cards { display: grid; }
+  h1 { font-size: 26px; }
+  .controls { width: 100%; }
+  .controls .tabs { flex: 1; }
+  .controls .tabs button { flex: 1; }
+  .summary { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .sum { padding: 12px; }
+  .sum b { font-size: 19px; }
+  .panel { padding: 14px; }
+}
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
@@ -163,12 +189,13 @@ tr.detail td { white-space: normal; background: var(--bg); padding: 16px; }
   <div class="notice" id="notice" hidden></div>
   <div class="summary" id="summary"></div>
 
-  <div class="tablebox">
+  <div class="tablebox" id="mainBox">
     <table id="main-table">
       <thead id="thead"></thead>
       <tbody id="tbody"><tr><td class="empty" colspan="16">순위와 일정 데이터를 불러오는 중입니다. 매일 아침 자동으로 최신 데이터가 채워집니다.</td></tr></tbody>
     </table>
   </div>
+  <div class="cards" id="cards"><p class="empty">순위와 일정 데이터를 불러오는 중입니다.</p></div>
   <div class="legend" id="legend"></div>
 
   <section class="panel chart">
@@ -763,13 +790,34 @@ function render() {
     return row + (openTeam === t.team ? detailRow(d, t, r, ncols) : "");
   }).join("");
 
+  // 휴대폰용 카드 (CSS가 화면 폭에 따라 표와 카드 중 하나만 보여 준다)
+  $("cards").innerHTML = st.map((t, i) => {
+    const r = res[t.team], dc = dec[t.team], open = openTeam === t.team;
+    const form = lastN(d.results, t.team, 5).reverse();
+    const inj = (d.injuries || []).filter(x => x.team === t.team).length;
+    const zc = zoneColor(league, i, n);
+    const gd = t.gf - t.ga;
+    return `<article class="tcard${open ? " open" : ""}" style="--zone:${zc === "transparent" ? "var(--line)" : zc}">
+      <button type="button" class="tcard-head" data-team="${esc(t.team)}" aria-expanded="${open}">
+        <span class="rank">${t.rank}</span><span class="tname">${esc(t.team)}</span>${inj ? `<span class="inj">결장 ${inj}</span>` : ""}
+        <span class="tcard-pts"><b class="num">${t.pts}</b>점</span><span class="chev" aria-hidden="true">▼</span>
+      </button>
+      <div class="tcard-meta"><span>${t.p}경기 · 득실 ${gd > 0 ? "+" : ""}${gd} · 예상 ${r.exp.toFixed(1)}점</span>
+        <span class="form">${form.map(f => `<i class="${f.r}" title="${esc(f.date)} ${f.home ? "홈" : "원정"} ${esc(f.opp)} ${f.my}-${f.op}">${f.r === "W" ? "승" : f.r === "D" ? "무" : "패"}</i>`).join("")}</span></div>
+      <div class="tcard-probs">${zones.map(z => `<div><span class="lab">${z.label}</span>${(z.key === "po" && t.team === (d.format || {}).noPlayoffTeam) ? '<span class="mg off">해당 없음</span>' : pcCell(r[z.key], z.danger, dc[z.key])}</div>`).join("")}</div>
+      <div class="tcard-magic">${mags.map(m => `<span>${m.label} ${magicCell(dc.m[m.key], SURE_LABEL[m.key])}</span>`).join("")}</div>
+      ${open ? detailInner(d, t, r) : ""}
+    </article>`;
+  }).join("");
+
   $("legend").innerHTML = (league === "k1"
     ? [["var(--accent)", "ACLE 출전권 (1~2위)"], ["var(--bar)", "파이널A (3~6위)"], ["var(--loss)", "승강 플레이오프 (12위)"]]
     : [["var(--accent)", "자동 승격 (1~2위)"], ["var(--warn)", "승격 플레이오프 (3~6위)"]])
     .map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join("") + `<span>팀을 누르면 남은 일정, 전력, 최종 순위 분포를 볼 수 있어요.</span>`;
 }
 
-function detailRow(d, t, r, cols) {
+const detailRow = (d, t, r, cols) => `<tr class="detail"><td colspan="${cols}">${detailInner(d, t, r)}</td></tr>`;
+function detailInner(d, t, r) {
   const fx = (d.fixtures || []).filter(f => f[2] === t.team || f[3] === t.team);
   const inj = (d.injuries || []).filter(x => x.team === t.team);
   const total = r.posDist.reduce((a, b) => a + b, 0) || 1, max = Math.max(...r.posDist);
@@ -777,7 +825,7 @@ function detailRow(d, t, r, cols) {
   const recent = lastN(d.results, t.team, 5);
   const m = SIM.model[league], R = m.R[t.team];
   const splitPending = (d.format || {}).split && !d.results.some(x => x[6]) && !(d.fixtures || []).some(f => f[4]);
-  return `<tr class="detail"><td colspan="${cols}"><div class="dgrid">
+  return `<div class="dgrid">
     <div><h3>남은 경기 ${fx.length}</h3><ul>${fx.length ? fx.map(f => `<li><span>${f[2] === t.team ? "홈" : "원정"} · ${esc(f[2] === t.team ? f[3] : f[2])}</span><small>${esc(f[0])} ${esc(f[1] ? f[1] + "R" : "")}</small></li>`).join("") : "<li><small>남은 정규 일정 없음</small></li>"}
       ${splitPending ? "<li><small>+ 파이널 라운드 5경기 (그룹 확정 후 일정 발표)</small></li>" : ""}</ul></div>
     <div><h3>최근 5경기</h3><ul>${recent.map(f => `<li><span>${f.home ? "홈" : "원정"} · ${esc(f.opp)} <b>${f.my}-${f.op}</b></span><small>${esc(f.date)}</small></li>`).join("")}</ul></div>
@@ -790,7 +838,7 @@ function detailRow(d, t, r, cols) {
       <div class="hist">${r.posDist.map((v, i) => `<div class="${i === cur ? "cur" : ""}" style="height:${max ? v / max * 100 : 0}%" title="${i + 1}위 ${(v / total * 100).toFixed(1)}%"></div>`).join("")}</div>
       <div class="histx">${r.posDist.map((_, i) => `<span>${i + 1}</span>`).join("")}</div>
     </div>
-  </div></td></tr>`;
+  </div>`;
 }
 
 /* ---------- 확률 추이 ---------- */
@@ -805,7 +853,8 @@ function renderChart() {
   pts.forEach(h => Object.entries(h[league]).forEach(([t, v]) => { if (v[metric] != null) teams[t] = Math.max(teams[t] || 0, v[metric]); }));
   const lastVals = pts[pts.length - 1][league];
   const pick = Object.keys(teams).filter(t => teams[t] >= 1).sort((a, b) => (lastVals[b]?.[metric] || 0) - (lastVals[a]?.[metric] || 0)).slice(0, 6);
-  const W = 720, H = 260, L = 40, Rr = 110, T = 12, B = 28;
+  // 화면 폭에 맞춰 그려서 휴대폰에서도 글자가 작아지지 않게 한다
+  const W = Math.max(340, Math.min(720, $("chart").clientWidth || 720)), H = W < 500 ? 220 : 260, L = 40, Rr = W < 500 ? 100 : 110, T = 12, B = 28;
   const t0 = Date.parse(pts[0].asOf), t1 = Date.parse(pts[pts.length - 1].asOf);
   const x = d => pts.length === 1 ? (L + (W - Rr)) / 2 : L + (Date.parse(d) - t0) / Math.max(1, t1 - t0) * (W - Rr - L);
   const y = v => T + (1 - v / 100) * (H - T - B);
@@ -939,6 +988,8 @@ document.addEventListener("click", e => {
   else if (b.dataset.metric) { metric = b.dataset.metric; renderChart(); }
   else if (b.dataset.team) { openTeam = openTeam === b.dataset.team ? null : b.dataset.team; render(); }
 });
+let resizeTimer = null;
+window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(renderChart, 150); });
 document.addEventListener("keydown", e => {
   const tr = e.target.closest && e.target.closest("tr.team");
   if (tr && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); tr.click(); }
@@ -946,7 +997,7 @@ document.addEventListener("keydown", e => {
 
 /* ---------- 데이터 ---------- */
 (async () => {
-  const fail = msg => { $("tbody").innerHTML = `<tr><td class="empty" colspan="16">${esc(msg)}</td></tr>`; $("asOf").textContent = "-"; };
+  const fail = msg => { $("tbody").innerHTML = `<tr><td class="empty" colspan="16">${esc(msg)}</td></tr>`; $("cards").innerHTML = `<p class="empty">${esc(msg)}</p>`; $("asOf").textContent = "-"; };
   if (!window.claude || !window.claude.use) {
     // claude.ai 밖(GitHub Pages 등): 같은 폴더의 data/*.json을 읽는다
     STANDALONE = true;
