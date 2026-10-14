@@ -829,8 +829,17 @@ function detailInner(d, t, r) {
   const recent = lastN(d.results, t.team, 5);
   const m = SIM.model[league], R = m.R[t.team];
   const splitPending = (d.format || {}).split && !d.results.some(x => x[6]) && !(d.fixtures || []).some(f => f[4]);
+  // 팀 수가 홀수(K리그2)면 라운드마다 한 팀이 쉰다: 남은 라운드 중 이 팀 경기가 없는 라운드를 휴식으로 표시
+  const teamRounds = new Set(d.results.concat(d.fixtures || []).filter(m => m[2] === t.team || m[3] === t.team).map(m => m[1]));
+  const futureRounds = {};
+  (d.fixtures || []).forEach(f => { if (f[1] != null && (!futureRounds[f[1]] || f[0] < futureRounds[f[1]])) futureRounds[f[1]] = f[0]; });
+  const rests = roundIndex(d).map(r => r.rd).filter(rd => futureRounds[rd] && !teamRounds.has(rd));
+  const sched = fx.map(f => ({ rd: f[1], f })).concat(rests.map(rd => ({ rd, rest: true, date: futureRounds[rd] })))
+    .sort((a, b) => (a.f ? a.f[0] : a.date) < (b.f ? b.f[0] : b.date) ? -1 : (a.f ? a.f[0] : a.date) > (b.f ? b.f[0] : b.date) ? 1 : a.rd - b.rd);
   return `<div class="dgrid">
-    <div><h3>남은 경기 ${fx.length}</h3><ul>${fx.length ? fx.map(f => `<li><span>${f[2] === t.team ? "홈" : "원정"} · ${esc(f[2] === t.team ? f[3] : f[2])}</span><small>${esc(f[0])} ${esc(f[1] ? f[1] + "R" : "")}</small></li>`).join("") : "<li><small>남은 정규 일정 없음</small></li>"}
+    <div><h3>남은 경기 ${fx.length}${rests.length ? ` · 휴식 ${rests.length}` : ""}</h3><ul>${sched.length ? sched.map(it => it.rest
+      ? `<li><span><b>휴식</b></span><small>${esc(it.date)} ${it.rd}R</small></li>`
+      : `<li><span>${it.f[2] === t.team ? "홈" : "원정"} · ${esc(it.f[2] === t.team ? it.f[3] : it.f[2])}</span><small>${esc(it.f[0])} ${esc(it.f[1] ? it.f[1] + "R" : "")}</small></li>`).join("") : "<li><small>남은 정규 일정 없음</small></li>"}
       ${splitPending ? "<li><small>+ 파이널 라운드 5경기 (그룹 확정 후 일정 발표)</small></li>" : ""}</ul></div>
     <div><h3>최근 5경기</h3><ul>${recent.map(f => `<li><span>${f.home ? "홈" : "원정"} · ${esc(f.opp)} <b>${f.my}-${f.op}</b></span><small>${esc(f.date)}</small></li>`).join("")}</ul></div>
     <div><h3>추정 전력 (리그 평균 = 1.00)</h3><ul>
@@ -845,44 +854,115 @@ function detailInner(d, t, r) {
   </div>`;
 }
 
+/* ---------- 라운드 ---------- */
+const dayNo = d => Math.round(Date.parse(d + "T00:00:00Z") / 864e5);
+const matchKey = m => m[0] + "|" + m[2] + "|" + m[3];
+// 라운드마다 "제때 치른 경기" 목록을 만든다. 라운드 중심 날짜에서 7일 넘게 떨어진 경기는 연기 경기로 보고
+// 그 라운드의 완료 판단에서 뺀다(연기 경기는 실제로 치른 날의 기록에 반영된다).
+// 팀 수가 홀수인 K리그2는 라운드마다 한 팀이 쉬므로, 라운드의 경기 수는 일정에서 그대로 가져온다.
+function roundIndex(d) {
+  const all = d.results.filter(r => r[6] !== "P").concat(d.fixtures || []);
+  const by = {};
+  all.forEach(m => { if (m[1] != null) (by[m[1]] = by[m[1]] || []).push(m); });
+  return Object.keys(by).map(Number).sort((a, b) => a - b).map(rd => {
+    const days = by[rd].map(m => dayNo(m[0])).sort((a, b) => a - b), mid = days.at(Math.floor(days.length / 2));
+    const main = by[rd].filter(m => Math.abs(dayNo(m[0]) - mid) <= 7);
+    return { rd, keys: main.map(matchKey) };
+  });
+}
+// 결과 목록(known) 기준으로 몇 라운드까지 끝났는지, 다음 라운드가 진행 중인지
+function roundState(rounds, known) {
+  const done = new Map(known.map(r => [matchKey(r), r[0]]));
+  let last = 0, lastDate = null, partial = false;
+  for (const r of rounds) {
+    const played = r.keys.filter(k => done.has(k));
+    if (played.length === r.keys.length) { last = r.rd; lastDate = played.map(k => done.get(k)).sort().at(-1); continue; }
+    partial = played.length > 0;
+    break;
+  }
+  return { last, lastDate, partial, next: last + 1 };
+}
+// 그날 기록에 들어 있던 결과: 결과 개수를 저장한 기록은 그 개수만큼, 아니면 그날 이전 경기
+function knownAt(d, h, lg) {
+  const res = d.results.filter(r => r[6] !== "P");
+  const n = h["n_" + lg];
+  return n != null ? res.slice(0, n) : res.filter(r => r[0] < h.asOf);
+}
+// 그래프에 쓸 점: 라운드마다 그 라운드가 끝난 상태의 마지막 기록 하나, 맨 끝 기록이 라운드 중간이면 "진행 중" 점
+function roundPoints(lg) {
+  const d = DATA[lg];
+  const hs = HISTORY.filter(h => h[lg]).sort((a, b) => a.asOf < b.asOf ? -1 : 1);
+  if (!d || !hs.length) return [];
+  const rounds = roundIndex(d);
+  const st = hs.map(h => ({ h, s: roundState(rounds, knownAt(d, h, lg)) }));
+  const byRound = new Map();
+  st.forEach(x => { if (x.s.last > 0 && !x.s.partial) byRound.set(x.s.last, x); });
+  const out = [...byRound.entries()].sort((a, b) => a[0] - b[0]).map(([rd, x]) => ({ rd, h: x.h, date: x.s.lastDate, progress: false }));
+  const tail = st.at(-1);
+  if (tail.s.partial) out.push({ rd: tail.s.next, h: tail.h, date: tail.h.asOf, progress: true });
+  return out;
+}
+
 /* ---------- 확률 추이 ---------- */
 function renderChart() {
   const zones = ZONES[league];
   if (!zones.some(z => z.key === metric)) metric = "champ";
   $("metricTabs").innerHTML = zones.map(z => `<button type="button" data-metric="${z.key}" aria-pressed="${z.key === metric}">${z.label.replace(/ \(.*\)/, "")}</button>`).join("");
-  const pts = HISTORY.filter(h => h[league]).sort((a, b) => a.asOf < b.asOf ? -1 : 1);
-  if (!pts.length) { $("chart").innerHTML = `<p>아직 저장된 기록이 없어요. ${STANDALONE ? "매일 자동 갱신 때 그날의 확률이 기록되고" : "매일 데이터가 갱신된 뒤 이 페이지를 열면 그날의 확률이 기록되고"}, 기록이 쌓이면 추이가 그려집니다.</p>`; return; }
+  const pts = roundPoints(league).filter(p => Object.values(p.h[league]).some(v => v[metric] != null));
+  if (!pts.length) { $("chart").innerHTML = `<p>아직 저장된 기록이 없어요. ${STANDALONE ? "매일 자동 갱신 때 그날의 확률이 기록되고" : "매일 데이터가 갱신된 뒤 이 페이지를 열면 그날의 확률이 기록되고"}, 라운드가 끝날 때마다 추이에 점이 하나씩 생깁니다.</p>`; return; }
   // 한 번이라도 1% 이상이었던 팀 중 최근 값이 높은 6팀
   const teams = {};
-  pts.forEach(h => Object.entries(h[league]).forEach(([t, v]) => { if (v[metric] != null) teams[t] = Math.max(teams[t] || 0, v[metric]); }));
-  const lastVals = pts[pts.length - 1][league];
+  pts.forEach(p => Object.entries(p.h[league]).forEach(([t, v]) => { if (v[metric] != null) teams[t] = Math.max(teams[t] || 0, v[metric]); }));
+  const lastVals = pts.at(-1).h[league];
   const pick = Object.keys(teams).filter(t => teams[t] >= 1).sort((a, b) => (lastVals[b]?.[metric] || 0) - (lastVals[a]?.[metric] || 0)).slice(0, 6);
-  // 화면 폭에 맞춰 그려서 휴대폰에서도 글자가 작아지지 않게 한다
-  const W = Math.max(340, Math.min(720, $("chart").clientWidth || 720)), H = W < 500 ? 220 : 260, L = 40, Rr = W < 500 ? 100 : 110, T = 12, B = 28;
-  const t0 = Date.parse(pts[0].asOf), t1 = Date.parse(pts[pts.length - 1].asOf);
-  const x = d => pts.length === 1 ? (L + (W - Rr)) / 2 : L + (Date.parse(d) - t0) / Math.max(1, t1 - t0) * (W - Rr - L);
+  // 화면 폭에 맞춰 그려서 휴대폰에서도 글자가 작아지지 않게 한다. 라운드는 같은 간격으로 놓는다
+  const W = Math.max(340, Math.min(720, $("chart").clientWidth || 720)), L = 40, Rr = W < 500 ? 100 : 110, T = 12;
+  const x = i => pts.length === 1 ? (L + (W - Rr)) / 2 : L + i / (pts.length - 1) * (W - Rr - L);
+  // 점마다 라운드와 날짜를 단다. 좁으면 비스듬히 눕히고, 그래도 겹칠 만큼 촘촘하면 몇 개씩 건너뛴다(마지막 점은 항상)
+  const gap = pts.length > 1 ? (W - Rr - L) / (pts.length - 1) : 999;
+  const rotate = gap < 64, step = gap < 13 ? Math.ceil(13 / gap) : 1;
+  const B = rotate ? 88 : 40, H = (W < 500 ? 220 : 260) + (rotate ? 52 : 12);
   const y = v => T + (1 - v / 100) * (H - T - B);
-  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(zones.find(z => z.key === metric).label)} 확률 추이"><g class="grid">`;
+  const md = d => d.slice(5).replace("-", ".");
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(zones.find(z => z.key === metric).label)} 라운드별 확률 추이"><g class="grid">`;
   [0, 25, 50, 75, 100].forEach(v => { s += `<line x1="${L}" x2="${W - Rr}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}%</text>`; });
   s += `</g>`;
-  const ticks = pts.length <= 6 ? pts : [pts[0], pts[Math.floor(pts.length / 3)], pts[Math.floor(pts.length * 2 / 3)], pts[pts.length - 1]];
-  ticks.forEach(h => { s += `<text x="${x(h.asOf)}" y="${H - 8}" text-anchor="middle">${h.asOf.slice(5).replace("-", ".")}</text>`; });
+  pts.forEach((p, i) => {
+    if (i % step && i !== pts.length - 1) return;
+    const lx = x(i), base = H - B;
+    const top = p.rd + "R", bottom = p.progress ? "진행 중" : md(p.date);
+    s += `<line x1="${lx}" x2="${lx}" y1="${base}" y2="${base + 4}" stroke="var(--muted)"/>`;
+    s += rotate
+      ? `<text x="${lx}" y="${base + 16}" text-anchor="end" transform="rotate(-55 ${lx} ${base + 16})"${p.progress ? ' style="fill:var(--point)"' : ""}>${top} · ${bottom}</text>`
+      : `<text x="${lx}" y="${base + 17}" text-anchor="middle"${p.progress ? ' style="fill:var(--point)"' : ""}>${top}</text><text x="${lx}" y="${base + 31}" text-anchor="middle"${p.progress ? ' style="fill:var(--point)"' : ""}>${bottom}</text>`;
+  });
   const labels = [];
   pick.forEach((t, i) => {
     const c = `var(--s${i + 1})`;
-    // 지표가 없는 예전 기록(이름이 바뀌기 전 날짜)은 건너뛴다
-    const ser = pts.filter(h => h[league][t] && h[league][t][metric] != null).map(h => [x(h.asOf), y(h[league][t][metric])]);
-    if (ser.length > 1) s += `<polyline fill="none" stroke="${c}" stroke-width="2.2" stroke-linejoin="round" points="${ser.map(p => p.join(",")).join(" ")}"/>`;
-    ser.forEach(p => { s += `<circle cx="${p[0]}" cy="${p[1]}" r="${ser.length > 1 ? 2.5 : 4}" fill="${c}"/>`; });
-    const lp = ser[ser.length - 1];
-    if (lp) labels.push({ y: lp[1], t, c, v: pts[pts.length - 1][league][t]?.[metric] });
+    const arr = pts.map((p, j) => ({ j, p, v: p.h[league][t]?.[metric] })).filter(a => a.v != null)
+      .map(a => ({ xy: [x(a.j), y(a.v)], bf: !!a.p.h.backfill, prog: a.p.progress }));
+    const fin = arr.filter(a => !a.prog), prog = arr.find(a => a.prog);
+    // 지난 결과로 다시 계산한 구간은 점선, 그날 실제로 기록한 구간은 실선, 진행 중 라운드로 가는 선은 짧은 점선
+    const lastBf = fin.map(a => a.bf).lastIndexOf(true);
+    const dashed = lastBf >= 0 ? fin.slice(0, lastBf + 2) : [], solid = fin.slice(Math.max(0, lastBf + 1));
+    const line = (ps, dash) => ps.length > 1 ? `<polyline fill="none" stroke="${c}" stroke-width="2.2" stroke-linejoin="round"${dash ? ` stroke-dasharray="${dash}"` : ""} points="${ps.map(a => a.xy.join(",")).join(" ")}"/>` : "";
+    s += line(dashed, "5 4") + line(solid, "");
+    if (prog && fin.length) s += line([fin.at(-1), prog], "2 3");
+    fin.forEach(a => { s += a.bf ? `<circle cx="${a.xy[0]}" cy="${a.xy[1]}" r="2.6" fill="var(--surface)" stroke="${c}" stroke-width="1.4"/>` : `<circle cx="${a.xy[0]}" cy="${a.xy[1]}" r="${arr.length > 1 ? 2.8 : 4}" fill="${c}"/>`; });
+    if (prog) s += `<circle cx="${prog.xy[0]}" cy="${prog.xy[1]}" r="4.2" fill="var(--surface)" stroke="${c}" stroke-width="2" stroke-dasharray="2 1.5"/>`;
+    const lp = arr.at(-1);
+    if (lp) labels.push({ y: lp.xy[1], t, c, v: pts.at(-1).h[league][t]?.[metric] });
   });
   // 라벨 겹침 방지
   labels.sort((a, b) => a.y - b.y);
   for (let i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 14) labels[i].y = labels[i - 1].y + 14;
   labels.forEach(l => { s += `<text class="lab" x="${W - Rr + 8}" y="${l.y + 4}" style="fill:${l.c}">${esc(l.t)} ${l.v != null ? fmtP(l.v) : ""}</text>`; });
   s += `</svg>`;
-  $("chart").innerHTML = s + (pts.length === 1 ? `<p>기록이 하루치뿐이라 점으로만 표시했어요. 날이 쌓이면 선으로 이어집니다.</p>` : "");
+  const notes = ["라운드가 끝날 때마다 점이 하나씩 생기고, 아래 날짜는 그 라운드의 마지막 경기일입니다. 연기 경기는 실제로 치른 날 이후 점에 반영됩니다."];
+  if (league === "k2") notes.push("K리그2는 17팀이라 라운드마다 한 팀이 쉽니다. 쉬는 팀도 다른 팀 결과에 따라 확률이 바뀝니다.");
+  if (pts.some(p => p.progress)) notes.push("맨 끝 빈 점(진행 중)은 아직 끝나지 않은 라운드의 현재 값입니다.");
+  if (pts.some(p => p.h.backfill)) notes.push("점선과 빈 점은 지난 경기 결과만으로 그 시점을 다시 계산한 값이고(부상 정보 제외), 실선과 채운 점은 그날 실제로 기록한 값입니다.");
+  $("chart").innerHTML = s + `<p>${notes.join(" ")}</p>`;
 }
 
 /* ---------- 백테스트 ---------- */
@@ -963,7 +1043,9 @@ async function saveHistory() {
   try {
     const ref = db.doc("history/" + asOf);
     const snap = await ref.get();
-    if (!snap.exists) await ref.set({ asOf, N: SIM.N, k1: pack("k1"), k2: pack("k2") });
+    // n_k1, n_k2: 이 기록에 들어간 경기 결과 수. 그래프가 몇 라운드까지 끝난 시점인지 판단할 때 쓴다
+    const nRes = d => d.results.filter(r => r[6] !== "P").length;
+    if (!snap.exists) await ref.set({ asOf, N: SIM.N, n_k1: nRes(DATA.k1), n_k2: nRes(DATA.k2), k1: pack("k1"), k2: pack("k2") });
   } catch { /* 기록 실패는 화면에 영향 없음 */ }
 }
 

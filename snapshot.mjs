@@ -29,7 +29,9 @@ const pack = lg => {
 
 const histPath = join(dataDir, "history.json");
 const history = existsSync(histPath) ? JSON.parse(readFileSync(histPath, "utf8")) : [];
-const entry = { asOf: k1.asOf, N, k1: pack("k1"), k2: pack("k2") };
+// n_k1, n_k2: 이 기록에 들어간 경기 결과 수 (페이지가 라운드 진행 상태를 판단할 때 쓴다)
+const nRes = d => d.results.filter(r => r[6] !== "P").length;
+const entry = { asOf: k1.asOf, N, n_k1: nRes(k1), n_k2: nRes(k2), k1: pack("k1"), k2: pack("k2") };
 const kept = history.filter(h => h.asOf !== entry.asOf);
 kept.push(entry);
 kept.sort((a, b) => (a.asOf < b.asOf ? -1 : 1));
