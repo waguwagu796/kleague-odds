@@ -225,12 +225,12 @@ function simulateCurrent(d1, d2, N, seed, onProgress) {
   const c1 = makeCtx(d1, P), c2 = makeCtx(d2, P);
   const z = n => ({ posDist: new Float64Array(n * n), ptsSum: new Float64Array(n) });
   const o1 = Object.assign(z(c1.n), { champ: new Float64Array(c1.n), acle: new Float64Array(c1.n), finalA: new Float64Array(c1.n), po: new Float64Array(c1.n), relegated: new Float64Array(c1.n) });
-  const o2 = Object.assign(z(c2.n), { champ: new Float64Array(c2.n), auto: new Float64Array(c2.n), poIn: new Float64Array(c2.n), promo: new Float64Array(c2.n) });
+  const o2 = Object.assign(z(c2.n), { champ: new Float64Array(c2.n), auto: new Float64Array(c2.n), top6: new Float64Array(c2.n), promo: new Float64Array(c2.n) });
   const muX = Math.sqrt(c1.mu * c2.mu), rhoX = (c1.rho + c2.rho) / 2;
   for (let s = 0; s < N; s++) {
     const s1 = simOnce(c1, rnd), s2 = simOnce(c2, rnd);
     s1.order.forEach((t, i) => { o1.posDist[t * c1.n + i]++; o1.ptsSum[t] += s1.pts[t]; if (i === 0) o1.champ[t]++; if (i < 2) o1.acle[t]++; if (i < 6) o1.finalA[t]++; });
-    s2.order.forEach((t, i) => { o2.posDist[t * c2.n + i]++; o2.ptsSum[t] += s2.pts[t]; if (i === 0) o2.champ[t]++; if (i < 2) { o2.auto[t]++; o2.promo[t]++; } else if (i < 6) o2.poIn[t]++; });
+    s2.order.forEach((t, i) => { o2.posDist[t * c2.n + i]++; o2.ptsSum[t] += s2.pts[t]; if (i === 0) o2.champ[t]++; if (i < 2) { o2.auto[t]++; o2.promo[t]++; } if (i < 6) o2.top6[t]++; });
     // K리그2 플레이오프: 단판, 상위 팀 홈, 무승부면 상위 팀
     const tie = (hi, lo) => { const [a, b] = sampleScore(c2.mu * c2.home * s2.att[hi] * s2.def[lo], c2.mu * c2.away * s2.att[lo] * s2.def[hi], c2.rho, rnd); return a >= b ? hi : lo; };
     const sd = s2.order;
@@ -260,7 +260,7 @@ function simulateCurrent(d1, d2, N, seed, onProgress) {
   return {
     N, seed,
     k1: pack(c1, o1, ["champ", "acle", "finalA", "po", "relegated"]),
-    k2: pack(c2, o2, ["champ", "auto", "poIn", "promo"]),
+    k2: pack(c2, o2, ["champ", "auto", "top6", "promo"]),
     model: { k1: modelInfo(c1), k2: modelInfo(c2) },
   };
 }

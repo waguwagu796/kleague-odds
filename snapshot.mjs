@@ -17,7 +17,7 @@ const N = 50000;
 const seed = E.hashStr(k1.asOf + "|" + k1.results.length + "|" + k2.results.length + "|" + JSON.stringify(k1.injuries || []) + JSON.stringify(k2.injuries || []));
 const sim = E.simulateCurrent(k1, k2, N, seed);
 
-const ZONES = { k1: ["champ", "acle", "finalA", "po"], k2: ["champ", "auto", "poIn", "promo"] };
+const ZONES = { k1: ["champ", "acle", "finalA", "po"], k2: ["champ", "auto", "top6", "promo"] };
 const pack = lg => {
   const o = {};
   for (const [team, v] of Object.entries(sim[lg])) {
