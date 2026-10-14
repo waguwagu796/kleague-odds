@@ -12,43 +12,47 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
 /* Layout: 기준일·리그 전환 → 요약 카드 → 순위별 확률 표(행 펼침) → 확률 추이 차트 → 백테스트 → 계산 방법 */
+/* 색: K리그 느낌의 남색(메인) + 빨강(포인트), 바탕은 푸른 기가 도는 회색 */
 :root {
-  --bg: #f2f4f1;
+  --bg: #f3f5f9;
   --surface: #ffffff;
-  --fg: #141916;
-  --muted: #5e6a62;
-  --line: #d8ded8;
-  --accent: #0f6b45;
+  --fg: #0f1730;
+  --muted: #5a6480;
+  --line: #d7dce8;
+  --accent: #1a2b6d;
   --accent-fg: #ffffff;
-  --bar: #0f6b45;
-  --bar-bg: #e3ebe5;
-  --win: #1f8a4c; --draw: #8a9690; --loss: #c43c2e;
-  --warn: #b7791f;
-  --s1: #0f6b45; --s2: #2f6fd6; --s3: #c43c2e; --s4: #b7791f; --s5: #7a3fb0; --s6: #0f8a8a;
+  --point: #d6302a;
+  --bar: #2c4fc4;
+  --bar-bg: #e3e8f5;
+  --win: #1f8a4c; --draw: #8a93a6; --loss: #d6302a;
+  --warn: #d98200;
+  --s1: #1a2b6d; --s2: #d6302a; --s3: #2c8fd6; --s4: #d98200; --s5: #1f8a4c; --s6: #7a4cc2;
   --font-display: "Black Han Sans", "Malgun Gothic", sans-serif;
   --font-body: "IBM Plex Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
   --font-data: "IBM Plex Mono", ui-monospace, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f1411; --surface: #171d19; --fg: #e6ece8; --muted: #94a29a; --line: #2a342e;
-    --accent: #2f9a68; --accent-fg: #ffffff; --bar: #3fb57d; --bar-bg: #24302a;
-    --win: #3fb57d; --draw: #7d8a83; --loss: #e0645a; --warn: #e0a54a;
-    --s1: #3fb57d; --s2: #79a8ff; --s3: #e0645a; --s4: #e0a54a; --s5: #b98ae6; --s6: #4cc7c7; color-scheme: dark;
+    --bg: #0b1120; --surface: #131b31; --fg: #e7ebf5; --muted: #98a2bd; --line: #26304d;
+    --accent: #3f66e8; --accent-fg: #ffffff; --point: #ff5a4f; --bar: #5b86ff; --bar-bg: #222d4b;
+    --win: #3fbf7a; --draw: #7f8aa3; --loss: #ff5a4f; --warn: #f2a33a;
+    --s1: #7f9cff; --s2: #ff5a4f; --s3: #4cc3ff; --s4: #f2a33a; --s5: #3fbf7a; --s6: #b98ae6; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0f1411; --surface: #171d19; --fg: #e6ece8; --muted: #94a29a; --line: #2a342e;
-  --accent: #2f9a68; --accent-fg: #ffffff; --bar: #3fb57d; --bar-bg: #24302a;
-  --win: #3fb57d; --draw: #7d8a83; --loss: #e0645a; --warn: #e0a54a;
-  --s1: #3fb57d; --s2: #79a8ff; --s3: #e0645a; --s4: #e0a54a; --s5: #b98ae6; --s6: #4cc7c7; color-scheme: dark;
+  --bg: #0b1120; --surface: #131b31; --fg: #e7ebf5; --muted: #98a2bd; --line: #26304d;
+  --accent: #3f66e8; --accent-fg: #ffffff; --point: #ff5a4f; --bar: #5b86ff; --bar-bg: #222d4b;
+  --win: #3fbf7a; --draw: #7f8aa3; --loss: #ff5a4f; --warn: #f2a33a;
+  --s1: #7f9cff; --s2: #ff5a4f; --s3: #4cc3ff; --s4: #f2a33a; --s5: #3fbf7a; --s6: #b98ae6; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 14.5px; line-height: 1.55; }
 .wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 48px; display: grid; gap: 20px; }
 h1, h2 { font-family: var(--font-display); font-weight: 400; margin: 0; text-wrap: balance; line-height: 1.2; }
-h1 { font-size: clamp(26px, 4.5vw, 38px); }
+h1 { font-size: clamp(26px, 4.5vw, 38px); color: var(--accent); }
+h1::after { content: ""; display: block; width: 48px; height: 4px; margin-top: 10px; border-radius: 2px; background: var(--point); }
+body { border-top: 6px solid var(--accent); }
 h2 { font-size: 19px; }
 .num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
 button { font: inherit; cursor: pointer; }
