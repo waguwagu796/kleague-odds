@@ -135,8 +135,10 @@ function makeCtx(doc, P, opt) {
     regFix = later.filter(r => !r[6] && (!split || r[1] <= split.after)).map(r => [ix[r[2]], ix[r[3]]]);
     finFix = [];
   } else {
-    regFix = (doc.fixtures || []).filter(f => !f[4]).map(f => [ix[f[2]], ix[f[3]]]);
-    finFix = (doc.fixtures || []).filter(f => f[4]).map(f => [ix[f[2]], ix[f[3]]]);
+    // 일정 행: [홈, 원정, 경기 키, 고정 결과(-1 = 시뮬레이션), 추적 번호(-1 = 추적 안 함)]
+    const row = f => [ix[f[2]], ix[f[3]], f[0] + "|" + f[2] + "|" + f[3], -1, -1];
+    regFix = (doc.fixtures || []).filter(f => !f[4]).map(row);
+    finFix = (doc.fixtures || []).filter(f => f[4]).map(row);
   }
   const asOf = opt.cutoff || doc.asOf;
   const model = fitModel(teams, known, asOf, P, opt.cutoff ? [] : doc.injuries);
@@ -186,16 +188,27 @@ function sortIdx(list, n, pts, gf, ga, w, h2h, rnd) {
   return out;
 }
 
-function simOnce(c, rnd) {
+// 0 = 홈 승, 1 = 무승부, 2 = 원정 승
+const outcomeOf = (x, y) => x > y ? 0 : x === y ? 1 : 2;
+
+// outBuf가 있으면 추적 중인 경기의 결과를 그 자리에 적는다
+function simOnce(c, rnd, outBuf) {
   const n = c.n;
   const pts = c.pts.slice(), gf = c.gf.slice(), ga = c.ga.slice(), w = c.w.slice(), h2h = c.h2h.slice();
   const att = new Float64Array(n), def = new Float64Array(n);
   for (let i = 0; i < n; i++) { att[i] = c.att[i] * Math.exp(c.seA[i] * gauss(rnd)); def[i] = c.def[i] * Math.exp(c.seD[i] * gauss(rnd)); }
-  const play = (h, a) => {
-    const [x, y] = sampleScore(c.mu * c.home * att[h] * def[a], c.mu * c.away * att[a] * def[h], c.rho, rnd);
+  const play = (h, a, forced, ti) => {
+    const l = c.mu * c.home * att[h] * def[a], m = c.mu * c.away * att[a] * def[h];
+    let [x, y] = sampleScore(l, m, c.rho, rnd);
+    // 결과를 정해 둔 경기: 그 결과가 나올 때까지 점수를 다시 뽑는다(점수 분포는 그 결과 안에서 자연스럽게 유지)
+    if (forced >= 0) for (let k = 0; outcomeOf(x, y) !== forced; k++) {
+      if (k > 500) { x = forced === 0 ? 1 : 0; y = forced === 2 ? 1 : 0; break; }
+      [x, y] = sampleScore(l, m, c.rho, rnd);
+    }
+    if (ti >= 0 && outBuf) outBuf[ti] = outcomeOf(x, y);
     applyRes(h, a, x, y, n, pts, gf, ga, w, h2h);
   };
-  for (const f of c.regFix) play(f[0], f[1]);
+  for (const f of c.regFix) play(f[0], f[1], f[3] ?? -1, f[4] ?? -1);
   const all = [...Array(n).keys()];
   let order;
   if (c.split && !c.groupA) {
@@ -206,11 +219,11 @@ function simOnce(c, rnd) {
     for (const g of [gA, gB]) for (let i = 0; i < g.length; i++) for (let j = i + 1; j < g.length; j++) {
       let h = g[i], a = g[j];
       if (hc[a] < hc[h] || (hc[a] === hc[h] && rnd() < 0.5)) { h = g[j]; a = g[i]; }
-      hc[h]++; play(h, a);
+      hc[h]++; play(h, a, -1, -1);
     }
     order = sortIdx(gA, n, pts, gf, ga, w, h2h, rnd).concat(sortIdx(gB, n, pts, gf, ga, w, h2h, rnd));
   } else if (c.split && c.groupA) {
-    for (const f of c.finFix) play(f[0], f[1]);
+    for (const f of c.finFix) play(f[0], f[1], f[3] ?? -1, f[4] ?? -1);
     const gA = all.filter(i => c.groupA.has(i)), gB = all.filter(i => !c.groupA.has(i));
     order = sortIdx(gA, n, pts, gf, ga, w, h2h, rnd).concat(sortIdx(gB, n, pts, gf, ga, w, h2h, rnd));
   } else {
@@ -220,33 +233,74 @@ function simOnce(c, rnd) {
 }
 
 /* ---------- 현재 시즌: 두 리그를 함께 시뮬레이션 ---------- */
-function simulateCurrent(d1, d2, N, seed, onProgress) {
+// opts.forced = { k1: { 경기키: 0|1|2 }, k2: {...} }: 결과를 정해 두고 시뮬레이션 ("만약에")
+// opts.track = { k1: [경기키...], k2: [...] }: 그 경기 결과별로 팀 확률을 따로 센다 (빅매치)
+const ZONE_KEYS = { k1: ["champ", "acle", "finalA", "po"], k2: ["champ", "auto", "top6", "promo"] };
+function prepFix(c, forced, track) {
+  const ti = {};
+  (track || []).forEach((k, i) => ti[k] = i);
+  for (const f of c.regFix.concat(c.finFix)) {
+    f[3] = forced && forced[f[2]] != null ? forced[f[2]] : -1;
+    f[4] = ti[f[2]] ?? -1;
+  }
+}
+function simulateCurrent(d1, d2, N, seed, onProgress, opts) {
+  opts = opts || {};
   const P = PARAMS, rnd = mulberry32(seed);
   const c1 = makeCtx(d1, P), c2 = makeCtx(d2, P);
+  const tr1 = (opts.track && opts.track.k1) || [], tr2 = (opts.track && opts.track.k2) || [];
+  prepFix(c1, opts.forced && opts.forced.k1, tr1);
+  prepFix(c2, opts.forced && opts.forced.k2, tr2);
+  const ob1 = new Int8Array(tr1.length), ob2 = new Int8Array(tr2.length);
+  const hit1 = new Uint8Array(c1.n * 4), hit2 = new Uint8Array(c2.n * 4);
+  const T1 = { n: new Float64Array(tr1.length * 3), z: new Float64Array(tr1.length * 3 * c1.n * 4) };
+  const T2 = { n: new Float64Array(tr2.length * 3), z: new Float64Array(tr2.length * 3 * c2.n * 4) };
+  const tally = (T, ob, hit) => {
+    const m = hit.length;
+    for (let j = 0; j < ob.length; j++) {
+      const o = ob[j];
+      if (o < 0) continue;
+      T.n[j * 3 + o]++;
+      const base = (j * 3 + o) * m;
+      for (let i = 0; i < m; i++) if (hit[i]) T.z[base + i]++;
+    }
+  };
   const z = n => ({ posDist: new Float64Array(n * n), ptsSum: new Float64Array(n) });
   const o1 = Object.assign(z(c1.n), { champ: new Float64Array(c1.n), acle: new Float64Array(c1.n), finalA: new Float64Array(c1.n), po: new Float64Array(c1.n), relegated: new Float64Array(c1.n) });
   const o2 = Object.assign(z(c2.n), { champ: new Float64Array(c2.n), auto: new Float64Array(c2.n), top6: new Float64Array(c2.n), promo: new Float64Array(c2.n) });
   const muX = Math.sqrt(c1.mu * c2.mu), rhoX = (c1.rho + c2.rho) / 2;
   for (let s = 0; s < N; s++) {
-    const s1 = simOnce(c1, rnd), s2 = simOnce(c2, rnd);
-    s1.order.forEach((t, i) => { o1.posDist[t * c1.n + i]++; o1.ptsSum[t] += s1.pts[t]; if (i === 0) o1.champ[t]++; if (i < 2) o1.acle[t]++; if (i < 6) o1.finalA[t]++; });
-    s2.order.forEach((t, i) => { o2.posDist[t * c2.n + i]++; o2.ptsSum[t] += s2.pts[t]; if (i === 0) o2.champ[t]++; if (i < 2) { o2.auto[t]++; o2.promo[t]++; } if (i < 6) o2.top6[t]++; });
+    ob1.fill(-1); ob2.fill(-1); hit1.fill(0); hit2.fill(0);
+    const s1 = simOnce(c1, rnd, ob1), s2 = simOnce(c2, rnd, ob2);
+    s1.order.forEach((t, i) => {
+      o1.posDist[t * c1.n + i]++; o1.ptsSum[t] += s1.pts[t];
+      if (i === 0) { o1.champ[t]++; hit1[t * 4] = 1; }
+      if (i < 2) { o1.acle[t]++; hit1[t * 4 + 1] = 1; }
+      if (i < 6) { o1.finalA[t]++; hit1[t * 4 + 2] = 1; }
+    });
+    s2.order.forEach((t, i) => {
+      o2.posDist[t * c2.n + i]++; o2.ptsSum[t] += s2.pts[t];
+      if (i === 0) { o2.champ[t]++; hit2[t * 4] = 1; }
+      if (i < 2) { o2.auto[t]++; o2.promo[t]++; hit2[t * 4 + 1] = 1; hit2[t * 4 + 3] = 1; }
+      if (i < 6) { o2.top6[t]++; hit2[t * 4 + 2] = 1; }
+    });
     // K리그2 플레이오프: 단판, 상위 팀 홈, 무승부면 상위 팀
     const tie = (hi, lo) => { const [a, b] = sampleScore(c2.mu * c2.home * s2.att[hi] * s2.def[lo], c2.mu * c2.away * s2.att[lo] * s2.def[hi], c2.rho, rnd); return a >= b ? hi : lo; };
     const sd = s2.order;
     const w1 = tie(sd[2], sd[5]), w2 = tie(sd[3], sd[4]);
     const hi = sd.indexOf(w1) < sd.indexOf(w2) ? w1 : w2, lo = hi === w1 ? w2 : w1;
     const champ = tie(hi, lo), runner = champ === hi ? lo : hi;
-    o2.promo[champ]++;
+    o2.promo[champ]++; hit2[champ * 4 + 3] = 1;
     // 승강 플레이오프: K리그1 12위(예외 팀 제외) vs K리그2 PO 준우승, 2경기 합산
     const last = s1.order[c1.n - 1];
     if (last !== c1.noPlayoff) {
-      o1.po[last]++;
+      o1.po[last]++; hit1[last * 4 + 3] = 1;
       const [a1, b1] = sampleScore(muX * c2.home * s2.att[runner] * s1.def[last] * P.crossLeague, muX * c2.away * s1.att[last] * s2.def[runner], rhoX, rnd);
       const [a2, b2] = sampleScore(muX * c1.home * s1.att[last] * s2.def[runner], muX * c1.away * s2.att[runner] * s1.def[last] * P.crossLeague, rhoX, rnd);
       const k2g = a1 + b2, k1g = b1 + a2;
-      if (k2g > k1g || (k2g === k1g && rnd() < P.crossTieK2)) { o2.promo[runner]++; o1.relegated[last]++; }
+      if (k2g > k1g || (k2g === k1g && rnd() < P.crossTieK2)) { o2.promo[runner]++; hit2[runner * 4 + 3] = 1; o1.relegated[last]++; }
     }
+    tally(T1, ob1, hit1); tally(T2, ob2, hit2);
     if (onProgress && (s + 1) % 2000 === 0) onProgress(s + 1);
   }
   const pack = (c, o, keys) => {
@@ -257,11 +311,21 @@ function simulateCurrent(d1, d2, N, seed, onProgress) {
     });
     return out;
   };
+  // 추적 경기: 결과별 횟수 n[홈승, 무, 원정승]과, 그 결과일 때 팀별 구간 달성 횟수 z[팀][구간] = [홈승, 무, 원정승]
+  const packTrack = (c, T, tr, keys) => tr.map((key, j) => {
+    const zz = {};
+    c.teams.forEach((t, i) => {
+      zz[t] = {};
+      keys.forEach((k, q) => zz[t][k] = [0, 1, 2].map(o => T.z[(j * 3 + o) * c.n * 4 + i * 4 + q]));
+    });
+    return { key, n: [0, 1, 2].map(o => T.n[j * 3 + o]), z: zz };
+  });
   return {
     N, seed,
     k1: pack(c1, o1, ["champ", "acle", "finalA", "po", "relegated"]),
     k2: pack(c2, o2, ["champ", "auto", "top6", "promo"]),
     model: { k1: modelInfo(c1), k2: modelInfo(c2) },
+    track: { k1: packTrack(c1, T1, tr1, ZONE_KEYS.k1), k2: packTrack(c2, T2, tr2, ZONE_KEYS.k2) },
   };
 }
 function modelInfo(c) {
@@ -342,7 +406,7 @@ if (typeof self !== "undefined" && typeof window === "undefined") {
     const m = e.data;
     try {
       if (m.type === "current") {
-        const r = simulateCurrent(m.d1, m.d2, m.N, m.seed, done => self.postMessage({ type: "progress", id: m.id, done }));
+        const r = simulateCurrent(m.d1, m.d2, m.N, m.seed, done => self.postMessage({ type: "progress", id: m.id, done }), m.opts);
         self.postMessage({ type: "current", id: m.id, result: r });
       } else if (m.type === "backtest") {
         const matches = evalMatches(m.docs, PARAMS);
