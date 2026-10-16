@@ -154,6 +154,8 @@ tr.detail td { white-space: normal; background: var(--bg); padding: 16px; }
 .ctip .trow span { flex: 1; }
 .ctip .trow em { font-style: normal; font-family: var(--font-data); font-weight: 700; }
 /* 추이 차트 팀 선택 칩: 선택되면 그래프 선 색과 같은 색 점·테두리를 보여준다 */
+.trend-range { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+.trend-range select { max-width: 100%; min-height: 36px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--fg); font: inherit; }
 .trend-teams { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .trend-teams .tchip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: 3px 10px; font-size: 12.5px; font-weight: 500; }
 .trend-teams .tchip.ghost { border-radius: 8px; }
@@ -428,6 +430,10 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
     <div class="panel-head">
       <h2>확률 추이</h2>
       <div class="tabs small" role="group" aria-label="추이 지표" id="metricTabs"></div>
+    </div>
+    <div class="trend-range">
+      <label for="trendStartRound">시작 라운드</label>
+      <select id="trendStartRound" aria-label="확률 추이 시작 라운드"></select>
     </div>
     <div class="trend-teams" id="trendTeams" role="group" aria-label="추이에 표시할 팀"></div>
     <div id="chart"></div>
@@ -930,6 +936,7 @@ const PICKS = { k1: {}, k2: {} };
 const TREND_MAX = 6;                       // 팔레트(--s1~--s6)가 6색이라 최대 6팀
 const TSEL = { k1: null, k2: null };       // 리그별 직접 선택 (이 브라우저에만 저장)
 const AUTO_PICK = { k1: [], k2: [] };      // 자동 상태에서 지금 그려지는 팀 (처음 누를 때 시작점으로 씀)
+const TREND_START = { k1: 1, k2: 1 };      // 확률 추이 시작 라운드(리그별)
 let trendFull = false;                     // 6팀이 이미 찼는데 더 누르면 안내 문구를 한 번 보여주는 표시
 try {
   ["k1", "k2"].forEach(lg => {
@@ -1507,7 +1514,18 @@ function renderChart() {
   const zones = ZONES[league];
   if (!zones.some(z => z.key === metric)) metric = "champ";
   $("metricTabs").innerHTML = zones.map(z => `<button type="button" data-metric="${z.key}" aria-pressed="${z.key === metric}">${z.label.replace(/ \(.*\)/, "")}</button>`).join("");
-  const pts = roundPoints(league).filter(p => Object.values(p.h[league]).some(v => v[metric] != null));
+  const allPts = roundPoints(league).filter(p => Object.values(p.h[league]).some(v => v[metric] != null));
+  const startSelect = $("trendStartRound");
+  const rounds = [...new Set(allPts.map(p => p.rd))].sort((a, b) => a - b);
+  if (rounds.length) {
+    if (!rounds.includes(TREND_START[league])) TREND_START[league] = rounds[0];
+    startSelect.innerHTML = rounds.map(rd => `<option value="${rd}"${rd === TREND_START[league] ? " selected" : ""}>${rd}라운드부터</option>`).join("");
+    startSelect.disabled = false;
+  } else {
+    startSelect.innerHTML = `<option value="1">1라운드부터</option>`;
+    startSelect.disabled = true;
+  }
+  const pts = allPts.filter(p => p.rd >= TREND_START[league]);
   if (!pts.length) { $("trendTeams").innerHTML = ""; $("chart").innerHTML = `<p>아직 저장된 기록이 없어요. ${STANDALONE ? "매일 자동 갱신 때 그날의 확률이 기록되고" : "매일 데이터가 갱신된 뒤 이 페이지를 열면 그날의 확률이 기록되고"}, 라운드가 끝날 때마다 추이에 점이 하나씩 생깁니다.</p>`; return; }
   // 한 번이라도 1% 이상이었던 팀 중 최근 값이 높은 6팀
   const teams = {};
@@ -1775,6 +1793,11 @@ document.addEventListener("click", e => {
   else if (b.id === "whatifRun") runWhatif();
   else if (b.id === "whatifClear") { PICKS[league] = {}; if (WHATIF && WHATIF.lg === league) WHATIF = null; renderRound(); }
   else if (b.dataset.team) { openTeam = openTeam === b.dataset.team ? null : b.dataset.team; render(); }
+});
+$("trendStartRound").addEventListener("change", e => {
+  const value = Number(e.target.value);
+  if (Number.isFinite(value) && value > 0) TREND_START[league] = value;
+  renderChart();
 });
 $("myTeam").addEventListener("change", e => {
   MY[league] = e.target.value;
