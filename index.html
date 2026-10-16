@@ -370,8 +370,8 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
     box-shadow: 0 2px 8px rgba(15, 23, 48, .18);
   }
   .controls { width: 100%; }
-  .controls .tabs { flex: 1; }
-  .controls .tabs button { flex: 1; }
+  .controls .tabs { flex: 1 1 100%; width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+  .controls .tabs button { flex: 1; min-width: 0; padding: 10px 8px; white-space: nowrap; }
   .summary { grid-template-columns: 1fr 1fr; gap: 10px; }
   .sum { padding: 12px; }
   .sum b { font-size: 19px; }
