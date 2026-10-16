@@ -133,6 +133,13 @@ tr.detail td { white-space: normal; background: var(--bg); padding: 16px; }
 .progress b { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
 
 .chart svg { width: 100%; height: auto; display: block; }
+/* 추이 차트 팀 선택 칩: 선택되면 그래프 선 색과 같은 색 점·테두리를 보여준다 */
+.trend-teams { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.trend-teams .tchip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: 3px 10px; font-size: 12.5px; font-weight: 500; }
+.trend-teams .tchip i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--muted); box-sizing: border-box; }
+.trend-teams .tchip[aria-pressed="true"] { border-color: var(--c); font-weight: 700; }
+.trend-teams .tchip[aria-pressed="true"] i { background: var(--c); border-color: var(--c); }
+.trend-teams .tmeta { font-size: 12.5px; color: var(--muted); margin-left: 4px; }
 .chart .grid line { stroke: var(--line); }
 .chart text { fill: var(--muted); font-size: 11px; font-family: var(--font-data); }
 .chart text.lab { font-family: var(--font-body); font-size: 12px; font-weight: 700; }
@@ -320,6 +327,7 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
       <h2>확률 추이</h2>
       <div class="tabs small" role="group" aria-label="추이 지표" id="metricTabs"></div>
     </div>
+    <div class="trend-teams" id="trendTeams" role="group" aria-label="추이에 표시할 팀"></div>
     <div id="chart"></div>
   </section>
 
@@ -811,6 +819,38 @@ try { const v = localStorage.getItem("kl-odds-league"); if (v === "k1" || v === 
 const MY = { k1: "", k2: "" };
 try { MY.k1 = localStorage.getItem("kl-odds-my-k1") || ""; MY.k2 = localStorage.getItem("kl-odds-my-k2") || ""; } catch {}
 const PICKS = { k1: {}, k2: {} };
+// 추이 차트에 그릴 팀 선택. null = 자동(확률 높은 팀), 배열 = 직접 고른 팀(칸 번호가 곧 색 번호라 팀을 빼도 다른 팀 색이 안 바뀐다)
+const TREND_MAX = 6;                       // 팔레트(--s1~--s6)가 6색이라 최대 6팀
+const TSEL = { k1: null, k2: null };       // 리그별 직접 선택 (이 브라우저에만 저장)
+const AUTO_PICK = { k1: [], k2: [] };      // 자동 상태에서 지금 그려지는 팀 (처음 누를 때 시작점으로 씀)
+let trendFull = false;                     // 6팀이 이미 찼는데 더 누르면 안내 문구를 한 번 보여주는 표시
+try {
+  ["k1", "k2"].forEach(lg => {
+    const v = JSON.parse(localStorage.getItem("kl-odds-trend-" + lg) || "null");
+    // 저장값이 배열이면 길이를 6칸으로 맞추고, 문자열이 아닌 칸은 비운다
+    if (Array.isArray(v)) TSEL[lg] = Array.from({ length: TREND_MAX }, (_, i) => typeof v[i] === "string" ? v[i] : null);
+  });
+} catch {}
+// 현재 리그의 선택을 저장한다 (자동이면 저장값을 지운다)
+function saveTrendSel() {
+  try {
+    const key = "kl-odds-trend-" + league;
+    if (TSEL[league]) localStorage.setItem(key, JSON.stringify(TSEL[league])); else localStorage.removeItem(key);
+  } catch {}
+}
+// 팀 칩을 눌렀을 때: 선택/해제를 바꾼다
+function toggleTrendTeam(t) {
+  // 자동 상태에서 처음 누르면, 지금 그려진 팀들을 시작점으로 삼아 직접 선택으로 바꾼다
+  if (!TSEL[league]) TSEL[league] = Array.from({ length: TREND_MAX }, (_, i) => AUTO_PICK[league][i] ?? null);
+  const slots = TSEL[league], at = slots.indexOf(t);
+  if (at >= 0) slots[at] = null;                       // 이미 선택된 팀이면 해제
+  else {
+    const free = slots.indexOf(null);                  // 비어 있는 첫 칸(= 안 쓰는 색)
+    if (free < 0) trendFull = true; else slots[free] = t;
+  }
+  saveTrendSel();
+  renderChart();
+}
 let WHATIF = null, whatifRunning = false;
 const ZSHORT = { k1: { champ: "우승", acle: "ACLE권", finalA: "파이널A", po: "승강 PO" }, k2: { champ: "우승", auto: "자동 승격", top6: "PO권", promo: "최종 승격" } };
 const fkey = f => f[0] + "|" + f[2] + "|" + f[3];
@@ -1330,15 +1370,36 @@ function renderChart() {
   if (!zones.some(z => z.key === metric)) metric = "champ";
   $("metricTabs").innerHTML = zones.map(z => `<button type="button" data-metric="${z.key}" aria-pressed="${z.key === metric}">${z.label.replace(/ \(.*\)/, "")}</button>`).join("");
   const pts = roundPoints(league).filter(p => Object.values(p.h[league]).some(v => v[metric] != null));
-  if (!pts.length) { $("chart").innerHTML = `<p>아직 저장된 기록이 없어요. ${STANDALONE ? "매일 자동 갱신 때 그날의 확률이 기록되고" : "매일 데이터가 갱신된 뒤 이 페이지를 열면 그날의 확률이 기록되고"}, 라운드가 끝날 때마다 추이에 점이 하나씩 생깁니다.</p>`; return; }
+  if (!pts.length) { $("trendTeams").innerHTML = ""; $("chart").innerHTML = `<p>아직 저장된 기록이 없어요. ${STANDALONE ? "매일 자동 갱신 때 그날의 확률이 기록되고" : "매일 데이터가 갱신된 뒤 이 페이지를 열면 그날의 확률이 기록되고"}, 라운드가 끝날 때마다 추이에 점이 하나씩 생깁니다.</p>`; return; }
   // 한 번이라도 1% 이상이었던 팀 중 최근 값이 높은 6팀
   const teams = {};
   pts.forEach(p => Object.entries(p.h[league]).forEach(([t, v]) => { if (v[metric] != null) teams[t] = Math.max(teams[t] || 0, v[metric]); }));
   const lastVals = pts.at(-1).h[league];
-  const pick = Object.keys(teams).filter(t => teams[t] >= 1).sort((a, b) => (lastVals[b]?.[metric] || 0) - (lastVals[a]?.[metric] || 0)).slice(0, 6);
-  // 내 팀은 확률이 낮아도 항상 그린다
+  const allTeams = (DATA[league]?.standings || []).slice().sort((a, b) => a.rank - b.rank).map(r => r.team); // 칩은 현재 순위 순
   const me = MY[league];
-  if (me && teams[me] != null && !pick.includes(me)) { if (pick.length >= 6) pick.pop(); pick.push(me); }
+  const manual = !!TSEL[league];
+  let pick;   // 칸 번호 = 색 번호. 직접 선택에서는 빈 칸(null)이 있을 수 있다
+  if (manual) {
+    // 직접 고른 팀: 이번 리그에 없는 팀 이름(저장값이 오래된 경우)은 걷어낸다
+    pick = TSEL[league].map(t => allTeams.includes(t) ? t : null);
+  } else {
+    // 자동: 위에서 구한 상위 6팀 + 내 팀
+    pick = Object.keys(teams).filter(t => teams[t] >= 1).sort((a, b) => (lastVals[b]?.[metric] || 0) - (lastVals[a]?.[metric] || 0)).slice(0, 6);
+    // 내 팀은 확률이 낮아도 항상 그린다
+    if (me && teams[me] != null && !pick.includes(me)) { if (pick.length >= 6) pick.pop(); pick.push(me); }
+    AUTO_PICK[league] = pick.slice();
+  }
+  // 팀 선택 칩: 선택된 팀은 그래프 선과 같은 색 점을 단다
+  const nSel = pick.filter(Boolean).length;
+  $("trendTeams").innerHTML = allTeams.map(t => {
+    const slot = pick.indexOf(t), on = slot >= 0;
+    return `<button type="button" class="tchip" data-trend-team="${esc(t)}" aria-pressed="${on}"${on ? ` style="--c:var(--s${slot + 1})"` : ""}><i></i>${t === me ? "★ " : ""}${esc(t)}</button>`;
+  }).join("")
+    + (manual ? `<button type="button" class="ghost tchip" id="trendAuto">자동 선택으로</button>` : "")
+    + `<span class="tmeta">${trendFull ? `최대 ${TREND_MAX}팀까지 고를 수 있어요. 먼저 하나를 해제해 주세요.` : manual ? `${nSel}/${TREND_MAX}팀 선택` : "자동: 확률 높은 팀과 내 팀 · 눌러서 직접 고르기"}</span>`;
+  trendFull = false;
+  // 직접 선택에서 전부 해제했으면 그래프 대신 안내를 보여준다
+  if (!nSel) { $("chart").innerHTML = `<p>그래프에 그릴 팀을 위에서 골라 주세요.</p>`; return; }
   // 화면 폭에 맞춰 그려서 휴대폰에서도 글자가 작아지지 않게 한다. 라운드는 같은 간격으로 놓는다
   const W = Math.max(340, Math.min(720, $("chart").clientWidth || 720)), L = 40, Rr = W < 500 ? 100 : 110, T = 12;
   const x = i => pts.length === 1 ? (L + (W - Rr)) / 2 : L + i / (pts.length - 1) * (W - Rr - L);
@@ -1362,6 +1423,7 @@ function renderChart() {
   });
   const labels = [];
   pick.forEach((t, i) => {
+    if (!t) return;   // 직접 선택에서 비어 있는 칸
     const c = `var(--s${i + 1})`;
     const arr = pts.map((p, j) => ({ j, p, v: p.h[league][t]?.[metric] })).filter(a => a.v != null)
       .map(a => ({ xy: [x(a.j), y(a.v)], bf: !!a.p.h.backfill, prog: a.p.progress }));
@@ -1383,6 +1445,9 @@ function renderChart() {
   labels.forEach(l => { s += `<text class="lab" x="${W - Rr + 8}" y="${l.y + 4}" style="fill:${l.c}">${l.t === me ? "★ " : ""}${esc(l.t)} ${l.v != null ? fmtP(l.v) : ""}</text>`; });
   s += `</svg>`;
   const notes = ["라운드가 끝날 때마다 점이 하나씩 생기고, 아래 날짜는 그 라운드의 마지막 경기일입니다. 연기 경기는 실제로 치른 날 이후 점에 반영됩니다."];
+  // 직접 고른 팀 중 이 지표 값이 한 번도 기록되지 않은 팀(예: 해당 없는 지표)은 선이 없으므로 알려 준다
+  const noData = pick.filter(t => t && teams[t] == null);
+  if (noData.length) notes.push(`${noData.join(", ")}은(는) 이 지표의 기록이 없어 선이 그려지지 않습니다.`);
   if (league === "k2") notes.push("K리그2는 17팀이라 라운드마다 한 팀이 쉽니다. 쉬는 팀도 다른 팀 결과에 따라 확률이 바뀝니다.");
   if (pts.some(p => p.progress)) notes.push("맨 끝 빈 점(진행 중)은 아직 끝나지 않은 라운드의 현재 값입니다.");
   if (pts.some(p => p.h.backfill)) notes.push("점선과 빈 점은 지난 경기 결과만으로 그 시점을 다시 계산한 값이고(부상 정보 제외), 실선과 채운 점은 그날 실제로 기록한 값입니다.");
@@ -1505,6 +1570,8 @@ document.addEventListener("click", e => {
   if (b.id === "tabK1" || b.id === "tabK2") { league = b.id === "tabK1" ? "k1" : "k2"; openTeam = null; try { localStorage.setItem("kl-odds-league", league); } catch {} render(); }
   else if (b.id === "rerun") { customSeed = true; runSim((Math.random() * 2 ** 32) >>> 0); }
   else if (b.dataset.metric) { metric = b.dataset.metric; renderChart(); }
+  else if (b.id === "trendAuto") { TSEL[league] = null; saveTrendSel(); renderChart(); }   // 자동 선택으로 되돌리기
+  else if (b.dataset.trendTeam != null) toggleTrendTeam(b.dataset.trendTeam);              // 팀 칩 선택/해제
   else if (b.dataset.pick != null) {
     const k = b.dataset.key, v = Number(b.dataset.pick), P = PICKS[league];
     if (P[k] === v) delete P[k]; else P[k] = v;
