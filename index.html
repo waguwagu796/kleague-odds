@@ -342,6 +342,34 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
   .srow .sbar { grid-column: 2 / -1; grid-row: 2; }
   .srow .opps { grid-column: 2 / -1; }
 }
+
+/* 최종 순위 분포: 모바일에서는 팀별 접이식 카드로 전환 */
+.dist-mobile { display: none; }
+.dist-mobile-hint { color: var(--muted); font-size: 12.5px; margin: 0 0 10px; }
+.dist-team { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); margin-bottom: 8px; overflow: hidden; }
+.dist-team[open] { border-color: color-mix(in srgb, var(--bar) 55%, var(--line)); }
+.dist-team > summary { display: flex; align-items: center; gap: 8px; padding: 12px; cursor: pointer; list-style: none; min-height: 44px; }
+.dist-team > summary::-webkit-details-marker { display: none; }
+.dist-team-name { display: flex; flex-direction: column; gap: 3px; min-width: 0; font-weight: 700; }
+.dist-team-name small, .dist-team-mode small { font-size: 11.5px; font-weight: 400; color: var(--muted); }
+.dist-team-mode { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; margin-left: auto; text-align: right; white-space: nowrap; font-size: 12.5px; }
+.dist-chevron { color: var(--muted); font-size: 19px; margin-left: 2px; transition: transform .15s; }
+.dist-team[open] .dist-chevron { transform: rotate(180deg); }
+.dist-detail { border-top: 1px solid var(--line); padding: 10px 12px 12px; }
+.dist-detail-title { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; font-weight: 700; margin: 0 0 10px; }
+.dist-detail-title span { font-size: 11px; color: var(--muted); font-weight: 400; text-align: right; }
+.dist-prob-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.dist-prob { display: grid; grid-template-columns: 30px 1fr; gap: 3px 7px; align-items: center; padding: 7px; border-radius: 7px; background: var(--bg); min-width: 0; }
+.dist-prob > span { color: var(--muted); font-size: 11.5px; }
+.dist-prob > b { font-size: 12.5px; text-align: right; font-variant-numeric: tabular-nums; }
+.dist-prob > i { grid-column: 1 / -1; height: 4px; background: var(--bar-bg); border-radius: 99px; overflow: hidden; }
+.dist-prob > i > em { display: block; height: 100%; background: var(--bar); border-radius: inherit; }
+.dist-prob.current { outline: 1px solid var(--accent); background: color-mix(in srgb, var(--bar) 8%, var(--surface)); }
+@media (max-width: 760px) {
+  .dist-desktop, .dist-desktop-note { display: none; }
+  .dist-mobile { display: block; }
+}
+
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
@@ -1459,20 +1487,23 @@ function renderDist() {
   const d = DATA[league], res = SIM[league], n = d.standings.length, me = MY[league];
   const st = d.standings.slice().sort((a, b) => a.rank - b.rank);
   const sep = i => i === 2 || i === 6 || (league === "k1" && i === n - 1) ? " sep" : "";
-  const cell = p => p >= 99.5 ? ">99" : p >= 1 ? Math.round(p) : p >= 0.5 ? "<1" : "";
-  $("dist").innerHTML = `<div class="tablebox"><table class="heat"><thead><tr><th class="tn">팀</th>${st.map((_, i) => `<th class="${sep(i)}">${i + 1}위</th>`).join("")}<th>가장 유력</th></tr></thead><tbody>
-    ${st.map(t => {
-      const ps = res[t.team].posDist.map(v => v / SIM.N * 100);
-      const mode = ps.indexOf(Math.max(...ps));
-      return `<tr${t.team === me ? ' class="mine"' : ""}><td class="tn">${t.team === me ? "★ " : ""}${esc(t.team)}</td>${ps.map((p, i) => {
+  const cell = p => p >= 99.5 ? ">99" : p >= 1 ? Math.round(p) : p >= 0.5 ? "<1" : "–";
+  const rows = st.map(t => {
+    const ps = res[t.team].posDist.map(v => v / SIM.N * 100);
+    const mode = ps.indexOf(Math.max(...ps));
+    const probs = ps.map((p, i) => `<div class="dist-prob${i === t.rank - 1 ? " current" : ""}"><span>${i + 1}위</span><b>${p.toFixed(1)}%</b><i><em style="width:${Math.max(0, Math.min(100, p))}%"></em></i></div>`).join("");
+    return {
+      desktop: `<tr${t.team === me ? ' class="mine"' : ""}><td class="tn">${t.team === me ? "★ " : ""}${esc(t.team)}</td>${ps.map((p, i) => {
         const a = p > 0 ? Math.min(1, Math.sqrt(p / 100)) : 0;
         return `<td class="h${sep(i)}${i === t.rank - 1 ? " cur" : ""}" style="background:color-mix(in srgb, var(--bar) ${(a * 100).toFixed(0)}%, transparent);${a > 0.55 ? "color:#fff" : ""}" title="${esc(t.team)} ${i + 1}위 ${p.toFixed(1)}%">${cell(p)}</td>`;
-      }).join("")}<td class="mode">${mode + 1}위 <small>${fmtP(ps[mode])}</small></td></tr>`;
-    }).join("")}
-  </tbody></table></div>
-  <p>칸이 진할수록 그 순위로 끝날 확률이 높습니다. 테두리 칸은 현재 순위, 굵은 세로선은 ${league === "k1" ? "ACLE권(2위)·파이널A(6위)·승강 PO(12위)" : "자동 승격(2위)·PO권(6위)"} 경계입니다. 0.5% 미만은 비워 두었어요.</p>`;
+      }).join("")}<td class="mode">${mode + 1}위 <small>${fmtP(ps[mode])}</small></td></tr>`,
+      mobile: `<details class="dist-team"${t.team === me ? " open" : ""}><summary><span class="dist-team-name">${t.team === me ? "★ " : ""}${esc(t.team)}<small>현재 ${t.rank}위</small></span><span class="dist-team-mode"><b>최빈 순위 ${mode + 1}위</b><small>${fmtP(ps[mode])}</small></span><span class="dist-chevron" aria-hidden="true">⌄</span></summary><div class="dist-detail"><p class="dist-detail-title">순위별 확률 <span>현재 순위는 테두리로 표시</span></p><div class="dist-prob-grid">${probs}</div></div></details>`
+    };
+  });
+  $("dist").innerHTML = `<div class="dist-desktop"><div class="tablebox"><table class="heat"><thead><tr><th class="tn">팀</th>${st.map((_, i) => `<th class="${sep(i)}">${i + 1}위</th>`).join("")}<th>가장 유력</th></tr></thead><tbody>${rows.map(r => r.desktop).join("")}</tbody></table></div></div>
+  <div class="dist-mobile"><p class="dist-mobile-hint">팀을 누르면 해당 팀의 전체 순위별 확률을 확인할 수 있습니다.</p>${rows.map(r => r.mobile).join("")}</div>
+  <p class="dist-desktop-note">칸이 진할수록 그 순위로 끝날 확률이 높습니다. 테두리 칸은 현재 순위, 굵은 세로선은 ${league === "k1" ? "ACLE권(2위)·파이널A(6위)·승강 PO(12위)" : "자동 승격(2위)·PO권(6위)"} 경계입니다. 0.5% 미만은 비워 두었어요.</p>`;
 }
-
 /* ---------- 남은 일정 난이도 ---------- */
 // 리그 평균 전력 팀이 이 팀의 남은 일정을 대신 치른다면 경기당 얻을 기대 승점. 낮을수록 어려운 일정
 function renderSched() {
