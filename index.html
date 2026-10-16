@@ -159,7 +159,7 @@ tr.detail td { white-space: normal; background: var(--bg); padding: 16px; }
 .histx { display: flex; gap: 3px; font-family: var(--font-data); font-size: 10.5px; color: var(--muted); }
 .histx span { flex: 1; text-align: center; }
 
-.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 12px 16px; font-size: 12.5px; color: var(--muted); line-height: 1.65; }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
 
@@ -196,8 +196,11 @@ tr.detail td { white-space: normal; background: var(--bg); padding: 16px; }
 
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-width: 0; }
 .panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
-.panel p, .panel li { margin: 0; color: var(--muted); font-size: 13.5px; max-width: 95ch; }
-.panel ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+/* 설명 문구: 페이지마다 자연스럽게 줄바꿈하고 한글 문단의 호흡을 넉넉히 둔다 */
+.page :is(p, li, .meta, .legend span, .cheer-intro, .notice) { white-space: normal; word-break: keep-all; overflow-wrap: anywhere; line-height: 1.75; }
+.panel p, .panel li { margin: 0; color: var(--muted); font-size: 13.5px; max-width: 78ch; line-height: 1.75; }
+.panel p + p { margin-top: 8px; }
+.panel ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
 .panel table { font-size: 13px; }
 .panel table td, .panel table th { padding: 6px 8px; }
 .empty { padding: 40px 20px; text-align: center; color: var(--muted); white-space: normal; }
@@ -394,6 +397,7 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
   .sum { padding: 12px; }
   .sum b { font-size: 19px; }
   .panel { padding: 14px; }
+  .panel-head .meta { max-width: 100%; text-align: left; }
   .sum.mine { grid-column: 1 / -1; }
   .mysel { flex: 1; }
   .mysel select { max-width: none; flex: 1; }
