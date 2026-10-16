@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>:root{color-scheme:light}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
-<body>
+<body class="app">
 <title>K리그 우승·승격 확률</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
-/* Layout: 기준일·리그 전환 → 요약 카드 → 순위별 확률 표(행 펼침) → 확률 추이 차트 → 백테스트 → 계산 방법 */
+/* Layout: 왼쪽 메뉴로 페이지 전환. 공통 헤더(기준일·리그) 아래 순위표·빅매치·분포·난이도·추이·검증·계산 방법 */
 /* 색: K리그 느낌의 남색(메인) + 빨강(포인트), 바탕은 푸른 기가 도는 회색 */
 :root {
   --bg: #f3f5f9;
@@ -48,7 +48,17 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 14.5px; line-height: 1.55; }
-.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 48px; display: grid; gap: 20px; }
+body.app { display: grid; grid-template-columns: 228px minmax(0, 1fr); align-items: start; min-height: 100vh; }
+.lmb { position: sticky; top: 0; height: 100vh; background: var(--surface); border-right: 1px solid var(--line); padding: 22px 12px 24px; display: flex; flex-direction: column; gap: 18px; z-index: 30; overflow: auto; }
+.lmb .brand { font-family: var(--font-display); color: var(--accent); font-size: 20px; padding: 2px 10px 4px; line-height: 1.25; }
+.lmb nav { display: grid; gap: 4px; }
+.lmb a { display: block; padding: 9px 12px; border-radius: 8px; color: var(--fg); text-decoration: none; font-weight: 500; font-size: 13.5px; }
+.lmb a:hover { background: var(--bar-bg); }
+.lmb a[aria-current="page"] { background: var(--accent); color: var(--accent-fg); }
+.nav-toggle { display: none; }
+.nav-scrim { display: none; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 48px; display: grid; gap: 20px; min-width: 0; }
+.page { display: grid; gap: 20px; min-width: 0; }
 h1, h2 { font-family: var(--font-display); font-weight: 400; margin: 0; text-wrap: balance; line-height: 1.2; }
 h1 { font-size: clamp(26px, 4.5vw, 38px); color: var(--accent); }
 h1::after { content: ""; display: block; width: 48px; height: 4px; margin-top: 10px; border-radius: 2px; background: var(--point); }
@@ -146,6 +156,7 @@ tr.detail td { white-space: normal; background: var(--bg); padding: 16px; }
 /* 추이 차트 팀 선택 칩: 선택되면 그래프 선 색과 같은 색 점·테두리를 보여준다 */
 .trend-teams { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .trend-teams .tchip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: 3px 10px; font-size: 12.5px; font-weight: 500; }
+.trend-teams .tchip.ghost { border-radius: 8px; }
 .trend-teams .tchip i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--muted); box-sizing: border-box; }
 .trend-teams .tchip[aria-pressed="true"] { border-color: var(--c); font-weight: 700; }
 .trend-teams .tchip[aria-pressed="true"] i { background: var(--c); border-color: var(--c); }
@@ -249,6 +260,15 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
 .tcard-probs .lab { display: block; font-size: 11.5px; color: var(--muted); margin-bottom: 3px; }
 .tcard-magic { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; }
 .tcard .dgrid { border-top: 1px solid var(--line); padding-top: 12px; }
+@media (max-width: 960px) {
+  body.app { grid-template-columns: minmax(0, 1fr); }
+  .nav-toggle { display: inline-flex; align-items: center; }
+  .lmb { position: fixed; left: 0; top: 0; width: min(280px, 86vw); transform: translateX(-105%); transition: transform .2s ease; box-shadow: none; }
+  body.nav-open { overflow: hidden; }
+  body.nav-open .lmb { transform: none; box-shadow: 8px 0 28px rgba(15, 23, 48, .28); }
+  .nav-scrim { position: fixed; inset: 0; z-index: 25; border: 0; padding: 0; background: rgba(15, 23, 48, .4); cursor: pointer; }
+  body.nav-open .nav-scrim { display: block; }
+}
 @media (max-width: 760px) {
   #mainBox { display: none; }
   .cards { display: grid; }
@@ -274,6 +294,19 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
+<button type="button" class="nav-scrim" id="navScrim" aria-label="메뉴 닫기"></button>
+<aside class="lmb" id="lmb" aria-label="페이지 메뉴">
+  <div class="brand">K리그 확률</div>
+  <nav>
+    <a href="#standings">순위표</a>
+    <a href="#round">라운드 빅매치</a>
+    <a href="#dist">최종 순위 분포</a>
+    <a href="#sched">남은 일정 난이도</a>
+    <a href="#trend">확률 추이</a>
+    <a href="#backtest">이 모델은 얼마나 맞았나</a>
+    <a href="#method">계산 방법</a>
+  </nav>
+</aside>
 <div class="wrap">
   <div class="top">
     <div style="display:grid; gap:6px">
@@ -284,6 +317,7 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
       </div>
     </div>
     <div class="controls">
+      <button type="button" class="ghost nav-toggle" id="navToggle" aria-expanded="false" aria-controls="lmb">메뉴</button>
       <div class="tabs" role="group" aria-label="리그 선택">
         <button type="button" id="tabK1" aria-pressed="true">K리그1</button>
         <button type="button" id="tabK2" aria-pressed="false">K리그2</button>
@@ -295,6 +329,7 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
   <div class="progress" id="progress" hidden><b id="progressBar"></b></div>
 
   <div class="notice" id="notice" hidden></div>
+  <div class="page" id="page-standings">
   <div class="summary" id="summary"></div>
 
   <div class="tablebox" id="mainBox">
@@ -305,7 +340,9 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
   </div>
   <div class="cards" id="cards"><p class="empty">순위와 일정 데이터를 불러오는 중입니다.</p></div>
   <div class="legend" id="legend"></div>
+  </div>
 
+  <div class="page" id="page-round" hidden>
   <section class="panel" id="roundPanel">
     <div class="panel-head">
       <h2 id="roundTitle">이번 라운드 빅매치</h2>
@@ -321,17 +358,23 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
     </div>
     <div id="whatif"></div>
   </section>
+  </div>
 
+  <div class="page" id="page-dist" hidden>
   <section class="panel">
     <div class="panel-head"><h2>최종 순위 분포</h2><span class="meta">시즌을 몇 위로 마칠지, 순위별 확률(%)</span></div>
     <div id="dist"></div>
   </section>
+  </div>
 
+  <div class="page" id="page-sched" hidden>
   <section class="panel">
     <div class="panel-head"><h2>남은 일정 난이도</h2><span class="meta">어려운 일정부터</span></div>
     <div id="sched"></div>
   </section>
+  </div>
 
+  <div class="page" id="page-trend" hidden>
   <section class="panel chart">
     <div class="panel-head">
       <h2>확률 추이</h2>
@@ -340,7 +383,9 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
     <div class="trend-teams" id="trendTeams" role="group" aria-label="추이에 표시할 팀"></div>
     <div id="chart"></div>
   </section>
+  </div>
 
+  <div class="page" id="page-backtest" hidden>
   <section class="panel">
     <div class="panel-head">
       <h2>이 모델은 얼마나 맞았나</h2>
@@ -348,7 +393,9 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
     </div>
     <div id="backtest"><p>지난 시즌 데이터로 검증하는 중입니다.</p></div>
   </section>
+  </div>
 
+  <div class="page" id="page-method" hidden>
   <section class="panel">
     <h2>계산 방법</h2>
     <ul>
@@ -370,6 +417,7 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
       <li>재미로 보는 추정치입니다. 실제 결과와 다를 수 있습니다.</li>
     </ul>
   </section>
+  </div>
 </div>
 
 <script type="text/plain" id="engine-src">
@@ -860,6 +908,37 @@ function toggleTrendTeam(t) {
   }
   saveTrendSel();
   renderChart();
+}
+function clearTrendTeams() {
+  TSEL[league] = Array.from({ length: TREND_MAX }, () => null);
+  saveTrendSel();
+  renderChart();
+}
+const PAGES = ["standings", "round", "dist", "sched", "trend", "backtest", "method"];
+function currentPage() {
+  const id = decodeURIComponent((location.hash || "").replace(/^#/, ""));
+  return PAGES.includes(id) ? id : "standings";
+}
+function closeNav() {
+  document.body.classList.remove("nav-open");
+  const tog = $("navToggle");
+  if (tog) tog.setAttribute("aria-expanded", "false");
+}
+function showPage() {
+  const id = currentPage();
+  PAGES.forEach(p => { const el = $("page-" + p); if (el) el.hidden = p !== id; });
+  document.querySelectorAll("#lmb a[href^='#']").forEach(a => {
+    if (a.getAttribute("href") === "#" + id) a.setAttribute("aria-current", "page");
+    else a.removeAttribute("aria-current");
+  });
+  closeNav();
+  if (id === "trend") requestAnimationFrame(() => renderChart());
+}
+function goPage(id) {
+  if (!PAGES.includes(id)) id = "standings";
+  if ((location.hash || "") !== "#" + id) history.pushState(null, "", "#" + id);
+  showPage();
+  window.scrollTo(0, 0);
 }
 let WHATIF = null, whatifRunning = false;
 const ZSHORT = { k1: { champ: "우승", acle: "ACLE권", finalA: "파이널A", po: "승강 PO" }, k2: { champ: "우승", auto: "자동 승격", top6: "PO권", promo: "최종 승격" } };
@@ -1405,6 +1484,7 @@ function renderChart() {
     const slot = pick.indexOf(t), on = slot >= 0;
     return `<button type="button" class="tchip" data-trend-team="${esc(t)}" aria-pressed="${on}"${on ? ` style="--c:var(--s${slot + 1})"` : ""}><i></i>${t === me ? "★ " : ""}${esc(t)}</button>`;
   }).join("")
+    + (nSel ? `<button type="button" class="ghost tchip" id="trendClear">전체 해제</button>` : "")
     + (manual ? `<button type="button" class="ghost tchip" id="trendAuto">자동 선택으로</button>` : "")
     + `<span class="tmeta">${trendFull ? `최대 ${TREND_MAX}팀까지 고를 수 있어요. 먼저 하나를 해제해 주세요.` : manual ? `${nSel}/${TREND_MAX}팀 선택` : "자동: 확률 높은 팀과 내 팀 · 눌러서 직접 고르기"}</span>`;
   trendFull = false;
@@ -1625,10 +1705,17 @@ async function runBacktest() {
 }
 
 document.addEventListener("click", e => {
+  if (e.target.id === "navScrim") { closeNav(); return; }
   const b = e.target.closest("button, tr.team"); if (!b) return;
-  if (b.id === "tabK1" || b.id === "tabK2") { league = b.id === "tabK1" ? "k1" : "k2"; openTeam = null; try { localStorage.setItem("kl-odds-league", league); } catch {} render(); }
+  if (b.id === "navToggle") {
+    const open = !document.body.classList.contains("nav-open");
+    document.body.classList.toggle("nav-open", open);
+    b.setAttribute("aria-expanded", String(open));
+  }
+  else if (b.id === "tabK1" || b.id === "tabK2") { league = b.id === "tabK1" ? "k1" : "k2"; openTeam = null; try { localStorage.setItem("kl-odds-league", league); } catch {} render(); }
   else if (b.id === "rerun") { customSeed = true; runSim((Math.random() * 2 ** 32) >>> 0); }
   else if (b.dataset.metric) { metric = b.dataset.metric; renderChart(); }
+  else if (b.id === "trendClear") clearTrendTeams();
   else if (b.id === "trendAuto") { TSEL[league] = null; saveTrendSel(); renderChart(); }   // 자동 선택으로 되돌리기
   else if (b.dataset.trendTeam != null) toggleTrendTeam(b.dataset.trendTeam);              // 팀 칩 선택/해제
   else if (b.dataset.pick != null) {
@@ -1647,7 +1734,17 @@ $("myTeam").addEventListener("change", e => {
 });
 let resizeTimer = null;
 window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(renderChart, 150); });
+$("lmb").addEventListener("click", e => {
+  const a = e.target.closest("a[href^='#']");
+  if (!a) return;
+  e.preventDefault();
+  goPage(a.getAttribute("href").slice(1));
+});
+window.addEventListener("hashchange", () => { showPage(); window.scrollTo(0, 0); });
+window.addEventListener("popstate", () => { showPage(); window.scrollTo(0, 0); });
+showPage();
 document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeNav();
   const tr = e.target.closest && e.target.closest("tr.team");
   if (tr && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); tr.click(); }
 });
