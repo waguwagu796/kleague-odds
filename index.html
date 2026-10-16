@@ -274,8 +274,8 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
   .cards { display: grid; }
   h1 { font-size: 26px; }
   .controls { width: 100%; }
-  .controls .tabs { flex: 1; }
-  .controls .tabs button { flex: 1; }
+  .controls .tabs { flex: 0 0 auto; width: 160px; max-width: 100%; }
+  .controls .tabs button { flex: 1 1 0; min-width: 0; padding-inline: 8px; }
   .summary { grid-template-columns: 1fr 1fr; gap: 10px; }
   .sum { padding: 12px; }
   .sum b { font-size: 19px; }
