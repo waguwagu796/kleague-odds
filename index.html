@@ -163,6 +163,18 @@ tr.detail td { white-space: normal; background: var(--bg); padding: 16px; }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
 
+.team-page-head { display: flex; align-items: center; gap: 16px; }
+.team-page-head h2 { margin: 4px 0; font-size: 26px; }
+.team-page-head p { margin: 0; color: var(--muted); }
+.team-page-probs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.team-page-probs article { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--line); border-radius: 10px; }
+.team-page-probs article span { color: var(--muted); font-size: 12.5px; }
+.team-page-probs article > b { font-size: 21px; }
+.team-page-probs i { display: block; height: 7px; border-radius: 5px; background: var(--bar-bg); overflow: hidden; }
+.team-page-probs i b { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+.team-page-form { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.team-detail-actions { margin-top: 12px; }
+
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-width: 0; }
 .panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
 .panel p, .panel li { margin: 0; color: var(--muted); font-size: 13.5px; max-width: 95ch; }
@@ -454,6 +466,7 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
   <div class="legend" id="legend"></div>
   </div>
 
+  <div class="page" id="page-team" hidden><section class="panel team-page-content" id="teamPage"></section></div>
   <div class="page" id="page-round" hidden>
   <section class="panel" id="roundPanel">
     <section class="my-preview" id="myPreview" aria-live="polite">
@@ -987,7 +1000,7 @@ const MAGIC = {
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const DATA = { k1: null, k2: null, h1: null, h2: null };
-let SIM = null, BT = null, HISTORY = [], league = "k1", openTeam = null, metric = "champ", customSeed = false;
+let SIM = null, BT = null, HISTORY = [], league = "k1", openTeam = null, selectedTeamPage = null, metric = "champ", customSeed = false;
 let db = null, isOwner = false, STANDALONE = false;
 try { const v = localStorage.getItem("kl-odds-league"); if (v === "k1" || v === "k2") league = v; } catch {}
 // 내 팀(리그별, 이 브라우저에만 저장)과 "만약에"에서 고른 경기 결과(0 홈 승, 1 무, 2 원정 승)
@@ -1032,7 +1045,7 @@ function clearTrendTeams() {
   saveTrendSel();
   renderChart();
 }
-const PAGES = ["standings", "round", "dist", "sched", "trend", "backtest", "method"];
+const PAGES = ["standings", "team", "round", "dist", "sched", "trend", "backtest", "method"];
 function currentPage() {
   const id = decodeURIComponent((location.hash || "").replace(/^#/, ""));
   return PAGES.includes(id) ? id : "standings";
@@ -1051,6 +1064,7 @@ function showPage() {
   });
   closeNav();
   if (id === "trend") requestAnimationFrame(() => renderChart());
+  if (id === "team") renderTeamPage();
 }
 function goPage(id) {
   if (!PAGES.includes(id)) id = "standings";
@@ -1176,6 +1190,18 @@ function zoneColor(lg, i, n) {
   return i < 2 ? "var(--accent)" : i < 6 ? "var(--warn)" : "transparent";
 }
 
+function renderTeamPage() {
+  const root = $("teamPage"), d = DATA[league];
+  if (!root || !d || !SIM || !selectedTeamPage) { if (root) root.innerHTML = `<p class="empty">순위표에서 팀을 골라 주세요.</p>`; return; }
+  const t = d.standings.find(x => x.team === selectedTeamPage), r = SIM[league][selectedTeamPage];
+  if (!t || !r) { root.innerHTML = `<p class="empty">이 팀의 정보를 찾을 수 없어요.</p><button type="button" class="ghost" data-go-page="standings">순위표로 돌아가기</button>`; return; }
+  const zones = ZONES[league], dec = decided(d, league)[t.team], form = lastN(d.results, t.team, 5).reverse();
+  root.innerHTML = `<div class="team-page-head"><button type="button" class="ghost" data-go-page="standings">← 순위표</button><div><span class="meta">${league === "k1" ? "K리그1" : "K리그2"} · ${d.asOf || ""} 기준</span><h2>${esc(t.team)}</h2><p>${t.rank}위 · ${t.p}경기 · ${t.pts}점 · 득실 ${t.gf - t.ga > 0 ? "+" : ""}${t.gf - t.ga}</p></div></div>
+    <div class="team-page-probs">${zones.map(z => `<article><span>${esc(z.label)}</span><b>${ptxt(r[z.key] / SIM.N * 100, dec[z.key])}</b><i><b style="width:${Math.max(0, Math.min(100, r[z.key] / SIM.N * 100))}%"></b></i></article>`).join("")}</div>
+    <div class="team-page-form"><b>최근 5경기</b><span class="form">${form.map(f => `<i class="${f.r}" title="${esc(f.date)} ${f.my}-${f.op}">${f.r === "W" ? "승" : f.r === "D" ? "무" : "패"}</i>`).join("") || "기록 없음"}</span></div>
+    <h3 class="sub">일정·전력·최종 순위 전망</h3>${detailInner(d, t, r)}`;
+}
+
 function render() {
   $("tabK1").setAttribute("aria-pressed", league === "k1");
   $("tabK2").setAttribute("aria-pressed", league === "k2");
@@ -1263,6 +1289,7 @@ function render() {
     ? [["var(--accent)", "ACLE 출전권 (1~2위)"], ["var(--bar)", "파이널A (3~6위)"], ["var(--loss)", "승강 플레이오프 (12위)"]]
     : [["var(--accent)", "자동 승격 (1~2위)"], ["var(--warn)", "승격 플레이오프 (3~6위)"]])
     .map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join("") + `<span>팀을 누르면 남은 일정, 전력, 최종 순위 분포를 볼 수 있어요.</span>`;
+  if (currentPage() === "team") renderTeamPage();
 }
 
 const detailRow = (d, t, r, cols) => `<tr class="detail"><td colspan="${cols}">${detailInner(d, t, r)}</td></tr>`;
@@ -1313,7 +1340,7 @@ function detailInner(d, t, r) {
       <div class="hist">${r.posDist.map((v, i) => `<div class="${i === cur ? "cur" : ""}" style="height:${max ? v / max * 100 : 0}%" title="${i + 1}위 ${(v / total * 100).toFixed(1)}%"></div>`).join("")}</div>
       <div class="histx">${r.posDist.map((_, i) => `<span>${i + 1}</span>`).join("")}</div>
     </div>
-  </div>`;
+  </div><div class="team-detail-actions"><button type="button" class="ghost" data-team-page="${esc(t.team)}">팀 상세 페이지 보기 →</button></div>`;
 }
 
 /* ---------- 라운드 ---------- */
@@ -1921,6 +1948,8 @@ document.addEventListener("click", e => {
   }
   else if (b.id === "whatifRun") runWhatif();
   else if (b.id === "whatifClear") { PICKS[league] = {}; if (WHATIF && WHATIF.lg === league) WHATIF = null; renderRound(); }
+  else if (b.dataset.teamPage) { selectedTeamPage = b.dataset.teamPage; goPage("team"); renderTeamPage(); }
+  else if (b.dataset.goPage) goPage(b.dataset.goPage);
   else if (b.dataset.team) { openTeam = openTeam === b.dataset.team ? null : b.dataset.team; render(); }
 });
 $("trendStartRound").addEventListener("change", e => {
