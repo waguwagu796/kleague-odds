@@ -1082,6 +1082,25 @@ function closeNav() {
   const tog = $("navToggle");
   if (tog) tog.setAttribute("aria-expanded", "false");
 }
+function breakAtSentenceEnds() {
+  const targets = document.querySelectorAll(".page p, .page li, .page .meta, .page .cheer-intro, .page .cheer-summary small, .page .notice");
+  targets.forEach(el => {
+    if (el.querySelector("br[data-sentence-break]")) return;
+    const walker = document.createTreeWalker(el, 4), nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(node => {
+      const text = node.nodeValue, re = /([.!?])\s+(?=\S)/g;
+      let match, last = 0, changed = false;
+      const fragment = document.createDocumentFragment();
+      while ((match = re.exec(text))) {
+        fragment.appendChild(document.createTextNode(text.slice(last, match.index + 1)));
+        const br = document.createElement("br"); br.dataset.sentenceBreak = "true"; fragment.appendChild(br);
+        last = re.lastIndex; changed = true;
+      }
+      if (changed) { fragment.appendChild(document.createTextNode(text.slice(last))); node.parentNode.replaceChild(fragment, node); }
+    });
+  });
+}
 function showPage() {
   const id = currentPage();
   PAGES.forEach(p => { const el = $("page-" + p); if (el) el.hidden = p !== id; });
@@ -1093,6 +1112,7 @@ function showPage() {
   if (id === "trend") requestAnimationFrame(() => renderChart());
   if (id === "team") renderTeamPage();
   if (id === "cheer") renderCheer();
+  breakAtSentenceEnds();
 }
 function goPage(id) {
   if (!PAGES.includes(id)) id = "standings";
@@ -1319,6 +1339,7 @@ function render() {
     .map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join("") + `<span>팀을 누르면 남은 일정, 전력, 최종 순위 분포를 볼 수 있어요.</span>`;
   if (currentPage() === "team") renderTeamPage();
   if (currentPage() === "cheer") renderCheer();
+  breakAtSentenceEnds();
 }
 
 const detailRow = (d, t, r, cols) => `<tr class="detail"><td colspan="${cols}">${detailInner(d, t, r)}</td></tr>`;
@@ -2036,6 +2057,9 @@ $("lmb").addEventListener("click", e => {
 window.addEventListener("hashchange", () => { showPage(); window.scrollTo(0, 0); });
 window.addEventListener("popstate", () => { showPage(); window.scrollTo(0, 0); });
 showPage();
+breakAtSentenceEnds();
+const sentenceObserver = new MutationObserver(() => breakAtSentenceEnds());
+sentenceObserver.observe(document.querySelector(".wrap"), { childList: true, subtree: true });
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") closeNav();
   const tr = e.target.closest && e.target.closest("tr.team");
