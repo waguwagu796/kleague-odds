@@ -116,6 +116,17 @@ tbody tr.team:hover td, tbody tr.team[aria-expanded="true"] td { background: var
 .mg.off { color: var(--muted); font-size: 12.5px; }
 
 tr.detail td { white-space: normal; background: var(--bg); padding: 16px; }
+.team-record { margin: 0 0 16px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.team-record-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.team-record-head h3 { margin: 0; font-size: 14px; color: var(--fg); }
+.team-record-head span { font-size: 11.5px; color: var(--muted); }
+.team-record-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.team-record-stat { min-width: 0; text-align: center; padding: 10px 4px; border-radius: 8px; background: var(--bg); }
+.team-record-stat span { display: block; font-size: 11.5px; color: var(--muted); margin-bottom: 4px; }
+.team-record-stat b { display: block; font-family: var(--font-data); font-size: 19px; line-height: 1.2; color: var(--fg); }
+.team-record-stat.win b { color: var(--win); }
+.team-record-stat.draw b { color: var(--muted); }
+.team-record-stat.loss b { color: var(--loss); }
 .dgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
 .dgrid h3 { font-size: 13px; margin: 0 0 8px; color: var(--muted); font-weight: 700; letter-spacing: .04em; }
 .dgrid ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13.5px; }
@@ -1249,7 +1260,26 @@ function detailInner(d, t, r) {
   const rests = roundIndex(d).map(r => r.rd).filter(rd => futureRounds[rd] && !teamRounds.has(rd));
   const sched = fx.map(f => ({ rd: f[1], f })).concat(rests.map(rd => ({ rd, rest: true, date: futureRounds[rd] })))
     .sort((a, b) => (a.f ? a.f[0] : a.date) < (b.f ? b.f[0] : b.date) ? -1 : (a.f ? a.f[0] : a.date) > (b.f ? b.f[0] : b.date) ? 1 : a.rd - b.rd);
-  return `<div class="dgrid">
+  const played = (d.results || []).filter(f => f[2] === t.team || f[3] === t.team);
+  const record = played.reduce((a, f) => {
+    const home = f[2] === t.team, gf = Number(home ? f[4] : f[5]), ga = Number(home ? f[5] : f[4]);
+    a.gf += gf; a.ga += ga;
+    if (gf > ga) a.w++;
+    else if (gf === ga) a.d++;
+    else a.l++;
+    return a;
+  }, { w: 0, d: 0, l: 0, gf: 0, ga: 0 });
+  return `<section class="team-record" aria-label="${esc(t.team)} 시즌 성적">
+    <div class="team-record-head"><h3>시즌 성적</h3><span>${played.length}경기 기준</span></div>
+    <div class="team-record-grid">
+      <div class="team-record-stat win"><span>승</span><b>${record.w}</b></div>
+      <div class="team-record-stat draw"><span>무</span><b>${record.d}</b></div>
+      <div class="team-record-stat loss"><span>패</span><b>${record.l}</b></div>
+      <div class="team-record-stat"><span>득점</span><b>${record.gf}</b></div>
+      <div class="team-record-stat"><span>실점</span><b>${record.ga}</b></div>
+    </div>
+  </section>
+  <div class="dgrid">
     <div><h3>남은 경기 ${fx.length}${rests.length ? ` · 휴식 ${rests.length}` : ""}</h3><ul>${sched.length ? sched.map(it => it.rest
       ? `<li><span><b>휴식</b></span><small>${esc(it.date)} ${it.rd}R</small></li>`
       : `<li><span>${it.f[2] === t.team ? "홈" : "원정"} · ${esc(it.f[2] === t.team ? it.f[3] : it.f[2])}</span><small>${esc(it.f[0])} ${esc(it.f[1] ? it.f[1] + "R" : "")}</small></li>`).join("") : "<li><small>남은 정규 일정 없음</small></li>"}
