@@ -3,29 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<style>:root{color-scheme:light}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}
-/* 내 팀 경기 프리뷰 */
-.my-preview { border:1px solid var(--line); border-top:3px solid var(--accent); border-radius:12px; padding:16px; background:var(--surface); display:grid; gap:14px; }
-.my-preview-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
-.my-preview-title { margin:0; font-size:17px; }
-.my-preview-meta { color:var(--muted); font-size:12.5px; }
-.my-preview-match { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:12px; align-items:center; }
-.my-preview-side { min-width:0; display:grid; gap:4px; }
-.my-preview-side:last-child { text-align:right; }
-.my-preview-team { font-size:18px; font-weight:800; overflow-wrap:anywhere; }
-.my-preview-sub { color:var(--muted); font-size:12px; }
-.my-preview-vs { font-size:12px; color:var(--muted); font-weight:700; }
-.my-preview-probs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
-.my-preview-prob { border:1px solid var(--line); background:var(--bg); border-radius:9px; padding:10px; display:grid; gap:5px; min-width:0; }
-.my-preview-prob b { font-size:18px; font-variant-numeric:tabular-nums; }
-.my-preview-prob span { color:var(--muted); font-size:12px; }
-.my-preview-prob i { height:5px; background:var(--bar-bg); border-radius:9px; overflow:hidden; display:block; }
-.my-preview-prob i em { height:100%; display:block; background:var(--accent); border-radius:inherit; }
-.my-preview-form { display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
-.my-preview-form .form { display:inline-flex; }
-.my-preview-note { color:var(--muted); font-size:12px; line-height:1.55; }
-@media(max-width:600px){ .my-preview { padding:13px; } .my-preview-team { font-size:16px; } .my-preview-prob { padding:8px; } .my-preview-prob b { font-size:16px; } }
-</style>
+<style>:root{color-scheme:light}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body class="app">
 <title>K LEAGUE INSIGHT</title>
@@ -121,6 +99,7 @@ tbody tr.team:hover td, tbody tr.team[aria-expanded="true"] td { background: var
 .zone { width: 4px; padding: 0; }
 .rank { font-family: var(--font-data); color: var(--muted); }
 .tname { font-weight: 700; }
+.inj { display: inline-block; margin-left: 6px; font-size: 11px; font-weight: 700; color: var(--warn); border: 1px solid var(--warn); border-radius: 4px; padding: 0 5px; }
 .form { display: inline-flex; gap: 3px; }
 .form i { width: 18px; height: 18px; border-radius: 4px; font-style: normal; font-size: 11px; font-weight: 700; display: inline-grid; place-items: center; color: #fff; }
 .form i.W { background: var(--win); } .form i.D { background: var(--draw); } .form i.L { background: var(--loss); }
@@ -403,37 +382,6 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
 }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
-
-/* 원정 직관 계산기: 기존 사이트 스타일과 충돌하지 않도록 #awayTool 내부로 한정 */
-#awayTool { display:grid; gap:16px; }
-#awayTool .away-hero { background:linear-gradient(120deg,#101b45,#263f8e); color:#fff; border-radius:16px; padding:22px; display:grid; grid-template-columns:1fr auto; gap:16px; align-items:center; }
-#awayTool .away-kicker { font-size:12px; letter-spacing:.12em; opacity:.78; font-weight:700; }
-#awayTool .away-total { font-family:var(--font-data); font-size:clamp(32px,6vw,54px); line-height:1.1; font-weight:700; letter-spacing:-.04em; }
-#awayTool .away-unit { font-size:14px; opacity:.85; }
-#awayTool .away-sign { border:1px solid rgba(255,255,255,.55); border-radius:10px; padding:9px 12px; text-align:center; min-width:112px; font-weight:700; }
-#awayTool .away-controls, #awayTool .away-settings { display:flex; flex-wrap:wrap; align-items:end; gap:12px; }
-#awayTool .away-field { display:grid; gap:5px; min-width:140px; flex:1; }
-#awayTool .away-field label { color:var(--muted); font-size:12px; font-weight:700; }
-#awayTool select, #awayTool input { width:100%; min-width:0; border:1px solid var(--line); background:var(--surface); color:var(--fg); padding:9px 10px; border-radius:8px; font:inherit; }
-#awayTool .away-summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
-#awayTool .away-stat { padding:14px; border:1px solid var(--line); border-radius:12px; background:var(--surface); min-width:0; }
-#awayTool .away-stat span { display:block; color:var(--muted); font-size:12px; }
-#awayTool .away-stat strong { display:block; margin-top:5px; font-size:clamp(17px,2.5vw,24px); font-family:var(--font-data); overflow-wrap:anywhere; }
-#awayTool .away-list { display:grid; gap:8px; }
-#awayTool .away-row { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:10px; align-items:center; padding:12px; border:1px solid var(--line); border-radius:10px; background:var(--surface); }
-#awayTool .away-team-name { font-weight:700; }
-#awayTool .away-team-meta { display:block; color:var(--muted); font-size:12px; margin-top:2px; }
-#awayTool .away-distance { text-align:right; font-family:var(--font-data); font-size:13px; white-space:nowrap; }
-#awayTool .away-counter { display:flex; align-items:center; gap:7px; }
-#awayTool .away-counter button, #awayTool .away-reset { border:1px solid var(--line); background:var(--surface); color:var(--fg); border-radius:8px; min-width:34px; min-height:34px; font-weight:700; }
-#awayTool .away-counter output { min-width:20px; text-align:center; font-family:var(--font-data); }
-#awayTool .away-reset { padding:8px 12px; }
-#awayTool .away-map { width:100%; height:auto; display:block; border-radius:12px; background:var(--bg); border:1px solid var(--line); }
-#awayTool .away-note { color:var(--muted); font-size:12px; line-height:1.6; }
-#awayTool .away-progress { height:7px; background:var(--bar-bg); border-radius:99px; overflow:hidden; margin-top:7px; }
-#awayTool .away-progress i { display:block; height:100%; background:var(--bar); border-radius:inherit; }
-@media(max-width:760px){ #awayTool .away-hero{grid-template-columns:1fr;} #awayTool .away-sign{justify-self:start;} #awayTool .away-summary{grid-template-columns:repeat(2,minmax(0,1fr));} #awayTool .away-row{grid-template-columns:minmax(0,1fr) auto; gap:8px;} #awayTool .away-distance{grid-column:1; grid-row:2; text-align:left;} #awayTool .away-counter{grid-column:2; grid-row:1 / span 2;} }
-
 </style>
 
 <button type="button" class="nav-scrim" id="navScrim" aria-label="메뉴 닫기"></button>
@@ -447,7 +395,6 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
     <a href="#trend">확률 추이</a>
     <a href="#backtest">이 모델은 얼마나 맞았나</a>
     <a href="#method">계산 방법</a>
-    <a href="#away">원정 직관 거리 계산기</a>
   </nav>
 </aside>
 <div class="wrap">
@@ -487,13 +434,6 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
 
   <div class="page" id="page-round" hidden>
   <section class="panel" id="roundPanel">
-    <section class="my-preview" id="myPreview" aria-live="polite">
-      <div class="my-preview-head">
-        <div><h2 class="my-preview-title">내 팀 경기 프리뷰</h2><div class="my-preview-note" id="myPreviewIntro">상단에서 응원 팀을 설정하면 다음 경기 분석을 볼 수 있습니다.</div></div>
-        <span class="my-preview-meta" id="myPreviewRank"></span>
-      </div>
-      <div id="myPreviewBody"><p class="empty">내 팀을 선택해 주세요.</p></div>
-    </section>
     <div class="panel-head">
       <h2 id="roundTitle">이번 라운드 빅매치</h2>
       <span class="meta" id="roundMeta"></span>
@@ -553,14 +493,14 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
   <section class="panel">
     <h2>계산 방법</h2>
     <ul>
-      <li>매일 아침 자동 작업이 Daum 스포츠에서 시즌 전체 경기 결과와 남은 일정을 받아 저장합니다. 이 페이지는 열 때마다 저장된 데이터로 남은 경기를 직접 시뮬레이션합니다.</li>
+      <li>매일 아침 자동 작업이 Daum 스포츠에서 시즌 전체 경기 결과와 남은 일정을 받아 오고, 확인된 부상·결장 정보와 함께 저장합니다. 이 페이지는 열 때마다 저장된 데이터로 남은 경기를 직접 시뮬레이션합니다.</li>
       <li><b>팀 전력</b>: 득점 기대값을 "리그 평균 × 홈·원정 배율 × 내 공격력 × 상대 수비력"으로 보고, 시즌 전체 경기 결과에 가장 잘 맞는 공격력·수비력을 반복 계산으로 찾습니다. 강팀을 상대로 넣은 골은 더 높게, 약팀을 상대로 넣은 골은 더 낮게 평가됩니다. 오래된 경기일수록 가중치가 줄어(180일마다 절반) 최근 흐름이 더 크게 반영됩니다. 홈·원정 배율도 그 시즌 리그의 실제 홈·원정 득점 비율로 정합니다.</li>
       <li><b>무승부 보정</b>: 두 팀의 골 수를 따로 뽑으면 무승부가 실제보다 적게 나옵니다. Dixon-Coles 방식으로 0-0, 1-1 같은 저득점 무승부 확률을 높이고, 보정 정도는 그 시즌 실제 무승부 수에 맞춥니다.</li>
       <li><b>불확실성</b>: 시뮬레이션마다 팀 전력을 추정 오차만큼 흔듭니다. 근거가 된 골 수가 적은 팀일수록 더 크게 흔들립니다.</li>
       <li><b>순위 결정</b>: 승점 → 다득점 → 득실차 → 다승 → 승자승(동률 팀끼리의 승점) 순서로 가리고, 그래도 같으면 추첨합니다. 실제 규정의 벌점 기준은 데이터가 없어 추첨으로 대신합니다.</li>
       <li><b>K리그1</b>: 33라운드 뒤 상위 6팀(파이널A)과 하위 6팀(파이널B)이 같은 그룹끼리 한 번씩 더 붙습니다. 일정 발표 전에는 시즌 홈 경기가 적은 팀을 홈으로 둡니다. 12위는 K리그2 플레이오프 준우승팀과 승강 플레이오프를 치르고, 김천 상무가 12위면 승강 플레이오프가 없습니다.</li>
       <li><b>K리그2</b>: 1·2위 자동 승격, 3~6위 플레이오프(3위 대 6위, 4위 대 5위, 결승. 상위 팀 홈, 무승부면 상위 팀 진출). 결승 승자는 승격하고 준우승팀은 승강 플레이오프에 나갑니다. 승강 플레이오프에서 K리그2 팀의 득점 기대값을 0.85배로, 합계 동점이면 K리그2 팀이 45% 확률로 이긴다고 둔 것은 검증 데이터가 없는 가정입니다.</li>
-      
+      <li><b>부상자</b>: 확인된 결장 선수 한 명당 공격력을 3%(최대 12%) 낮춥니다. 검증 데이터가 없는 가정입니다.</li>
       <li><b>남은 승점</b>: "우승까지", "자동승격까지", "PO권까지", "잔류까지"는 다른 팀 결과와 상관없이 그 목표를 확정하려면 앞으로 더 따야 하는 승점입니다. 경쟁 팀이 남은 경기를 모두 이긴다고 가정하고, 승점이 같아 다득점으로 갈리는 경우를 피하도록 1점을 더 잡았습니다. "자력 불가"는 남은 경기를 다 이겨도 경쟁 팀이 승점을 잃어야 한다는 뜻입니다.</li>
       <li><b>확정·불가</b>: 남은 경기를 모두 이기거나 모두 지는 경우까지 따져 수학적으로 결정된 경우에만 표시합니다. 결정되지 않았으면 아무리 높아도 ">99.9%", 아무리 낮아도 "&lt;0.1%"로 표시합니다.</li>
       <li><b>빅매치</b>: 50,000번 시뮬레이션을 다음 라운드 각 경기의 결과(홈 승·무·원정 승)별로 나눠 셉니다. 결과에 따라 어떤 팀의 우승·승격·잔류 확률이 가장 크게 달라지는 경기를 빅매치로 고르고, 경기 옆 승·무·패 확률도 같은 시뮬레이션에서 나온 값입니다.</li>
@@ -571,52 +511,6 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
       <li>재미로 보는 추정치입니다. 실제 결과와 다를 수 있습니다.</li>
     </ul>
   </section>
-  </div>
-
-  <div class="page" id="page-away" hidden>
-    <section class="panel" id="awayTool">
-      <div>
-        <h2>원정 직관 거리 계산기</h2>
-        <p class="meta">직관한 원정 경기 횟수를 기록하고, 누적 이동 거리와 예상 교통비를 계산합니다.</p>
-      </div>
-      <div class="away-hero">
-        <div>
-          <div class="away-kicker">TOTAL ROUND-TRIP DISTANCE</div>
-          <div><span class="away-total" id="awayTotalKm">0</span> <span class="away-unit">km</span></div>
-          <div id="awayHeroSub">응원 팀을 선택하고 원정 직관 횟수를 기록해 보세요.</div>
-        </div>
-        <div class="away-sign"><div>AWAY DAYS</div><div style="font-size:28px" id="awayTotalTrips">0</div><div style="font-size:11px;opacity:.8">원정 직관 횟수</div></div>
-      </div>
-      <div class="away-controls">
-        <div class="away-field"><label for="awayLeague">리그</label><select id="awayLeague"><option value="k1">K리그1</option><option value="k2">K리그2</option></select></div>
-        <div class="away-field"><label for="awayHome">응원 팀</label><select id="awayHome"></select></div>
-        <button type="button" class="away-reset" id="awayReset">기록 초기화</button>
-      </div>
-      <div class="away-summary">
-        <div class="away-stat"><span>누적 원정 횟수</span><strong id="awayTrips">0회</strong></div>
-        <div class="away-stat"><span>예상 이동 시간</span><strong id="awayHours">0시간</strong></div>
-        <div class="away-stat"><span>예상 유류비</span><strong id="awayFuel">₩0</strong></div>
-        <div class="away-stat"><span>가장 먼 원정</span><strong id="awayFarthest">-</strong></div>
-      </div>
-      <section>
-        <h2 style="margin-bottom:10px">원정 방문 기록</h2>
-        <div class="away-list" id="awayList"></div>
-      </section>
-      <section>
-        <h2 style="margin-bottom:10px">원정 거리 개요</h2>
-        <svg class="away-map" id="awayMap" viewBox="0 0 600 420" role="img" aria-label="응원 팀과 원정 경기장 위치 및 방문 횟수 지도"></svg>
-        <p class="away-note">지도는 경기장 좌표를 바탕으로 한 개략도이며 실제 도로 지도가 아닙니다. 육상 이동 거리는 두 지점 간 직선거리에 보정계수를 곱한 추정치입니다.</p>
-      </section>
-      <section>
-        <h2 style="margin-bottom:10px">계산 기준</h2>
-        <div class="away-settings">
-          <div class="away-field"><label for="awayEfficiency">연비 (km/L)</label><input id="awayEfficiency" type="number" min="1" max="40" step="0.1" value="12"></div>
-          <div class="away-field"><label for="awayPrice">유류비 (원/L)</label><input id="awayPrice" type="number" min="500" max="5000" step="10" value="1700"></div>
-          <div class="away-field"><label for="awaySpeed">평균 속도 (km/h)</label><input id="awaySpeed" type="number" min="20" max="120" step="5" value="70"></div>
-        </div>
-        <p class="away-note">왕복 거리 기준으로 계산합니다. 유류비는 연비와 유가를 입력해 산출한 추정치이며 통행료·주차비·식비·숙박비는 포함하지 않습니다. 제주 원정도 동일한 거리 계산식을 사용하므로 항공 이동 시 실제 이동 거리·시간과 차이가 큽니다. 팀 및 경기장 좌표는 시즌 변경에 따라 확인이 필요합니다.</p>
-      </section>
-    </section>
   </div>
 </div>
 
@@ -630,6 +524,8 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
 const PARAMS = {
   halfLife: 180,      // 경기 가중치가 절반이 되는 기간(일). 최근 경기를 더 크게 본다
   prior: 8,           // 리그 평균 쪽으로 당기는 가상 경기 수
+  injuryPenalty: 0.03,
+  injuryCap: 0.12,
   crossLeague: 0.85,  // 승강 플레이오프에서 K리그2 팀 득점 기대값 배율 (가정)
   crossTieK2: 0.45,   // 승강 플레이오프 합계 동점 시 K리그2 팀이 이길 확률 (가정)
 };
@@ -653,7 +549,7 @@ function pois(k, l) { let p = Math.exp(-l); for (let i = 1; i <= k; i++) p *= l 
    득점 기대값 = 리그 평균 × 홈/원정 배율 × 내 공격력 × 상대 수비력.
    공격력·수비력은 상대 전력을 감안해 반복 계산으로 맞추고(강팀 상대로 넣은 골은 더 높게 평가),
    경기마다 오래될수록 가중치를 줄여 최근 흐름을 반영한다. */
-function fitModel(teams, matches, asOf, P) {
+function fitModel(teams, matches, asOf, P, injuries) {
   const ref = toMs(asOf);
   const ms = matches.map(m => ({ h: m[2], a: m[3], hs: m[4], as: m[5], w: Math.pow(0.5, Math.max(0, (ref - toMs(m[0])) / DAY) / P.halfLife) }));
   let hg = 0, ag = 0;
@@ -687,6 +583,9 @@ function fitModel(teams, matches, asOf, P) {
   teams.forEach(t => {
     R[t].seA = 1 / Math.sqrt(nA[t] + k);
     R[t].seD = 1 / Math.sqrt(nD[t] + k);
+    const inj = (injuries || []).filter(x => x.team === t).length;
+    R[t].inj = inj;
+    if (inj) R[t].att *= 1 - Math.min(P.injuryCap, inj * P.injuryPenalty);
   });
   // 무승부 보정 계수(Dixon-Coles rho): 모델의 무승부 수가 실제 무승부 수와 같아지도록 맞춘다
   let rho = 0;
@@ -759,7 +658,7 @@ function makeCtx(doc, P, opt) {
     finFix = (doc.fixtures || []).filter(f => f[4]).map(row);
   }
   const asOf = opt.cutoff || doc.asOf;
-  const model = fitModel(teams, known, asOf, P);
+  const model = fitModel(teams, known, asOf, P, opt.cutoff ? [] : doc.injuries);
   const pts = new Int32Array(n), gf = new Int32Array(n), ga = new Int32Array(n), w = new Int32Array(n), hc = new Int32Array(n);
   const h2h = new Int32Array(n * n);
   known.forEach(r => applyRes(ix[r[2]], ix[r[3]], r[4], r[5], n, pts, gf, ga, w, h2h));
@@ -774,6 +673,7 @@ function makeCtx(doc, P, opt) {
     teams, n, ix, split, regFix, finFix, groupA, pts, gf, ga, w, h2h, hc,
     att: teams.map(t => model.R[t].att), def: teams.map(t => model.R[t].def),
     seA: teams.map(t => model.R[t].seA), seD: teams.map(t => model.R[t].seD),
+    inj: teams.map(t => model.R[t].inj),
     mu: model.mu, home: model.home, away: model.away, rho: model.rho,
     noPlayoff: doc.format && doc.format.noPlayoffTeam != null ? ix[doc.format.noPlayoffTeam] : -1,
   };
@@ -1109,7 +1009,7 @@ function clearTrendTeams() {
   saveTrendSel();
   renderChart();
 }
-const PAGES = ["standings", "round", "dist", "sched", "trend", "backtest", "method", "away"];
+const PAGES = ["standings", "round", "dist", "sched", "trend", "backtest", "method"];
 function currentPage() {
   const id = decodeURIComponent((location.hash || "").replace(/^#/, ""));
   return PAGES.includes(id) ? id : "standings";
@@ -1267,7 +1167,7 @@ function render() {
   $("asOf").textContent = d.asOf || "-";
   $("srcLine").textContent = d.source ? "출처 · " + d.source : "";
   $("seedNote").textContent = customSeed ? "· 새 시드로 다시 계산한 결과" : "";
-  const notes = [d.note].filter(Boolean);
+  const notes = [d.note, (d.injuries || []).length ? "" : "현재 확인된 최신 부상자 정보가 없어 부상 보정 없이 계산했습니다."].filter(Boolean);
   const stale = d.asOf && (Date.now() - Date.parse(d.asOf + "T07:00:00+09:00")) > 36 * 3600 * 1000;
   if (stale) notes.unshift(`데이터가 ${d.asOf} 기준이에요. 자동 갱신이 하루 넘게 멈춰 있을 수 있어요${STANDALONE ? "(GitHub Actions 실행 기록을 확인해 주세요)" : "(Claude 앱이 켜져 있어야 갱신됩니다)"}.`);
   $("notice").hidden = !notes.length; $("notice").textContent = notes.join(" ");
@@ -1304,10 +1204,11 @@ function render() {
   $("tbody").innerHTML = st.map((t, i) => {
     const r = res[t.team], dc = dec[t.team];
     const form = lastN(d.results, t.team, 5).reverse();
+    const inj = (d.injuries || []).filter(x => x.team === t.team).length;
     const row = `<tr class="team${t.team === me ? " mine" : ""}" data-team="${esc(t.team)}" aria-expanded="${openTeam === t.team}" tabindex="0">
       <td class="zone" style="background:${zoneColor(league, i, n)}"></td>
       <td class="rank">${t.rank}</td>
-      <td class="sticky">${t.team === me ? '<span class="star" title="내 팀">★</span>' : ""}<span class="tname">${esc(t.team)}</span></td>
+      <td class="sticky">${t.team === me ? '<span class="star" title="내 팀">★</span>' : ""}<span class="tname">${esc(t.team)}</span>${inj ? `<span class="inj" title="부상·결장 ${inj}명">결장 ${inj}</span>` : ""}</td>
       <td class="num">${t.p}</td><td class="num"><b>${t.pts}</b></td><td class="num">${t.gf - t.ga > 0 ? "+" : ""}${t.gf - t.ga}</td>
       <td><span class="form">${form.map(f => `<i class="${f.r}" title="${esc(f.date)} ${f.home ? "홈" : "원정"} ${esc(f.opp)} ${f.my}-${f.op}">${f.r === "W" ? "승" : f.r === "D" ? "무" : "패"}</i>`).join("")}</span></td>
       <td class="num">${r.exp.toFixed(1)}</td>
@@ -1321,11 +1222,12 @@ function render() {
   $("cards").innerHTML = st.map((t, i) => {
     const r = res[t.team], dc = dec[t.team], open = openTeam === t.team;
     const form = lastN(d.results, t.team, 5).reverse();
+    const inj = (d.injuries || []).filter(x => x.team === t.team).length;
     const zc = zoneColor(league, i, n);
     const gd = t.gf - t.ga;
     return `<article class="tcard${open ? " open" : ""}${t.team === me ? " mine" : ""}" style="--zone:${zc === "transparent" ? "var(--line)" : zc}">
       <button type="button" class="tcard-head" data-team="${esc(t.team)}" aria-expanded="${open}">
-        <span class="rank">${t.rank}</span>${t.team === me ? '<span class="star">★</span>' : ""}<span class="tname">${esc(t.team)}</span>
+        <span class="rank">${t.rank}</span>${t.team === me ? '<span class="star">★</span>' : ""}<span class="tname">${esc(t.team)}</span>${inj ? `<span class="inj">결장 ${inj}</span>` : ""}
         <span class="tcard-pts"><b class="num">${t.pts}</b>점</span><span class="chev" aria-hidden="true">▼</span>
       </button>
       <div class="tcard-meta"><span>${t.p}경기 · 득실 ${gd > 0 ? "+" : ""}${gd} · 예상 ${r.exp.toFixed(1)}점</span>
@@ -1345,6 +1247,7 @@ function render() {
 const detailRow = (d, t, r, cols) => `<tr class="detail"><td colspan="${cols}">${detailInner(d, t, r)}</td></tr>`;
 function detailInner(d, t, r) {
   const fx = (d.fixtures || []).filter(f => f[2] === t.team || f[3] === t.team);
+  const inj = (d.injuries || []).filter(x => x.team === t.team);
   const total = r.posDist.reduce((a, b) => a + b, 0) || 1, max = Math.max(...r.posDist);
   const cur = t.rank - 1;
   const recent = lastN(d.results, t.team, 5);
@@ -1385,6 +1288,7 @@ function detailInner(d, t, r) {
     <div><h3>추정 전력 (리그 평균 = 1.00)</h3><ul>
       <li><span>공격력</span><b class="num">${R.att.toFixed(2)}</b></li>
       <li><span>수비력 <small>(낮을수록 좋음)</small></span><b class="num">${R.def.toFixed(2)}</b></li>
+      <li><span>부상·결장</span><small>${inj.length ? inj.map(i => esc(i.player) + (i.note ? ` (${esc(i.note)})` : "")).join(", ") : "확인된 정보 없음"}</small></li>
     </ul></div>
     <div><h3>최종 순위 분포</h3>
       <div class="hist">${r.posDist.map((v, i) => `<div class="${i === cur ? "cur" : ""}" style="height:${max ? v / max * 100 : 0}%" title="${i + 1}위 ${(v / total * 100).toFixed(1)}%"></div>`).join("")}</div>
@@ -1492,56 +1396,7 @@ function effLine(e, f, lg, mine) {
   return `<div class="eff"><span class="who">${mine ? '<span class="star">★</span>' : ""}${esc(e.team)} ${ZSHORT[lg][e.k]} 확률</span>
     <span class="vals"><span>${esc(f[2])} 승 <b>${v(e.p[0])}</b></span><span>무 <b>${v(e.p[1])}</b></span><span>${esc(f[3])} 승 <b>${v(e.p[2])}</b></span></span></div>`;
 }
-
-function renderMyPreview() {
-  const root = $("myPreviewBody");
-  if (!root) return;
-  const me = MY[league], d = DATA[league];
-  $("myPreviewRank").textContent = "";
-  if (!d || !SIM || !SIM.model || !SIM.model[league]) {
-    $("myPreviewIntro").textContent = "경기 데이터와 예측 결과를 불러오는 중입니다.";
-    root.innerHTML = '<p class="empty">데이터를 불러오는 중입니다.</p>';
-    return;
-  }
-  if (!me) {
-    $("myPreviewIntro").textContent = "상단의 ‘내 팀’에서 응원 팀을 선택하면 다음 경기 분석이 표시됩니다.";
-    root.innerHTML = '<p class="empty">내 팀이 설정되지 않았습니다. 페이지 상단에서 응원 팀을 선택해 주세요.</p>';
-    return;
-  }
-  const standing = (d.standings || []).find(t => t.team === me);
-  const fixtures = (d.fixtures || []).filter(f => f[2] === me || f[3] === me).slice().sort((a,b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : (a[1] || 0) - (b[1] || 0));
-  const recent = (d.results || []).filter(r => r[6] !== "P" && (r[2] === me || r[3] === me)).slice().sort((a,b) => a[0] > b[0] ? -1 : a[0] < b[0] ? 1 : 0).slice(0,5).reverse();
-  const form = recent.map(r => {
-    const home = r[2] === me, mine = home ? Number(r[4]) : Number(r[5]), opp = home ? Number(r[5]) : Number(r[4]);
-    return { r: mine > opp ? "W" : mine < opp ? "L" : "D", date:r[0], home, oppName:home?r[3]:r[2], mine, opp };
-  });
-  if (standing) $("myPreviewRank").textContent = `현재 ${standing.rank}위 · ${standing.pts}점`;
-  const formHtml = form.length ? form.map(f => `<i class="${f.r}" title="${esc(f.date)} ${f.home ? "홈" : "원정"} vs ${esc(f.oppName)} ${f.mine}-${f.opp}">${f.r === "W" ? "승" : f.r === "D" ? "무" : "패"}</i>`).join("") : '<span class="my-preview-note">확인 가능한 최근 경기 기록이 없습니다.</span>';
-  if (!fixtures.length) {
-    $("myPreviewIntro").textContent = `${me}의 현재 시즌 일정 기준`;
-    root.innerHTML = `<p>현재 등록된 남은 경기가 없습니다.</p><div class="my-preview-form"><b>최근 5경기</b><span class="form">${formHtml}</span></div><p class="my-preview-note">새 일정이 데이터에 반영되면 다음 경기 프리뷰가 표시됩니다.</p>`;
-    return;
-  }
-  const f = fixtures[0], home = f[2] === me, opponent = home ? f[3] : f[2];
-  const model = SIM.model[league], own = model.R && model.R[me], opp = model.R && model.R[opponent];
-  let probs = null;
-  if (own && opp && Number.isFinite(model.mu) && Number.isFinite(model.home)) {
-    const l = model.mu * (home ? model.home : 1 / model.home) * (home ? own.att : opp.att) * (home ? opp.def : own.def);
-    const m = model.mu * (home ? 1 / model.home : model.home) * (home ? opp.att : own.att) * (home ? own.def : opp.def);
-    const raw = E.matchProbs(l, m, model.rho);
-    probs = home ? raw : [raw[2], raw[1], raw[0]];
-  }
-  const dateText = `${f[0]}${f[1] != null ? ` · ${f[1]}라운드` : ""}`;
-  const labels = ["승리", "무승부", "패배"];
-  const probHtml = probs ? probs.map((p,i) => `<div class="my-preview-prob"><span>${labels[i]}</span><b>${(p*100).toFixed(1)}%</b><i><em style="width:${(p*100).toFixed(2)}%"></em></i></div>`).join("") : '<p class="my-preview-note">이 경기의 승·무·패 확률을 계산할 수 없습니다.</p>';
-  const strongest = probs ? Math.max(...probs) : 0;
-  const outlook = probs ? (strongest === probs[0] ? "모델上 가장 유력한 결과는 승리입니다." : strongest === probs[1] ? "모델上 가장 유력한 결과는 무승부입니다." : "모델上 가장 유력한 결과는 패배입니다.") : "";
-  $("myPreviewIntro").textContent = `${me}의 가장 가까운 남은 경기`;
-  root.innerHTML = `<div class="my-preview-match"><div class="my-preview-side"><span class="my-preview-team">${esc(f[2])}</span><span class="my-preview-sub">${home ? "내 팀 · 홈" : "상대 팀 · 홈"}</span></div><span class="my-preview-vs">VS</span><div class="my-preview-side"><span class="my-preview-team">${esc(f[3])}</span><span class="my-preview-sub">${home ? "상대 팀 · 원정" : "내 팀 · 원정"}</span></div></div><div class="my-preview-meta">${esc(dateText)} · ${home ? "홈 경기" : "원정 경기"}</div><div class="my-preview-probs">${probHtml}</div><div class="my-preview-form"><b>최근 5경기</b><span class="form">${formHtml}</span></div><p class="my-preview-note">${esc(outlook)} 확률은 현재 등록된 경기 결과로 추정한 모델 예측이며 실제 결과를 보장하지 않습니다.</p>`;
-}
-
 function renderRound() {
-  renderMyPreview();
   const d = DATA[league], me = MY[league];
   const foc = focusFixtures(d);
   const splitPending = league === "k1" && (d.format || {}).split && !d.results.some(r => r[6]) && !(d.fixtures || []).some(f => f[4]);
@@ -1825,7 +1680,7 @@ function renderChart() {
   if (noData.length) notes.push(`${noData.join(", ")}은(는) 이 지표의 기록이 없어 선이 그려지지 않습니다.`);
   if (league === "k2") notes.push("K리그2는 17팀이라 라운드마다 한 팀이 쉽니다. 쉬는 팀도 다른 팀 결과에 따라 확률이 바뀝니다.");
   if (pts.some(p => p.progress)) notes.push("맨 끝 빈 점(진행 중)은 아직 끝나지 않은 라운드의 현재 값입니다.");
-  if (pts.some(p => p.h.backfill)) notes.push("점선과 빈 점은 지난 경기 결과만으로 그 시점을 다시 계산한 값이고, 실선과 채운 점은 그날 실제로 기록한 값입니다.");
+  if (pts.some(p => p.h.backfill)) notes.push("점선과 빈 점은 지난 경기 결과만으로 그 시점을 다시 계산한 값이고(부상 정보 제외), 실선과 채운 점은 그날 실제로 기록한 값입니다.");
   const box = $("chart");
   box.innerHTML = s + `<p>${notes.join(" ")}</p>`;
 
@@ -1922,7 +1777,7 @@ async function runSim(seed) {
   render();
   if (!customSeed) saveHistory();
 }
-function defaultSeed() { return E.hashStr(DATA.k1.asOf + "|" + DATA.k1.results.length + "|" + DATA.k2.results.length); }
+function defaultSeed() { return E.hashStr(DATA.k1.asOf + "|" + DATA.k1.results.length + "|" + DATA.k2.results.length + "|" + JSON.stringify(DATA.k1.injuries || []) + JSON.stringify(DATA.k2.injuries || [])); }
 function onData() {
   if (!DATA.k1 || !DATA.k2) return;
   const key = defaultSeed() + ":" + DATA.k1.updatedAt + DATA.k2.updatedAt;
@@ -2060,96 +1915,6 @@ document.addEventListener("keydown", e => {
     HISTORY = q.docs.map(x => x.data());
     renderChart();
   }, () => {});
-})();
-</script>
-
-<script>
-/* 원정 직관 계산기 전용 스코프: 기존 예측 엔진의 전역 변수/이벤트와 분리 */
-(() => {
-  const root = document.getElementById('awayTool');
-  if (!root) return;
-  const $a = id => document.getElementById(id);
-  // 좌표는 경기장 인근의 대표 좌표를 이용한 추정값(위도, 경도)입니다.
-  const clubs = [
-    {name:'FC 서울',league:'k1',lat:37.5683,lon:126.8972,stadium:'서울월드컵경기장'},
-    {name:'울산 HD',league:'k1',lat:35.5352,lon:129.2595,stadium:'울산문수축구경기장'},
-    {name:'전북 현대',league:'k1',lat:35.8681,lon:127.0647,stadium:'전주월드컵경기장'},
-    {name:'포항 스틸러스',league:'k1',lat:36.0140,lon:129.3594,stadium:'포항스틸야드'},
-    {name:'대전 하나 시티즌',league:'k1',lat:36.3250,lon:127.4309,stadium:'대전월드컵경기장'},
-    {name:'강원 FC',league:'k1',lat:37.8837,lon:127.7174,stadium:'춘천송암스포츠타운'},
-    {name:'김천 상무',league:'k1',lat:36.1383,lon:128.0987,stadium:'김천종합운동장'},
-    {name:'광주 FC',league:'k1',lat:35.1330,lon:126.8749,stadium:'광주축구전용구장'},
-    {name:'제주 SK',league:'k1',lat:33.2460,lon:126.5095,stadium:'제주월드컵경기장'},
-    {name:'대구 FC',league:'k1',lat:35.8838,lon:128.5881,stadium:'대구iM뱅크파크'},
-    {name:'수원 FC',league:'k1',lat:37.2869,lon:127.0367,stadium:'수원종합운동장'},
-    {name:'FC 안양',league:'k1',lat:37.2998,lon:126.9734,stadium:'안양종합운동장'},
-    {name:'수원 삼성',league:'k2',lat:37.2869,lon:127.0367,stadium:'수원월드컵경기장'},
-    {name:'부산 아이파크',league:'k2',lat:35.1330,lon:129.1036,stadium:'부산 구덕운동장'},
-    {name:'서울 이랜드',league:'k2',lat:37.5683,lon:126.8972,stadium:'목동종합운동장'},
-    {name:'부천 FC 1995',league:'k2',lat:37.4989,lon:126.7880,stadium:'부천종합운동장'},
-    {name:'성남 FC',league:'k2',lat:37.4103,lon:127.1218,stadium:'탄천종합운동장'},
-    {name:'전남 드래곤즈',league:'k2',lat:34.9104,lon:127.5445,stadium:'광양축구전용구장'},
-    {name:'경남 FC',league:'k2',lat:35.2225,lon:128.5822,stadium:'창원축구센터'},
-    {name:'김포 FC',league:'k2',lat:37.6249,lon:126.7156,stadium:'김포솔터축구장'},
-    {name:'충남아산 FC',league:'k2',lat:36.9910,lon:127.1040,stadium:'이순신종합운동장'},
-    {name:'충북청주 FC',league:'k2',lat:36.6358,lon:127.4705,stadium:'청주종합경기장'},
-    {name:'천안시티 FC',league:'k2',lat:36.8151,lon:127.1139,stadium:'천안종합운동장'},
-    {name:'안산 그리너스',league:'k2',lat:37.3195,lon:126.8218,stadium:'안산와스타디움'},
-    {name:'화성 FC',league:'k2',lat:37.1997,lon:126.9927,stadium:'화성종합경기타운'},
-    {name:'파주 프런티어',league:'k2',lat:37.7660,lon:126.6993,stadium:'파주스타디움'},
-    {name:'용인 FC',league:'k2',lat:37.2397,lon:127.1775,stadium:'용인미르스타디움'},
-    {name:'김해 FC 2008',league:'k2',lat:35.2285,lon:128.8894,stadium:'김해종합운동장'},
-    {name:'인천 유나이티드',league:'k2',lat:37.4348,lon:126.6907,stadium:'인천축구전용경기장'}
-  ];
-  const KEY='kl-away-v2';
-  let state={league:'k1',home:'',counts:{},efficiency:12,price:1700,speed:70};
-  try { const saved=JSON.parse(localStorage.getItem(KEY)||'null'); if(saved&&typeof saved==='object') state={...state,...saved,counts:saved.counts||{}}; } catch {}
-  const fmt=n=>Math.round(n).toLocaleString('ko-KR');
-  const won=n=>'₩'+fmt(n);
-  const club=id=>clubs.find(c=>c.name===id);
-  const dist=(a,b)=>{const rad=x=>x*Math.PI/180,R=6371,dLat=rad(b.lat-a.lat),dLon=rad(b.lon-a.lon),x=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(x));};
-  function oneWay(a,b){const straight=dist(a,b); return straight*1.25;}
-  function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch{}}
-  function currentClubs(){return clubs.filter(c=>c.league===state.league);}
-  function populate(){
-    $a('awayLeague').value=state.league;
-    $a('awayHome').innerHTML=currentClubs().map(c=>`<option value="${c.name.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}">${c.name}</option>`).join('');
-    if(!currentClubs().some(c=>c.name===state.home)) state.home=currentClubs()[0]?.name||'';
-    $a('awayHome').value=state.home;
-    $a('awayEfficiency').value=state.efficiency;
-    $a('awayPrice').value=state.price;
-    $a('awaySpeed').value=state.speed;
-  }
-  function render(){
-    const home=club(state.home); if(!home)return;
-    const opponents=currentClubs().filter(c=>c.name!==home.name);
-    const data=opponents.map(c=>({club:c,count:Math.max(0,Number(state.counts[c.name])||0),one:oneWay(home,c)}));
-    const trips=data.reduce((s,x)=>s+x.count,0);
-    const km=data.reduce((s,x)=>s+x.count*x.one*2,0);
-    const speed=Math.max(1,Number(state.speed)||70),eff=Math.max(1,Number(state.efficiency)||12),price=Math.max(0,Number(state.price)||0);
-    const hours=km/speed, fuel=km/eff*price;
-    const far=[...data].sort((a,b)=>b.one-a.one)[0];
-    $a('awayTotalKm').textContent=fmt(km); $a('awayTotalTrips').textContent=fmt(trips);
-    $a('awayHeroSub').textContent=trips?`${home.name} 기준 원정 ${trips}회 · 왕복 추정 ${fmt(km)}km`:'응원 팀을 선택하고 원정 직관 횟수를 기록해 보세요.';
-    $a('awayTrips').textContent=fmt(trips)+'회'; $a('awayHours').textContent=hours.toFixed(1)+'시간'; $a('awayFuel').textContent=won(fuel); $a('awayFarthest').textContent=far?`${far.club.name} · ${fmt(far.one*2)}km`:'-';
-    $a('awayList').innerHTML=data.sort((a,b)=>b.one-a.one).map(x=>`<div class="away-row"><div><span class="away-team-name">${x.club.name}</span><span class="away-team-meta">${x.club.stadium} · 왕복 약 ${fmt(x.one*2)}km</span><div class="away-progress"><i style="width:${Math.min(100,x.one/Math.max(...data.map(d=>d.one),1)*100)}%"></i></div></div><div class="away-distance">${fmt(x.one*2)} km</div><div class="away-counter"><button type="button" data-away-delta="-1" data-away-team="${x.club.name}" aria-label="${x.club.name} 방문 횟수 감소">−</button><output>${x.count}</output><button type="button" data-away-delta="1" data-away-team="${x.club.name}" aria-label="${x.club.name} 방문 횟수 증가">+</button></div></div>`).join('');
-    drawMap(home,data);
-    save();
-  }
-  function drawMap(home,data){
-    const all=[home,...data.map(d=>d.club)], lats=all.map(c=>c.lat), lons=all.map(c=>c.lon), minLat=Math.min(...lats)-.25,maxLat=Math.max(...lats)+.25,minLon=Math.min(...lons)-.25,maxLon=Math.max(...lons)+.25;
-    const x=c=>35+(c.lon-minLon)/Math.max(.01,maxLon-minLon)*530, y=c=>35+(maxLat-c.lat)/Math.max(.01,maxLat-minLat)*350;
-    const visited=data.filter(d=>d.count>0);
-    const links=visited.map(d=>`<line x1="${x(home)}" y1="${y(home)}" x2="${x(d.club)}" y2="${y(d.club)}" stroke="#d6302a" stroke-width="${Math.min(4,1+d.count*.5)}" stroke-opacity=".65"/>`).join('');
-    const dots=all.map(c=>{const isHome=c.name===home.name, n=state.counts[c.name]||0; return `<circle cx="${x(c)}" cy="${y(c)}" r="${isHome?7:n?Math.min(8,4+n):3.5}" fill="${isHome?'#1a2b6d':n?'#d6302a':'#8792aa'}" stroke="#fff" stroke-width="1.5"><title>${c.name}${n?' · '+n+'회':''}</title></circle>${isHome||n?`<text x="${x(c)+8}" y="${y(c)-7}" font-size="11" fill="currentColor">${c.name}</text>`:''}`;}).join('');
-    $a('awayMap').innerHTML=`<rect width="600" height="420" rx="12" fill="var(--bg)"/><path d="M145 20 L205 62 220 110 260 130 275 185 315 220 325 280 360 315 355 375 390 400" fill="none" stroke="var(--line)" stroke-width="26" stroke-linecap="round" opacity=".45"/><path d="M145 20 L205 62 220 110 260 130 275 185 315 220 325 280 360 315 355 375 390 400" fill="none" stroke="var(--surface)" stroke-width="18" stroke-linecap="round" opacity=".9"/>${links}${dots}<text x="16" y="402" font-size="10" fill="var(--muted)">원정 방문 기록이 있는 경기장만 연결선으로 표시됩니다.</text>`;
-  }
-  $a('awayLeague').addEventListener('change',e=>{state.league=e.target.value;state.home='';populate();render();});
-  $a('awayHome').addEventListener('change',e=>{state.home=e.target.value;render();});
-  ['awayEfficiency','awayPrice','awaySpeed'].forEach(id=>$a(id).addEventListener('change',e=>{const key={awayEfficiency:'efficiency',awayPrice:'price',awaySpeed:'speed'}[id];state[key]=Math.max(0,Number(e.target.value)||0);render();}));
-  $a('awayList').addEventListener('click',e=>{const b=e.target.closest('button[data-away-team]');if(!b)return;const name=b.dataset.awayTeam;state.counts[name]=Math.max(0,(Number(state.counts[name])||0)+Number(b.dataset.awayDelta));render();});
-  $a('awayReset').addEventListener('click',()=>{if(!confirm('모든 원정 방문 기록을 초기화할까요?'))return;state.counts={};render();});
-  populate(); render();
 })();
 </script>
 
