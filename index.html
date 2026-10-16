@@ -133,6 +133,16 @@ tr.detail td { white-space: normal; background: var(--bg); padding: 16px; }
 .progress b { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
 
 .chart svg { width: 100%; height: auto; display: block; }
+/* 추이 차트 툴팁: 차트 영역 안에서 가로 위치를 따라다닌다. 마우스 이벤트를 가로채지 않도록 pointer-events 없음 */
+#chart { position: relative; }
+#chart svg { touch-action: pan-y; }   /* 휴대폰에서 세로 스크롤은 그대로 되고, 가로로 짚으면 툴팁이 따라온다 */
+.ctip { position: absolute; z-index: 5; pointer-events: none; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; box-shadow: 0 4px 14px rgba(0, 0, 0, .18); white-space: nowrap; display: grid; gap: 3px; }
+.ctip b { font-size: 12.5px; }
+.ctip .tmetric { color: var(--muted); font-size: 11.5px; }
+.ctip .trow { display: flex; align-items: center; gap: 6px; }
+.ctip .trow i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.ctip .trow span { flex: 1; }
+.ctip .trow em { font-style: normal; font-family: var(--font-data); font-weight: 700; }
 /* 추이 차트 팀 선택 칩: 선택되면 그래프 선 색과 같은 색 점·테두리를 보여준다 */
 .trend-teams { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .trend-teams .tchip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: 3px 10px; font-size: 12.5px; font-weight: 500; }
@@ -1443,15 +1453,64 @@ function renderChart() {
   labels.sort((a, b) => a.y - b.y);
   for (let i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 14) labels[i].y = labels[i - 1].y + 14;
   labels.forEach(l => { s += `<text class="lab" x="${W - Rr + 8}" y="${l.y + 4}" style="fill:${l.c}">${l.t === me ? "★ " : ""}${esc(l.t)} ${l.v != null ? fmtP(l.v) : ""}</text>`; });
+  // 마우스를 올린 라운드를 표시할 세로선과 강조 점 자리 (처음에는 숨김)
+  s += `<line class="hline" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--muted)" stroke-dasharray="3 3" visibility="hidden"/><g class="hdots"></g>`;
   s += `</svg>`;
-  const notes = ["라운드가 끝날 때마다 점이 하나씩 생기고, 아래 날짜는 그 라운드의 마지막 경기일입니다. 연기 경기는 실제로 치른 날 이후 점에 반영됩니다."];
+  // 툴팁용 데이터: 라운드마다 가로 위치(x), 제목, 선택한 팀들의 확률(높은 순)과 세로 위치(y)
+  const hov = pts.map((p, j) => ({
+    x: x(j),
+    head: `${p.rd}라운드 · ${p.progress ? "진행 중" : md(p.date)}`,
+    rows: pick.map((t, i) => ({ t, i, v: t ? p.h[league][t]?.[metric] : null }))
+      .filter(r => r.t && r.v != null)            // 선택한 팀 중 이 라운드 값이 있는 팀만
+      .sort((a, b) => b.v - a.v)
+      .map(r => ({ ...r, y: y(r.v) }))
+  }));
+  const metricLabel = zones.find(z => z.key === metric).label.replace(/ \(.*\)/, "");
+  const notes = ["라운드가 끝날 때마다 점이 하나씩 생기고, 아래 날짜는 그 라운드의 마지막 경기일입니다. 연기 경기는 실제로 치른 날 이후 점에 반영됩니다. 그래프 위에 마우스를 올리거나(휴대폰은 손가락으로 짚으면) 그 라운드의 팀별 확률이 보입니다."];
   // 직접 고른 팀 중 이 지표 값이 한 번도 기록되지 않은 팀(예: 해당 없는 지표)은 선이 없으므로 알려 준다
   const noData = pick.filter(t => t && teams[t] == null);
   if (noData.length) notes.push(`${noData.join(", ")}은(는) 이 지표의 기록이 없어 선이 그려지지 않습니다.`);
   if (league === "k2") notes.push("K리그2는 17팀이라 라운드마다 한 팀이 쉽니다. 쉬는 팀도 다른 팀 결과에 따라 확률이 바뀝니다.");
   if (pts.some(p => p.progress)) notes.push("맨 끝 빈 점(진행 중)은 아직 끝나지 않은 라운드의 현재 값입니다.");
   if (pts.some(p => p.h.backfill)) notes.push("점선과 빈 점은 지난 경기 결과만으로 그 시점을 다시 계산한 값이고(부상 정보 제외), 실선과 채운 점은 그날 실제로 기록한 값입니다.");
-  $("chart").innerHTML = s + `<p>${notes.join(" ")}</p>`;
+  const box = $("chart");
+  box.innerHTML = s + `<p>${notes.join(" ")}</p>`;
+
+  // ---- 마우스오버/터치 툴팁 ----
+  const svg = box.querySelector("svg");
+  const line = svg.querySelector(".hline"), dots = svg.querySelector(".hdots");
+  const tip = document.createElement("div");   // 툴팁 박스 (차트 영역 안에 붙임)
+  tip.className = "ctip"; tip.hidden = true;
+  box.appendChild(tip);
+  const hide = () => { tip.hidden = true; line.setAttribute("visibility", "hidden"); dots.innerHTML = ""; };
+  const show = ev => {
+    const r = svg.getBoundingClientRect(), k = r.width / W;   // 화면 픽셀 → 그래프 좌표 비율
+    const sx = (ev.clientX - r.left) / k;                     // 포인터의 그래프 가로 좌표
+    // 그래프 영역(축 ~ 오른쪽 이름표 앞) 밖이면 숨긴다
+    if (sx < L - 12 || sx > W - Rr + 12) { hide(); return; }
+    // 가장 가까운 라운드 찾기
+    let best = 0;
+    hov.forEach((h, i) => { if (Math.abs(h.x - sx) < Math.abs(hov[best].x - sx)) best = i; });
+    const h = hov[best];
+    // 세로선과 팀별 강조 점
+    line.setAttribute("x1", h.x); line.setAttribute("x2", h.x); line.setAttribute("visibility", "visible");
+    dots.innerHTML = h.rows.map(q => `<circle cx="${h.x}" cy="${q.y}" r="5" fill="var(--s${q.i + 1})" stroke="var(--surface)" stroke-width="1.5"/>`).join("");
+    // 툴팁 내용: 라운드·날짜, 지표 이름, 팀별 확률
+    tip.innerHTML = `<b>${esc(h.head)}</b><span class="tmetric">${esc(metricLabel)}</span>`
+      + (h.rows.length ? h.rows.map(q => `<div class="trow"><i style="background:var(--s${q.i + 1})"></i><span>${q.t === me ? "★ " : ""}${esc(q.t)}</span><em>${fmtP(q.v)}</em></div>`).join("")
+                       : `<span class="tmetric">이 라운드 기록이 없어요</span>`);
+    tip.hidden = false;
+    // 위치: 세로선 오른쪽에 두고, 오른쪽 끝에 닿으면 왼쪽으로 뒤집는다
+    const br = box.getBoundingClientRect();
+    const px = r.left - br.left + h.x * k, py = r.top - br.top + T * k;
+    const left = px + 14 + tip.offsetWidth > box.clientWidth ? px - 14 - tip.offsetWidth : px + 14;
+    tip.style.left = Math.max(0, left) + "px";
+    tip.style.top = py + "px";
+  };
+  svg.addEventListener("pointermove", show);
+  svg.addEventListener("pointerdown", show);    // 터치는 짚는 순간에도 보여 준다
+  svg.addEventListener("pointerleave", hide);
+  svg.addEventListener("pointercancel", hide);
 }
 
 /* ---------- 백테스트 ---------- */
