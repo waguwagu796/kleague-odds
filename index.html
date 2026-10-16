@@ -443,11 +443,11 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
   <nav>
     <a href="#standings">순위표</a>
     <a href="#cheer">응원 작전실</a>
-    <a href="#round">라운드 빅매치</a>
+    <a href="#round">라운드 프리뷰·만약에</a>
     <a href="#dist">최종 순위 분포</a>
     <a href="#sched">남은 일정 난이도</a>
     <a href="#trend">확률 추이</a>
-    <a href="#backtest">이 모델은 얼마나 맞았나</a>
+    <a href="#backtest">예측 정확도</a>
     <a href="#method">계산 방법</a>
   </nav>
 </aside>
@@ -498,7 +498,7 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
       <div id="myPreviewBody"><p class="empty">내 팀을 선택해 주세요.</p></div>
     </section>
     <div class="panel-head">
-      <h2 id="roundTitle">이번 라운드 빅매치</h2>
+      <h2 id="roundTitle">이번 라운드 프리뷰</h2>
       <span class="meta" id="roundMeta"></span>
     </div>
     <div class="big" id="bigMatches"></div>
@@ -545,7 +545,7 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
   <div class="page" id="page-backtest" hidden>
   <section class="panel">
     <div class="panel-head">
-      <h2>이 모델은 얼마나 맞았나</h2>
+      <h2>예측 정확도</h2>
       <span class="meta" id="btStatus">검증 계산 대기 중</span>
     </div>
     <div id="backtest"><p>지난 시즌 데이터로 검증하는 중입니다.</p></div>
@@ -1553,7 +1553,7 @@ function renderRound() {
   const d = DATA[league], me = MY[league];
   const foc = focusFixtures(d);
   const splitPending = league === "k1" && (d.format || {}).split && !d.results.some(r => r[6]) && !(d.fixtures || []).some(f => f[4]);
-  $("roundTitle").textContent = foc.rd ? `${foc.rd}라운드 빅매치` : "이번 라운드 빅매치";
+  $("roundTitle").textContent = foc.rd ? `${foc.rd}라운드 프리뷰` : "이번 라운드 프리뷰";
   const ms = matchEffects(league).sort((a, b) => a.f[0] < b.f[0] ? -1 : a.f[0] > b.f[0] ? 1 : 0);
   if (!ms.length) {
     $("roundMeta").textContent = "";
