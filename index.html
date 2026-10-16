@@ -273,15 +273,41 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
   #mainBox { display: none; }
   .cards { display: grid; }
   h1 { font-size: 26px; }
-  /* 모바일: 사이트명은 중앙 정렬, 메뉴 버튼은 화면 왼쪽 상단에 고정 */
-  .top > div:first-child { width: 100%; align-items: center; text-align: center; padding-inline: 44px; }
-  .top > div:first-child h1 { width: 100%; }
+  /* 모바일: 사이트명과 메뉴 버튼을 하나의 상단 고정 헤더처럼 표시 */
+  body.app::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 64px;
+    z-index: 40;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 2px 8px rgba(15, 23, 48, .06);
+  }
+  .top > div:first-child {
+    width: 100%;
+    align-items: center;
+    text-align: center;
+    padding-inline: 44px;
+    padding-top: 56px;
+  }
+  .top > div:first-child h1 {
+    position: fixed;
+    top: 17px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 45;
+    width: max-content;
+    max-width: calc(100vw - 112px);
+    font-size: clamp(18px, 4.5vw, 24px);
+    white-space: nowrap;
+  }
   .top > div:first-child h1::after { margin-inline: auto; }
   .nav-toggle {
     position: fixed;
     top: 10px;
     left: 10px;
-    z-index: 45;
+    z-index: 46;
     width: 44px;
     height: 44px;
     padding: 0;
