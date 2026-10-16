@@ -273,9 +273,32 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
   #mainBox { display: none; }
   .cards { display: grid; }
   h1 { font-size: 26px; }
+  /* 모바일: 사이트명은 중앙 정렬, 메뉴 버튼은 화면 왼쪽 상단에 고정 */
+  .top > div:first-child { width: 100%; align-items: center; text-align: center; padding-inline: 44px; }
+  .top > div:first-child h1 { width: 100%; }
+  .top > div:first-child h1::after { margin-inline: auto; }
+  .nav-toggle {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 45;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--accent);
+    border-radius: 9px;
+    background: var(--accent);
+    color: var(--accent-fg);
+    font-size: 24px;
+    line-height: 1;
+    box-shadow: 0 2px 8px rgba(15, 23, 48, .18);
+  }
   .controls { width: 100%; }
-  .controls .tabs { flex: 0 0 auto; width: 160px; max-width: 100%; }
-  .controls .tabs button { flex: 1 1 0; min-width: 0; padding-inline: 8px; }
+  .controls .tabs { flex: 1; }
+  .controls .tabs button { flex: 1; }
   .summary { grid-template-columns: 1fr 1fr; gap: 10px; }
   .sum { padding: 12px; }
   .sum b { font-size: 19px; }
@@ -317,10 +340,10 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
       </div>
     </div>
     <div class="controls">
-      <button type="button" class="ghost nav-toggle" id="navToggle" aria-expanded="false" aria-controls="lmb">메뉴</button>
+      <button type="button" class="ghost nav-toggle" id="navToggle" aria-label="메뉴 열기" title="메뉴" aria-expanded="false" aria-controls="lmb">☰</button>
       <div class="tabs" role="group" aria-label="리그 선택">
         <button type="button" id="tabK1" aria-pressed="true">K리그1</button>
-        <button type="button" id="tabK2" aria-pressed="true">K리그2</button>
+        <button type="button" id="tabK2" aria-pressed="false">K리그2</button>
       </div>
       <label class="mysel">내 팀 <select id="myTeam" aria-label="내 팀 선택"><option value="">선택 안 함</option></select></label>
       <button type="button" class="ghost" id="rerun" disabled>새 시드로 다시 계산</button>
