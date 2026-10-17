@@ -78,13 +78,6 @@ body.app { display: grid; grid-template-columns: 228px minmax(0, 1fr); align-ite
 .lmb a:hover { background: var(--bar-bg); }
 .lmb a[aria-current="page"] { background: var(--accent); color: var(--accent-fg); }
 .nav-toggle { display: none; }
-/* PC에서도 사이드 메뉴를 접고 펼칠 수 있도록 하는 토글 */
-.sidebar-toggle { display:inline-flex; align-items:center; justify-content:center; width:100%; border:1px solid var(--line); background:var(--surface); color:var(--fg); border-radius:8px; padding:7px 10px; cursor:pointer; }
-body.sidebar-collapsed.app { grid-template-columns: 0 minmax(0, 1fr); }
-body.sidebar-collapsed .lmb { display:none; }
-body.sidebar-collapsed #desktopNavToggle { position:fixed; display:inline-flex; top:12px; left:12px; width:auto; z-index:50; box-shadow:0 2px 8px rgba(15,23,48,.12); }
-#desktopNavToggle { display:none; }
-@media(min-width:961px){ #desktopNavToggle { display:inline-flex; } }
 .nav-scrim { display: none; }
 .wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 48px; display: grid; gap: 20px; min-width: 0; }
 .page { display: grid; gap: 20px; min-width: 0; }
@@ -166,14 +159,48 @@ tr.detail td { white-space: normal; background: var(--bg); padding: 16px; }
 .histx { display: flex; gap: 3px; font-family: var(--font-data); font-size: 10.5px; color: var(--muted); }
 .histx span { flex: 1; text-align: center; }
 
-.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 12px 16px; font-size: 12.5px; color: var(--muted); line-height: 1.65; }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
 
+.team-page-head { display: flex; align-items: center; gap: 16px; }
+.team-page-head h2 { margin: 4px 0; font-size: 26px; }
+.team-page-head p { margin: 0; color: var(--muted); }
+.team-page-probs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.team-page-probs article { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--line); border-radius: 10px; }
+.team-page-probs article span { color: var(--muted); font-size: 12.5px; }
+.team-page-probs article > b { font-size: 21px; }
+.team-page-probs i { display: block; height: 7px; border-radius: 5px; background: var(--bar-bg); overflow: hidden; }
+.team-page-probs i b { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+.team-page-form { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.team-detail-actions { margin-top: 12px; }
+.cheer-intro { color: var(--muted); }
+.cheer-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.cheer-top select { min-height: 38px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--fg); font: inherit; }
+.cheer-summary { border-left: 4px solid var(--point); background: var(--bg); border-radius: 8px; padding: 12px 14px; display: grid; gap: 3px; }
+.cheer-summary b { font-size: 17px; }
+.cheer-grid { display: grid; gap: 12px; }
+.cheer-card { border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 10px; background: var(--surface); }
+.cheer-card h3 { margin: 0; font-size: 15px; }
+.cheer-card h3 small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+.cheer-outcomes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.cheer-choice { min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 9px; display: grid; gap: 3px; align-content: start; }
+.cheer-choice.best { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: color-mix(in srgb, var(--accent) 6%, var(--surface)); }
+.cheer-choice b, .cheer-choice small { overflow-wrap: anywhere; }
+.cheer-choice span { font-family: var(--font-data); font-size: 15px; font-weight: 700; }
+.cheer-choice small { color: var(--muted); font-size: 11.5px; }
+.cheer-choice button { margin-top: 5px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--fg); padding: 6px 4px; font: inherit; font-size: 11.5px; }
+.cheer-choice button:hover { border-color: var(--accent); }
+@media (max-width: 420px) { .cheer-outcomes { gap: 5px; } .cheer-choice { padding: 7px 5px; } .cheer-choice button { font-size: 10.5px; } }
+.team-page-content .team-detail-actions { display: none; }
+
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-width: 0; }
 .panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
-.panel p, .panel li { margin: 0; color: var(--muted); font-size: 13.5px; max-width: 95ch; }
-.panel ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+/* 설명 문구: 페이지마다 자연스럽게 줄바꿈하고 한글 문단의 호흡을 넉넉히 둔다 */
+.page :is(p, li, .meta, .legend span, .cheer-intro, .notice) { white-space: normal; word-break: keep-all; overflow-wrap: anywhere; line-height: 1.75; }
+.panel p, .panel li { margin: 0; color: var(--muted); font-size: 13.5px; max-width: 78ch; line-height: 1.75; }
+.panel p + p { margin-top: 8px; }
+.panel ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
 .panel table { font-size: 13px; }
 .panel table td, .panel table th { padding: 6px 8px; }
 .empty { padding: 40px 20px; text-align: center; color: var(--muted); white-space: normal; }
@@ -364,12 +391,13 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
     box-shadow: 0 2px 8px rgba(15, 23, 48, .18);
   }
   .controls { width: 100%; }
-  .controls .tabs { flex: 1; }
-  .controls .tabs button { flex: 1; }
+  .controls .tabs { flex: 1 1 100%; width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+  .controls .tabs button { flex: 1; min-width: 0; padding: 10px 8px; white-space: nowrap; }
   .summary { grid-template-columns: 1fr 1fr; gap: 10px; }
   .sum { padding: 12px; }
   .sum b { font-size: 19px; }
   .panel { padding: 14px; }
+  .panel-head .meta { max-width: 100%; text-align: left; }
   .sum.mine { grid-column: 1 / -1; }
   .mysel { flex: 1; }
   .mysel select { max-width: none; flex: 1; }
@@ -415,28 +443,28 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
 
 <button type="button" class="nav-scrim" id="navScrim" aria-label="메뉴 닫기"></button>
 <aside class="lmb" id="lmb" aria-label="페이지 메뉴">
-  <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-expanded="true" aria-controls="lmb">메뉴 접기 −</button><div class="brand">K LEAGUE INSIGHT</div>
+  <div class="brand">K LEAGUE INSIGHT</div>
   <nav>
     <a href="#standings">순위표</a>
-    <a href="#round">라운드 빅매치</a>
+    <a href="#cheer">응원 작전실</a>
+    <a href="#round">라운드 프리뷰·만약에</a>
     <a href="#dist">최종 순위 분포</a>
     <a href="#sched">남은 일정 난이도</a>
     <a href="#trend">확률 추이</a>
-    <a href="#backtest">이 모델은 얼마나 맞았나</a>
+    <a href="#backtest">예측 정확도</a>
     <a href="#method">계산 방법</a>
   </nav>
 </aside>
 <div class="wrap">
   <div class="top">
     <div style="display:grid; gap:6px">
-      <h1 id="homeLogo" role="link" tabindex="0" title="홈으로 이동" style="cursor:pointer">K LEAGUE INSIGHT</h1>
+      <h1>K LEAGUE INSIGHT</h1>
       <div class="meta">
         <span>데이터 기준 <b id="asOf">불러오는 중</b> · 남은 경기를 <b id="nsim">50,000</b>번 시뮬레이션 <span id="seedNote"></span></span>
         <span id="srcLine"></span>
       </div>
     </div>
     <div class="controls">
-      <button type="button" class="ghost" id="desktopNavToggle" aria-label="메뉴 펼치기" title="메뉴 펼치기">☰</button>
       <button type="button" class="ghost nav-toggle" id="navToggle" aria-label="메뉴 열기" title="메뉴" aria-expanded="false" aria-controls="lmb">☰</button>
       <div class="tabs" role="group" aria-label="리그 선택">
         <button type="button" id="tabK1" aria-pressed="true">K리그1</button>
@@ -462,6 +490,8 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
   <div class="legend" id="legend"></div>
   </div>
 
+  <div class="page" id="page-team" hidden><section class="panel team-page-content" id="teamPage"></section></div>
+  <div class="page" id="page-cheer" hidden><section class="panel" id="cheer"></section></div>
   <div class="page" id="page-round" hidden>
   <section class="panel" id="roundPanel">
     <section class="my-preview" id="myPreview" aria-live="polite">
@@ -472,7 +502,7 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
       <div id="myPreviewBody"><p class="empty">내 팀을 선택해 주세요.</p></div>
     </section>
     <div class="panel-head">
-      <h2 id="roundTitle">이번 라운드 빅매치</h2>
+      <h2 id="roundTitle">이번 라운드 프리뷰</h2>
       <span class="meta" id="roundMeta"></span>
     </div>
     <div class="big" id="bigMatches"></div>
@@ -480,11 +510,9 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
     <div class="mlist" id="matchList"></div>
     <div class="actions">
       <button type="button" class="primary" id="whatifRun" disabled>고른 결과로 다시 계산</button>
-      <button type="button" class="ghost" id="allScenarioToggle">전체 경기 시나리오 보기</button>
       <button type="button" class="ghost" id="whatifClear" disabled>선택 초기화</button>
       <span class="meta" id="whatifNote"></span>
     </div>
-    <div id="allScenarios" hidden></div>
     <div id="whatif"></div>
   </section>
   </div>
@@ -521,7 +549,7 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
   <div class="page" id="page-backtest" hidden>
   <section class="panel">
     <div class="panel-head">
-      <h2>이 모델은 얼마나 맞았나</h2>
+      <h2>예측 정확도</h2>
       <span class="meta" id="btStatus">검증 계산 대기 중</span>
     </div>
     <div id="backtest"><p>지난 시즌 데이터로 검증하는 중입니다.</p></div>
@@ -997,7 +1025,9 @@ const MAGIC = {
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const DATA = { k1: null, k2: null, h1: null, h2: null };
-let SIM = null, BT = null, HISTORY = [], league = "k1", openTeam = null, metric = "champ", customSeed = false;
+let SIM = null, BT = null, HISTORY = [], league = "k1", openTeam = null, selectedTeamPage = null, metric = "champ", customSeed = false;
+const CHEER_GOALS = { k1: [{ key: "champ", label: "우승" }, { key: "acle", label: "ACLE권" }, { key: "finalA", label: "파이널A" }, { key: "safe", source: "po", inverse: true, label: "잔류" }], k2: [{ key: "champ", label: "우승" }, { key: "auto", label: "자동 승격" }, { key: "top6", label: "PO권" }, { key: "promo", label: "최종 승격" }] };
+let CHEER_GOAL = { k1: "champ", k2: "auto" };
 let db = null, isOwner = false, STANDALONE = false;
 try { const v = localStorage.getItem("kl-odds-league"); if (v === "k1" || v === "k2") league = v; } catch {}
 // 내 팀(리그별, 이 브라우저에만 저장)과 "만약에"에서 고른 경기 결과(0 홈 승, 1 무, 2 원정 승)
@@ -1042,7 +1072,7 @@ function clearTrendTeams() {
   saveTrendSel();
   renderChart();
 }
-const PAGES = ["standings", "round", "dist", "sched", "trend", "backtest", "method"];
+const PAGES = ["standings", "team", "cheer", "round", "dist", "sched", "trend", "backtest", "method"];
 function currentPage() {
   const id = decodeURIComponent((location.hash || "").replace(/^#/, ""));
   return PAGES.includes(id) ? id : "standings";
@@ -1051,6 +1081,25 @@ function closeNav() {
   document.body.classList.remove("nav-open");
   const tog = $("navToggle");
   if (tog) tog.setAttribute("aria-expanded", "false");
+}
+function breakAtSentenceEnds() {
+  const targets = document.querySelectorAll(".page p, .page li, .page .meta, .page .cheer-intro, .page .cheer-summary small, .page .notice");
+  targets.forEach(el => {
+    if (el.querySelector("br[data-sentence-break]")) return;
+    const walker = document.createTreeWalker(el, 4), nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(node => {
+      const text = node.nodeValue, re = /([.!?])\s+(?=\S)/g;
+      let match, last = 0, changed = false;
+      const fragment = document.createDocumentFragment();
+      while ((match = re.exec(text))) {
+        fragment.appendChild(document.createTextNode(text.slice(last, match.index + 1)));
+        const br = document.createElement("br"); br.dataset.sentenceBreak = "true"; fragment.appendChild(br);
+        last = re.lastIndex; changed = true;
+      }
+      if (changed) { fragment.appendChild(document.createTextNode(text.slice(last))); node.parentNode.replaceChild(fragment, node); }
+    });
+  });
 }
 function showPage() {
   const id = currentPage();
@@ -1061,6 +1110,9 @@ function showPage() {
   });
   closeNav();
   if (id === "trend") requestAnimationFrame(() => renderChart());
+  if (id === "team") renderTeamPage();
+  if (id === "cheer") renderCheer();
+  breakAtSentenceEnds();
 }
 function goPage(id) {
   if (!PAGES.includes(id)) id = "standings";
@@ -1186,6 +1238,18 @@ function zoneColor(lg, i, n) {
   return i < 2 ? "var(--accent)" : i < 6 ? "var(--warn)" : "transparent";
 }
 
+function renderTeamPage() {
+  const root = $("teamPage"), d = DATA[league];
+  if (!root || !d || !SIM || !selectedTeamPage) { if (root) root.innerHTML = `<p class="empty">순위표에서 팀을 골라 주세요.</p>`; return; }
+  const t = d.standings.find(x => x.team === selectedTeamPage), r = SIM[league][selectedTeamPage];
+  if (!t || !r) { root.innerHTML = `<p class="empty">이 팀의 정보를 찾을 수 없어요.</p><button type="button" class="ghost" data-go-page="standings">순위표로 돌아가기</button>`; return; }
+  const zones = ZONES[league], dec = decided(d, league)[t.team], form = lastN(d.results, t.team, 5).reverse();
+  root.innerHTML = `<div class="team-page-head"><button type="button" class="ghost" data-go-page="standings">← 순위표</button><div><span class="meta">${league === "k1" ? "K리그1" : "K리그2"} · ${d.asOf || ""} 기준</span><h2>${esc(t.team)}</h2><p>${t.rank}위 · ${t.p}경기 · ${t.pts}점 · 득실 ${t.gf - t.ga > 0 ? "+" : ""}${t.gf - t.ga}</p></div></div>
+    <div class="team-page-probs">${zones.map(z => `<article><span>${esc(z.label)}</span><b>${ptxt(r[z.key] / SIM.N * 100, dec[z.key])}</b><i><b style="width:${Math.max(0, Math.min(100, r[z.key] / SIM.N * 100))}%"></b></i></article>`).join("")}</div>
+    <div class="team-page-form"><b>최근 5경기</b><span class="form">${form.map(f => `<i class="${f.r}" title="${esc(f.date)} ${f.my}-${f.op}">${f.r === "W" ? "승" : f.r === "D" ? "무" : "패"}</i>`).join("") || "기록 없음"}</span></div>
+    <h3 class="sub">일정·전력·최종 순위 전망</h3>${detailInner(d, t, r)}`;
+}
+
 function render() {
   $("tabK1").setAttribute("aria-pressed", league === "k1");
   $("tabK2").setAttribute("aria-pressed", league === "k2");
@@ -1273,6 +1337,9 @@ function render() {
     ? [["var(--accent)", "ACLE 출전권 (1~2위)"], ["var(--bar)", "파이널A (3~6위)"], ["var(--loss)", "승강 플레이오프 (12위)"]]
     : [["var(--accent)", "자동 승격 (1~2위)"], ["var(--warn)", "승격 플레이오프 (3~6위)"]])
     .map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join("") + `<span>팀을 누르면 남은 일정, 전력, 최종 순위 분포를 볼 수 있어요.</span>`;
+  if (currentPage() === "team") renderTeamPage();
+  if (currentPage() === "cheer") renderCheer();
+  breakAtSentenceEnds();
 }
 
 const detailRow = (d, t, r, cols) => `<tr class="detail"><td colspan="${cols}">${detailInner(d, t, r)}</td></tr>`;
@@ -1323,7 +1390,7 @@ function detailInner(d, t, r) {
       <div class="hist">${r.posDist.map((v, i) => `<div class="${i === cur ? "cur" : ""}" style="height:${max ? v / max * 100 : 0}%" title="${i + 1}위 ${(v / total * 100).toFixed(1)}%"></div>`).join("")}</div>
       <div class="histx">${r.posDist.map((_, i) => `<span>${i + 1}</span>`).join("")}</div>
     </div>
-  </div>`;
+  </div><div class="team-detail-actions"><button type="button" class="ghost" data-team-page="${esc(t.team)}">팀 상세 페이지 보기 →</button></div>`;
 }
 
 /* ---------- 라운드 ---------- */
@@ -1426,6 +1493,39 @@ function effLine(e, f, lg, mine) {
     <span class="vals"><span>${esc(f[2])} 승 <b>${v(e.p[0])}</b></span><span>무 <b>${v(e.p[1])}</b></span><span>${esc(f[3])} 승 <b>${v(e.p[2])}</b></span></span></div>`;
 }
 
+function renderCheer() {
+  const root = $("cheer"), d = DATA[league], me = MY[league];
+  if (!root) return;
+  if (!d || !SIM) { root.innerHTML = `<p class="empty">경기와 시뮬레이션 데이터를 불러오는 중이에요.</p>`; return; }
+  const goals = CHEER_GOALS[league].filter(g => !(g.key === "safe" && me === (d.format || {}).noPlayoffTeam));
+  if (!me) { root.innerHTML = `<div class="cheer-top"><div><h2>응원 작전실</h2><p class="cheer-intro">내 팀을 위해 이번 라운드에서 어떤 결과를 응원할지 살펴보세요.</p></div></div><div class="notice">먼저 상단의 ‘내 팀’에서 응원 팀을 선택해 주세요.</div>`; return; }
+  if (!goals.some(g => g.key === CHEER_GOAL[league])) CHEER_GOAL[league] = goals[0].key;
+  const goal = goals.find(g => g.key === CHEER_GOAL[league]);
+  const sourceKey = goal.source || goal.key, baselineRaw = SIM[league][me]?.[sourceKey];
+  const baseline = baselineRaw == null ? null : baselineRaw / SIM.N * 100 * (goal.inverse ? -1 : 1) + (goal.inverse ? 100 : 0);
+  const trace = (SIM.track || {})[league] || [], byKey = Object.fromEntries(trace.map(x => [x.key, x]));
+  const fx = focusFixtures(d).list;
+  const rows = fx.map(f => {
+    const key = fkey(f), item = byKey[key], data = item?.z?.[me]?.[sourceKey];
+    const vals = [0, 1, 2].map(o => { const n = item?.n?.[o] || 0; if (!data || n < 300) return null; const p = data[o] / n * 100; return goal.inverse ? 100 - p : p; });
+    const valid = vals.map((v, i) => v == null ? null : { i, v, delta: baseline == null ? null : v - baseline }).filter(Boolean);
+    const best = valid.length ? valid.reduce((a, b) => b.v > a.v ? b : a) : null;
+    const total = item ? item.n[0] + item.n[1] + item.n[2] : 0;
+    return { f, key, vals, best, swing: valid.length > 1 ? Math.max(...valid.map(x => x.v)) - Math.min(...valid.map(x => x.v)) : 0, probs: item && total ? item.n.map(n => n / total) : [0, 0, 0] };
+  }).sort((a, b) => b.swing - a.swing);
+  const top = rows.filter(x => x.best).sort((a, b) => (b.best.delta ?? 0) - (a.best.delta ?? 0))[0];
+  const outcomes = x => [0, 1, 2].map(o => {
+    const label = o === 0 ? x.f[2] + " 승" : o === 1 ? "무승부" : x.f[3] + " 승", p = x.vals[o];
+    const delta = p == null || baseline == null ? "표본 부족" : `${p - baseline >= 0 ? "+" : ""}${(p - baseline).toFixed(1)}%p`;
+    return `<div class="cheer-choice${x.best && x.best.i === o ? " best" : ""}"><b>${esc(label)}</b><small>경기 결과 ${Math.round(x.probs[o] * 100)}%</small><span>${p == null ? "-" : fmtP(p)}</span><small>${delta}</small><button type="button" data-cheer-pick="${o}" data-key="${esc(x.key)}">이 결과로 만약에</button></div>`;
+  }).join("");
+  const roundTitle = rows.length ? `${rows[0].f[1]}라운드` : "이번 라운드";
+  root.innerHTML = `<div class="cheer-top"><div><h2>응원 작전실</h2><p class="cheer-intro">${esc(me)} 팬을 위한 ${roundTitle} 응원 가이드. 경기 결과별 목표 확률을 비교해요.</p></div><label>응원 목표 <select id="cheerGoal">${goals.map(g => `<option value="${g.key}"${g.key === goal.key ? " selected" : ""}>${g.label}</option>`).join("")}</select></label></div>
+    ${baseline == null ? "" : `<div class="cheer-summary"><span>현재 ${goal.label} 확률</span><b>${fmtP(baseline)}</b><small>한 경기 결과만 반영한 값입니다. 여러 경기를 고르면 아래 만약에 분석에서 함께 계산할 수 있어요.</small></div>`}
+    ${top ? `<div class="cheer-summary"><span>이번 라운드에서 가장 유리한 단일 결과</span><b>${esc(top.best.i === 0 ? top.f[2] + " 승" : top.best.i === 1 ? "무승부" : top.f[3] + " 승")} · ${fmtP(top.best.v)} (${top.best.delta >= 0 ? "+" : ""}${top.best.delta.toFixed(1)}%p)</b><small>${esc(top.f[2])} vs ${esc(top.f[3])}</small></div>` : ""}
+    <div class="cheer-grid">${rows.length ? rows.map(x => `<article class="cheer-card"><h3>${esc(x.f[2])} vs ${esc(x.f[3])}<small>${esc(x.f[0])} · ${x.f[1] ? x.f[1] + "R" : "일정"}</small></h3><div class="cheer-outcomes">${outcomes(x)}</div></article>`).join("") : `<p class="empty">이번 라운드에 표시할 남은 경기가 없어요.</p>`}</div>`;
+  const select = $("cheerGoal"); if (select) select.addEventListener("change", e => { CHEER_GOAL[league] = e.target.value; renderCheer(); });
+}
 function renderMyPreview() {
   const root = $("myPreviewBody");
   if (!root) return;
@@ -1478,7 +1578,7 @@ function renderRound() {
   const d = DATA[league], me = MY[league];
   const foc = focusFixtures(d);
   const splitPending = league === "k1" && (d.format || {}).split && !d.results.some(r => r[6]) && !(d.fixtures || []).some(f => f[4]);
-  $("roundTitle").textContent = foc.rd ? `${foc.rd}라운드 빅매치` : "이번 라운드 빅매치";
+  $("roundTitle").textContent = foc.rd ? `${foc.rd}라운드 프리뷰` : "이번 라운드 프리뷰";
   const ms = matchEffects(league).sort((a, b) => a.f[0] < b.f[0] ? -1 : a.f[0] > b.f[0] ? 1 : 0);
   if (!ms.length) {
     $("roundMeta").textContent = "";
@@ -1513,13 +1613,6 @@ function renderRound() {
     </div>`;
   }).join("");
   renderWhatif();
-  // 펼쳐진 경우 전체 경기의 가능한 결과를 한 번에 나열한다.
-  const all = $("allScenarios");
-  if (all && !all.hidden) {
-    all.innerHTML = `<div class="panel"><div class="panel-head"><h2>전체 경기 시나리오</h2><span class="meta">${ms.length}경기 · 경기별 3가지 결과</span></div>
-      <p>각 경기의 가능한 결과를 모두 나열했습니다. 원하는 결과를 선택하면 만약에 계산기에 반영됩니다.</p>
-      <div class="mlist">${ms.map(m => `<div class="mrow"><span class="mdate">${m.f[0].slice(5).replace("-", ".")} (${dow(m.f[0])})</span><span class="mteams">${esc(m.f[2])} vs ${esc(m.f[3])}</span><span class="meta">홈 승 ${fmtP(m.probs[0])} · 무 ${fmtP(m.probs[1])} · 원정 승 ${fmtP(m.probs[2])}</span><span class="pick">${[[0,m.f[2]+" 승"],[1,"무"],[2,m.f[3]+" 승"]].map(([v,l])=>`<button type="button" data-scenario-pick="${v}" data-key="${esc(m.key)}">${esc(l)}</button>`).join("")}</span></div>`).join("")}</div></div>`;
-  }
 }
 
 // 고른 결과를 실제로 치른 것처럼 넣은 문서 (확정·불가 판정용, 점수는 1-0 / 0-0 / 0-1로 둔다)
@@ -1919,15 +2012,6 @@ async function runBacktest() {
 
 document.addEventListener("click", e => {
   if (e.target.id === "navScrim") { closeNav(); return; }
-  if (e.target.id === "homeLogo") { goPage("standings"); return; }
-  if (e.target.id === "sidebarToggle" || e.target.id === "desktopNavToggle") {
-    const collapsed = document.body.classList.toggle("sidebar-collapsed");
-    const sideBtn = $("sidebarToggle");
-    if (sideBtn) { sideBtn.setAttribute("aria-expanded", String(!collapsed)); sideBtn.textContent = collapsed ? "메뉴 펼치기 +" : "메뉴 접기 −"; }
-    $("desktopNavToggle").setAttribute("aria-label", collapsed ? "메뉴 펼치기" : "메뉴 접기");
-    $("desktopNavToggle").title = collapsed ? "메뉴 펼치기" : "메뉴 접기";
-    return;
-  }
   const b = e.target.closest("button, tr.team"); if (!b) return;
   if (b.id === "navToggle") {
     const open = !document.body.classList.contains("nav-open");
@@ -1945,20 +2029,11 @@ document.addEventListener("click", e => {
     if (P[k] === v) delete P[k]; else P[k] = v;
     renderRound();
   }
-  else if (b.id === "allScenarioToggle") {
-    const box = $("allScenarios"); box.hidden = !box.hidden;
-    b.textContent = box.hidden ? "전체 경기 시나리오 보기" : "전체 경기 시나리오 접기";
-    if (!box.hidden) renderRound();
-  }
-  else if (b.dataset.scenarioPick != null) {
-    PICKS[league][b.dataset.key] = Number(b.dataset.scenarioPick);
-    $("allScenarios").hidden = true;
-    $("allScenarioToggle").textContent = "전체 경기 시나리오 보기";
-    renderRound();
-    $("whatifRun").scrollIntoView({behavior:"smooth",block:"center"});
-  }
   else if (b.id === "whatifRun") runWhatif();
   else if (b.id === "whatifClear") { PICKS[league] = {}; if (WHATIF && WHATIF.lg === league) WHATIF = null; renderRound(); }
+  else if (b.dataset.cheerPick != null) { PICKS[league][b.dataset.key] = Number(b.dataset.cheerPick); goPage("round"); renderRound(); }
+  else if (b.dataset.teamPage) { selectedTeamPage = b.dataset.teamPage; goPage("team"); renderTeamPage(); }
+  else if (b.dataset.goPage) goPage(b.dataset.goPage);
   else if (b.dataset.team) { openTeam = openTeam === b.dataset.team ? null : b.dataset.team; render(); }
 });
 $("trendStartRound").addEventListener("change", e => {
@@ -1982,7 +2057,9 @@ $("lmb").addEventListener("click", e => {
 window.addEventListener("hashchange", () => { showPage(); window.scrollTo(0, 0); });
 window.addEventListener("popstate", () => { showPage(); window.scrollTo(0, 0); });
 showPage();
-$("homeLogo").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); goPage("standings"); } });
+breakAtSentenceEnds();
+const sentenceObserver = new MutationObserver(() => breakAtSentenceEnds());
+sentenceObserver.observe(document.querySelector(".wrap"), { childList: true, subtree: true });
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") closeNav();
   const tr = e.target.closest && e.target.closest("tr.team");
