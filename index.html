@@ -453,6 +453,23 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
   body.lmb-collapsed .lmb .brand, body.lmb-collapsed .lmb nav { display: none; }
   body.lmb-collapsed .lmb button.lmb-collapse { align-self: center; }
 }
+/* 응원 작전실 → 모든 시나리오를 만약에 페이지에서 한 번에 열기 */
+.cheer-all { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+#whatifAll { display: grid; gap: 12px; }
+#whatifAll:empty { display: none; }
+.wa-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 8px 12px; }
+.wa-head .sub { margin: 0; }
+.wa-match { border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 8px; background: var(--surface); min-width: 0; }
+.wa-match h4 { margin: 0; font-size: 15px; }
+.wa-match h4 small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+.wa-scn { border: 1px solid var(--line); border-radius: 8px; background: var(--bg); min-width: 0; }
+details.wa-scn > summary { cursor: pointer; padding: 9px 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+details.wa-scn[open] > summary { border-bottom: 1px solid var(--line); }
+.wa-body { padding: 10px 12px; display: grid; gap: 10px; min-width: 0; }
+.wa-pending { padding: 9px 12px; color: var(--muted); }
+.wa-label { font-weight: 700; }
+.wa-mine { font-size: 12.5px; }
+.wa-best { font-style: normal; font-size: 11.5px; font-weight: 700; color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); border-radius: 999px; padding: 2px 9px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
 </style>
@@ -531,6 +548,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
       <span class="meta" id="whatifNote"></span>
     </div>
     <div id="whatif"></div>
+    <div id="whatifAll"></div>
   </section>
   </div>
 
@@ -1138,6 +1156,8 @@ function goPage(id) {
   window.scrollTo(0, 0);
 }
 let WHATIF = null, whatifRunning = false;
+// 응원 작전실에서 연 "전체 시나리오": { lg, sim0, running, done, items: [{ f, key, o, view, err, open }] }
+let ALLWHAT = null;
 const ZSHORT = { k1: { champ: "우승", acle: "ACLE권", finalA: "파이널A", po: "승강 PO" }, k2: { champ: "우승", auto: "자동 승격", top6: "PO권", promo: "최종 승격" } };
 const fkey = f => f[0] + "|" + f[2] + "|" + f[3];
 const dow = d => "일월화수목금토"[new Date(d + "T00:00:00Z").getUTCDay()];
@@ -1510,6 +1530,11 @@ function effLine(e, f, lg, mine) {
     <span class="vals"><span>${esc(f[2])} 승 <b>${v(e.p[0])}</b></span><span>무 <b>${v(e.p[1])}</b></span><span>${esc(f[3])} 승 <b>${v(e.p[2])}</b></span></span></div>`;
 }
 
+// 이번 라운드에 보이는 모든 시나리오(경기 수 × 3결과)를 만약에 페이지에서 여는 버튼 줄
+function cheerAllBar(nMatch) {
+  const busy = (whatifRunning || simRunning) && !(ALLWHAT && ALLWHAT.lg === league && ALLWHAT.running);
+  return `<div class="cheer-all"><button type="button" class="primary" id="cheerAll"${busy ? " disabled" : ""}>모든 시나리오 만약에에서 열기</button><span class="meta">이번 라운드 ${nMatch}경기 × 3결과 = ${nMatch * 3}개 시나리오를 차례로 계산해 만약에 페이지에 모두 펼쳐요. 시간이 걸릴 수 있어요.</span></div>`;
+}
 function renderCheer() {
   const root = $("cheer"), d = DATA[league], me = MY[league];
   if (!root) return;
@@ -1538,6 +1563,7 @@ function renderCheer() {
   }).join("");
   const roundTitle = rows.length ? `${rows[0].f[1]}라운드` : "이번 라운드";
   root.innerHTML = `<div class="cheer-top"><div><h2>응원 작전실</h2><p class="cheer-intro">${esc(me)} 팬을 위한 ${roundTitle} 응원 가이드. 경기 결과별 목표 확률을 비교해요.</p></div><label>응원 목표 <select id="cheerGoal">${goals.map(g => `<option value="${g.key}"${g.key === goal.key ? " selected" : ""}>${g.label}</option>`).join("")}</select></label></div>
+    ${rows.length ? cheerAllBar(rows.length) : ""}
     ${baseline == null ? "" : `<div class="cheer-summary"><span>현재 ${goal.label} 확률</span><b>${fmtP(baseline)}</b><small>한 경기 결과만 반영한 값입니다. 여러 경기를 고르면 아래 만약에 분석에서 함께 계산할 수 있어요.</small></div>`}
     ${top ? `<div class="cheer-summary"><span>이번 라운드에서 가장 유리한 단일 결과</span><b>${esc(top.best.i === 0 ? top.f[2] + " 승" : top.best.i === 1 ? "무승부" : top.f[3] + " 승")} · ${fmtP(top.best.v)} (${top.best.delta >= 0 ? "+" : ""}${top.best.delta.toFixed(1)}%p)</b><small>${esc(top.f[2])} vs ${esc(top.f[3])}</small></div>` : ""}
     <div class="cheer-grid">${rows.length ? rows.map(x => `<article class="cheer-card"><h3>${esc(x.f[2])} vs ${esc(x.f[3])}<small>${esc(x.f[0])} · ${x.f[1] ? x.f[1] + "R" : "일정"}</small></h3><div class="cheer-outcomes">${outcomes(x)}</div></article>`).join("") : `<p class="empty">이번 라운드에 표시할 남은 경기가 없어요.</p>`}</div>`;
@@ -1644,51 +1670,59 @@ function hypoDoc(d, picks) {
   });
   return Object.assign({}, d, { results: d.results.concat(add), fixtures: (d.fixtures || []).filter(f => picks[fkey(f)] == null), standings: st });
 }
+// 고른 결과(picks)와 그 결과로 다시 계산한 sim으로 "지금 확률 → 이 결과일 때 확률" 화면을 만든다.
+// 반환: html(가정·확정/불가 칩·비교표), zones(구역 목록), mineRow(내 팀 행: 구역별 cells[{ dv, good, html }])
+function buildWhatifView(lg, picks, sim) {
+  const d = DATA[lg], base = SIM[lg], sc = sim[lg], zones = ZONES[lg], me = MY[lg];
+  const exempt = (d.format || {}).noPlayoffTeam;
+  const decB = decided(d, lg), decS = decided(hypoDoc(d, picks), lg);
+  const st = d.standings.slice().sort((a, b) => a.rank - b.rank);
+  const byKey = Object.fromEntries((d.fixtures || []).map(f => [fkey(f), f]));
+  const assumed = Object.entries(picks).map(([k, o]) => { const f = byKey[k]; return f ? (o === 1 ? `${f[2]}-${f[3]} 무승부` : `${o === 0 ? f[2] : f[3]} 승 (vs ${o === 0 ? f[3] : f[2]})`) : null; }).filter(Boolean);
+  // 이 결과면 새로 확정되거나 불가능해지는 것
+  const order = lg === "k1" ? ["champ", "acle", "finalA"] : ["champ", "auto", "top6"];
+  const chips = [];
+  st.forEach(t => {
+    const b = decB[t.team], s = decS[t.team];
+    const sureK = order.find(k => s[k].sure && !b[k].sure);
+    if (sureK) chips.push([`${t.team} ${ZSHORT[lg][sureK]} 확정`, ""]);
+    const outK = order.slice().reverse().find(k => s[k].out && !b[k].out);
+    if (outK) chips.push([`${t.team} ${ZSHORT[lg][outK]} 불가`, "bad"]);
+    if (lg === "k1" && t.team !== exempt && s.po.out && !b.po.out) chips.push([`${t.team} 잔류 확정`, ""]);
+  });
+  const val = (v, N, s) => s.sure ? 100 : s.out ? 0 : v / N * 100;
+  const rows = st.map(t => {
+    const cells = zones.map(z => {
+      if (z.key === "po" && t.team === exempt) return { html: '<span class="mg off">해당 없음</span>', dv: 0, good: false };
+      const bs = decB[t.team][z.key], ss = decS[t.team][z.key];
+      const bv = val(base[t.team][z.key], SIM.N, bs), sv = val(sc[t.team][z.key], sim.N, ss), dv = sv - bv;
+      const good = z.danger ? dv < 0 : dv > 0;
+      return { dv, good, html: `<span class="was">${ptxt(bv, bs)}</span> → <b class="num">${ptxt(sv, ss)}</b>${Math.abs(dv) >= 0.1 ? `<span class="delta ${good ? "up" : "down"}">${dv > 0 ? "+" : ""}${dv.toFixed(1)}</span>` : ""}` };
+    });
+    return { t, cells, big: cells.some(c => Math.abs(c.dv) >= 0.5) };
+  });
+  const shown = rows.filter(r => r.big || r.t.team === me), hidden = rows.length - shown.length;
+  const html = `
+    <p><b>가정:</b> ${assumed.map(esc).join(", ")}. 지금 확률 → 이 결과일 때 확률입니다(같은 시드로 ${sim.N.toLocaleString()}번).</p>
+    ${chips.length ? `<div class="changes">${chips.map(([t, c]) => `<span class="chip${c ? " " + c : ""}">${esc(t)}</span>`).join("")}</div>` : ""}
+    <div class="tablebox"><table><thead><tr><th>팀</th>${zones.map(z => `<th>${z.label}</th>`).join("")}</tr></thead><tbody>
+      ${shown.map(r => `<tr${r.t.team === me ? ' class="mine"' : ""}><td>${r.t.team === me ? '<span class="star">★</span>' : ""}<b>${esc(r.t.team)}</b> <small class="rank">${r.t.rank}위</small></td>${r.cells.map(c => `<td>${c.html}</td>`).join("")}</tr>`).join("")}
+    </tbody></table></div>
+    ${hidden ? `<p>확률 변화가 0.5%p 미만인 ${hidden}팀은 생략했어요.</p>` : ""}`;
+  return { html, zones, mineRow: me ? (rows.find(r => r.t.team === me) || null) : null };
+}
 function renderWhatif() {
   const picks = PICKS[league], n = Object.keys(picks).length;
   $("whatifRun").disabled = !n || whatifRunning || simRunning || !SIM;
   $("whatifRun").textContent = whatifRunning ? "계산 중…" : "고른 결과로 다시 계산";
   $("whatifClear").disabled = !n && !(WHATIF && WHATIF.lg === league);
   $("whatifNote").textContent = n ? `${n}경기 결과를 골랐어요.` : "경기마다 결과를 고르면, 그 결과를 넣고 남은 시즌을 다시 계산해 지금과 비교해 드려요.";
+  renderWhatifAll();   // 응원 작전실에서 연 "전체 시나리오" 영역도 함께 그린다
   const w = WHATIF && WHATIF.lg === league ? WHATIF : null;
   if (!w) { $("whatif").innerHTML = ""; return; }
-  const d = DATA[league], base = SIM[league], sc = w.sim[league], zones = ZONES[league], me = MY[league];
-  const exempt = (d.format || {}).noPlayoffTeam;
-  const decB = decided(d, league), decS = decided(hypoDoc(d, w.picks), league);
-  const st = d.standings.slice().sort((a, b) => a.rank - b.rank);
-  const byKey = Object.fromEntries((d.fixtures || []).map(f => [fkey(f), f]));
-  const assumed = Object.entries(w.picks).map(([k, o]) => { const f = byKey[k]; return f ? (o === 1 ? `${f[2]}-${f[3]} 무승부` : `${o === 0 ? f[2] : f[3]} 승 (vs ${o === 0 ? f[3] : f[2]})`) : null; }).filter(Boolean);
-  // 이 결과면 새로 확정되거나 불가능해지는 것
-  const order = league === "k1" ? ["champ", "acle", "finalA"] : ["champ", "auto", "top6"];
-  const chips = [];
-  st.forEach(t => {
-    const b = decB[t.team], s = decS[t.team];
-    const sureK = order.find(k => s[k].sure && !b[k].sure);
-    if (sureK) chips.push([`${t.team} ${ZSHORT[league][sureK]} 확정`, ""]);
-    const outK = order.slice().reverse().find(k => s[k].out && !b[k].out);
-    if (outK) chips.push([`${t.team} ${ZSHORT[league][outK]} 불가`, "bad"]);
-    if (league === "k1" && t.team !== exempt && s.po.out && !b.po.out) chips.push([`${t.team} 잔류 확정`, ""]);
-  });
-  const val = (v, N, s) => s.sure ? 100 : s.out ? 0 : v / N * 100;
-  const rows = st.map(t => {
-    const cells = zones.map(z => {
-      if (z.key === "po" && t.team === exempt) return { html: '<span class="mg off">해당 없음</span>', dv: 0 };
-      const bs = decB[t.team][z.key], ss = decS[t.team][z.key];
-      const bv = val(base[t.team][z.key], SIM.N, bs), sv = val(sc[t.team][z.key], w.sim.N, ss), dv = sv - bv;
-      const good = z.danger ? dv < 0 : dv > 0;
-      return { dv, html: `<span class="was">${ptxt(bv, bs)}</span> → <b class="num">${ptxt(sv, ss)}</b>${Math.abs(dv) >= 0.1 ? `<span class="delta ${good ? "up" : "down"}">${dv > 0 ? "+" : ""}${dv.toFixed(1)}</span>` : ""}` };
-    });
-    return { t, cells, big: cells.some(c => Math.abs(c.dv) >= 0.5) };
-  });
-  const shown = rows.filter(r => r.big || r.t.team === me), hidden = rows.length - shown.length;
   $("whatif").innerHTML = `
     ${w.picks && JSON.stringify(w.picks) !== JSON.stringify(picks) ? `<div class="notice">고른 결과가 바뀌었어요. 아래는 이전 선택으로 계산한 결과입니다. 다시 계산을 눌러 주세요.</div>` : ""}
-    <p><b>가정:</b> ${assumed.map(esc).join(", ")}. 지금 확률 → 이 결과일 때 확률입니다(같은 시드로 ${w.sim.N.toLocaleString()}번).</p>
-    ${chips.length ? `<div class="changes">${chips.map(([t, c]) => `<span class="chip${c ? " " + c : ""}">${esc(t)}</span>`).join("")}</div>` : ""}
-    <div class="tablebox"><table><thead><tr><th>팀</th>${zones.map(z => `<th>${z.label}</th>`).join("")}</tr></thead><tbody>
-      ${shown.map(r => `<tr${r.t.team === me ? ' class="mine"' : ""}><td>${r.t.team === me ? '<span class="star">★</span>' : ""}<b>${esc(r.t.team)}</b> <small class="rank">${r.t.rank}위</small></td>${r.cells.map(c => `<td>${c.html}</td>`).join("")}</tr>`).join("")}
-    </tbody></table></div>
-    ${hidden ? `<p>확률 변화가 0.5%p 미만인 ${hidden}팀은 생략했어요.</p>` : ""}`;
+    ${buildWhatifView(league, w.picks, w.sim).html}`;
 }
 async function runWhatif() {
   const picks = Object.assign({}, PICKS[league]), lg = league;
@@ -1706,6 +1740,90 @@ async function runWhatif() {
   renderWhatif();
   if (WHATIF && WHATIF.lg === league) $("whatif").scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
+
+
+// 응원 작전실의 버튼: 이미 계산했거나 계산 중이면 만약에 페이지만 열고, 아니면 새로 계산한다
+function openAllWhatif() {
+  const a = ALLWHAT && ALLWHAT.lg === league && ALLWHAT.sim0 === SIM ? ALLWHAT : null;
+  if (!a) { runAllWhatif(); return; }
+  goPage("round"); renderRound();
+  requestAnimationFrame(() => { const el = $("whatifAll"); if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "start" }); });
+}
+// 이번 라운드 모든 경기 × 3결과를 "그 경기 결과 하나만 정하고 나머지는 시뮬레이션"으로 차례로 다시 계산한다.
+// (지금 골라 둔 결과(PICKS)와는 별개이고, 시드는 기본 계산과 같아 숫자를 서로 비교할 수 있다)
+async function runAllWhatif() {
+  const lg = league, d = DATA[lg];
+  if (!SIM || !d || whatifRunning || simRunning) return;
+  const list = focusFixtures(d).list;
+  if (!list.length) return;
+  const sim0 = SIM, d1 = DATA.k1, d2 = DATA.k2;   // 계산 도중 데이터가 바뀌어도 한 벌로 계산하려고 미리 잡아 둔다
+  const a = { lg, sim0, running: true, done: 0, items: list.flatMap(f => [0, 1, 2].map(o => ({ f, key: fkey(f), o }))) };
+  ALLWHAT = a;
+  whatifRunning = true;
+  goPage("round"); renderRound();   // 만약에 페이지로 이동 (renderRound 안에서 전체 시나리오 영역도 그려진다)
+  $("progress").hidden = false; $("progressBar").style.width = "0";
+  requestAnimationFrame(() => { const el = $("whatifAll"); if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "start" }); });
+  for (const it of a.items) {
+    // 닫기를 눌렀거나 새 시드/새 데이터로 다시 계산되면 중단
+    if (ALLWHAT !== a || SIM !== sim0) break;
+    try {
+      const sim = await call({ type: "current", d1, d2, N: NSIM, seed: sim0.seed, opts: { forced: { [lg]: { [it.key]: it.o } } } },
+        done => { $("progressBar").style.width = ((a.done + done / NSIM) / a.items.length * 100) + "%"; });
+      if (ALLWHAT !== a) break;
+      it.view = buildWhatifView(lg, { [it.key]: it.o }, sim);
+    } catch (err) { it.err = err.message; }
+    a.done++;
+    renderWhatifAll();
+  }
+  a.running = false; whatifRunning = false;
+  if (!simRunning) $("progress").hidden = true;
+  renderWhatif();
+  const cb = $("cheerAll"); if (cb) cb.disabled = simRunning;   // 응원 작전실의 버튼 상태도 계산 종료에 맞춰 갱신
+}
+// 만약에 페이지 아래에 전체 시나리오를 경기별로 묶어 보여준다 (시나리오마다 접고 펼 수 있다)
+function renderWhatifAll() {
+  const box = $("whatifAll");
+  if (!box) return;
+  const a = ALLWHAT && ALLWHAT.lg === league ? ALLWHAT : null;
+  if (!a || !DATA[league] || !SIM) { box.innerHTML = ""; return; }
+  const me = MY[league], zones = ZONES[league];
+  // 요약 줄에 보여줄 내 팀 구역: 응원 작전실에서 고른 응원 목표와 같은 구역 (목표를 바꿔도 다시 계산하지 않는다)
+  const goal = (CHEER_GOALS[league] || []).find(g => g.key === CHEER_GOAL[league]);
+  const zi = goal ? zones.findIndex(z => z.key === (goal.source || goal.key)) : -1;
+  const label = it => it.o === 0 ? `${it.f[2]} 승` : it.o === 1 ? "무승부" : `${it.f[3]} 승`;
+  const mineCell = it => it.view && it.view.mineRow && zi >= 0 ? it.view.mineRow.cells[zi] : null;
+  const groups = new Map();
+  a.items.forEach((it, i) => { it.i = i; if (!groups.has(it.key)) groups.set(it.key, []); groups.get(it.key).push(it); });
+  const body = [...groups.values()].map(items => {
+    // 그 경기의 세 결과가 모두 계산됐고 가장 좋은 결과와 가장 나쁜 결과의 차이가 1%p 이상일 때만(시뮬레이션 오차보다 클 때만), 내 팀 목표에 가장 유리한 결과에 표시
+    let bestIt = null;
+    const cells = items.map(mineCell);
+    if (zi >= 0 && cells.every(Boolean)) {
+      const score = c => zones[zi].danger ? -c.dv : c.dv, sc = cells.map(score);
+      if (Math.max(...sc) - Math.min(...sc) >= 1) bestIt = items[sc.indexOf(Math.max(...sc))];
+    }
+    const f = items[0].f;
+    const rowsHtml = items.map(it => {
+      const c = mineCell(it);
+      const sum = `<span class="wa-label">${esc(label(it))}</span>${c ? `<span class="wa-mine"><span class="star">★</span>${esc(me)} ${esc(zones[zi].label)} ${c.html}</span>` : ""}${bestIt === it ? '<em class="wa-best">내 팀에 가장 유리</em>' : ""}`;
+      if (it.view) return `<details class="wa-scn" data-i="${it.i}"${it.open ? " open" : ""}><summary>${sum}</summary><div class="wa-body">${it.view.html}</div></details>`;
+      if (it.err) return `<div class="wa-scn wa-pending"><span class="wa-label">${esc(label(it))}</span> 계산 실패: ${esc(it.err)}</div>`;
+      return `<div class="wa-scn wa-pending"><span class="wa-label">${esc(label(it))}</span> ${a.running ? "계산 대기 중…" : "계산되지 않았어요."}</div>`;
+    }).join("");
+    return `<section class="wa-match"><h4>${esc(f[2])} vs ${esc(f[3])}<small>${esc(f[0].slice(5).replace("-", "."))} (${dow(f[0])})${f[1] != null ? ` · ${f[1]}R` : ""}</small></h4>${rowsHtml}</section>`;
+  }).join("");
+  const total = a.items.length;
+  box.innerHTML = `<div class="wa-head"><div><h3 class="sub">전체 시나리오 한눈에 보기</h3>
+      <p class="meta">${a.running ? `계산 중 ${a.done}/${total}` : `${a.done}/${total}개 계산 완료`} · 시나리오마다 그 경기 결과 하나만 정하고 나머지는 시뮬레이션했어요(위에서 고른 결과와는 별개). 같은 시드로 ${NSIM.toLocaleString()}번씩 계산해 지금 확률과 비교합니다. ‘내 팀에 가장 유리’는 세 결과의 차이가 1%p 이상일 때만 표시해요.</p></div>
+      <div class="actions"><button type="button" class="ghost" data-wa-act="open">모두 펼치기</button><button type="button" class="ghost" data-wa-act="close">모두 접기</button><button type="button" class="ghost" id="whatifAllClear">전체 시나리오 닫기</button></div></div>${body}`;
+}
+// 시나리오를 펼치고 접은 상태를 기억해 두면, 계산이 진행되어 다시 그려져도 펼친 칸이 유지된다 (toggle 이벤트는 버블링되지 않아 캡처로 받는다)
+$("whatifAll").addEventListener("toggle", e => {
+  const el = e.target;
+  if (!ALLWHAT || !el.matches || !el.matches("details.wa-scn")) return;
+  const it = ALLWHAT.items[Number(el.dataset.i)];
+  if (it) it.open = el.open;
+}, true);
 
 /* ---------- 최종 순위 분포 ---------- */
 function renderDist() {
@@ -1959,7 +2077,7 @@ async function runSim(seed) {
   simRunning = true;
   $("rerun").disabled = true;
   $("progress").hidden = false; $("progressBar").style.width = "0";
-  WHATIF = null;
+  WHATIF = null; ALLWHAT = null;   // 새 시드·새 데이터로 다시 계산하면 이전 만약에 결과는 비교 기준이 달라지므로 비운다
   // 다음 라운드 경기는 결과별로 따로 세어 빅매치 계산에 쓴다 (난수 순서는 그대로라 숫자는 바뀌지 않는다)
   const track = { k1: focusFixtures(DATA.k1).list.map(fkey), k2: focusFixtures(DATA.k2).list.map(fkey) };
   try {
@@ -2050,6 +2168,9 @@ document.addEventListener("click", e => {
   else if (b.id === "whatifRun") runWhatif();
   else if (b.id === "whatifClear") { PICKS[league] = {}; if (WHATIF && WHATIF.lg === league) WHATIF = null; renderRound(); }
   else if (b.dataset.cheerPick != null) { PICKS[league][b.dataset.key] = Number(b.dataset.cheerPick); goPage("round"); renderRound(); }
+  else if (b.id === "cheerAll") openAllWhatif();                                            // 응원 작전실: 모든 시나리오 열기
+  else if (b.id === "whatifAllClear") { ALLWHAT = null; renderWhatifAll(); renderCheer(); }  // 전체 시나리오 닫기
+  else if (b.dataset.waAct) document.querySelectorAll("#whatifAll details.wa-scn").forEach(el => { el.open = b.dataset.waAct === "open"; });
   else if (b.dataset.teamPage) { selectedTeamPage = b.dataset.teamPage; goPage("team"); renderTeamPage(); }
   else if (b.dataset.goPage) goPage(b.dataset.goPage);
   else if (b.dataset.team) { openTeam = openTeam === b.dataset.team ? null : b.dataset.team; render(); }
