@@ -438,7 +438,9 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
 }
 
 /* 로고 링크: 사이드바 로고와 상단 제목을 누르면 홈으로 */
-.lmb a.brand { display: block; padding: 2px 10px 4px; color: var(--accent); font-weight: 400; font-size: 20px; text-decoration: none; border-radius: 8px; }
+/* 사이드바 상단 헤더: 로고는 왼쪽, 접기 버튼은 같은 줄 오른쪽 */
+.lmb-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.lmb a.brand { flex: 1 1 auto; min-width: 0; display: block; padding: 2px 10px 4px; color: var(--accent); font-weight: 400; font-size: 20px; text-decoration: none; border-radius: 8px; }
 .lmb a.brand:hover { background: transparent; opacity: .8; }
 h1 a.home-link { color: inherit; text-decoration: none; }
 h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
@@ -446,12 +448,12 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
 .lmb button.lmb-collapse { display: none; }
 @media (min-width: 961px) {
   body.app { transition: grid-template-columns .2s ease; }
-  .lmb button.lmb-collapse { display: inline-flex; align-items: center; justify-content: center; align-self: flex-end; width: 36px; height: 36px; padding: 0; }
+  .lmb button.lmb-collapse { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 32px; height: 32px; padding: 0; font-size: 18px; line-height: 1; }
   /* 접힌 상태: 좁은 레일만 남기고 로고·메뉴는 숨긴다 (접기 버튼은 남겨 다시 펼 수 있게) */
   body.app.lmb-collapsed { grid-template-columns: 56px minmax(0, 1fr); }
   body.lmb-collapsed .lmb { padding-inline: 8px; overflow: hidden; }
   body.lmb-collapsed .lmb .brand, body.lmb-collapsed .lmb nav { display: none; }
-  body.lmb-collapsed .lmb button.lmb-collapse { align-self: center; }
+  body.lmb-collapsed .lmb-head { justify-content: center; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
@@ -459,8 +461,10 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
 
 <button type="button" class="nav-scrim" id="navScrim" aria-label="메뉴 닫기"></button>
 <aside class="lmb" id="lmb" aria-label="페이지 메뉴">
-  <button type="button" class="ghost lmb-collapse" id="lmbCollapse" aria-label="메뉴 접기" title="메뉴 접기" aria-expanded="true">◀</button>
-  <a class="brand" href="./" title="홈으로">K LEAGUE INSIGHT</a>
+  <div class="lmb-head">
+    <a class="brand" href="./" title="홈으로">K LEAGUE INSIGHT</a>
+    <button type="button" class="ghost lmb-collapse" id="lmbCollapse" aria-label="메뉴 접기" title="메뉴 접기" aria-expanded="true">«</button>
+  </div>
   <nav>
     <a href="#standings">순위표</a>
     <a href="#cheer">응원 작전실</a>
@@ -2081,7 +2085,7 @@ function setLmbCollapsed(on, save) {
   document.body.classList.toggle("lmb-collapsed", on);
   const b = $("lmbCollapse");
   if (b) {
-    b.textContent = on ? "▶" : "◀";
+    b.textContent = on ? "»" : "«";
     b.setAttribute("aria-label", on ? "메뉴 펴기" : "메뉴 접기");
     b.title = on ? "메뉴 펴기" : "메뉴 접기";
     b.setAttribute("aria-expanded", String(!on));
