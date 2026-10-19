@@ -1934,7 +1934,11 @@ function hypoDoc(d, picks) {
   add.forEach(r => {
     const h = by[r[2]], a = by[r[3]];
     h.p++; a.p++;
-    if (r[4] > r[5]) h.pts += 3; else if (r[4] < r[5]) a.pts += 3; else { h.pts++; a.pts++; }
+    h.gf = (h.gf || 0) + r[4]; h.ga = (h.ga || 0) + r[5];
+    a.gf = (a.gf || 0) + r[5]; a.ga = (a.ga || 0) + r[4];
+    if (r[4] > r[5]) { h.pts += 3; h.w = (h.w || 0) + 1; a.l = (a.l || 0) + 1; }
+    else if (r[4] < r[5]) { a.pts += 3; a.w = (a.w || 0) + 1; h.l = (h.l || 0) + 1; }
+    else { h.pts++; a.pts++; h.d = (h.d || 0) + 1; a.d = (a.d || 0) + 1; }
   });
   return Object.assign({}, d, { results: d.results.concat(add), fixtures: (d.fixtures || []).filter(f => picks[fkey(f)] == null), standings: st });
 }
@@ -1950,6 +1954,11 @@ function renderWhatif() {
   const exempt = (d.format || {}).noPlayoffTeam;
   const decB = decided(d, league), decS = decided(hypoDoc(d, w.picks), league);
   const st = d.standings.slice().sort((a, b) => a.rank - b.rank);
+  const virtualDoc = hypoDoc(d, w.picks);
+  const virtualRows = virtualDoc.standings.slice().sort((a, b) =>
+    (b.pts - a.pts) || ((b.gf - b.ga) - (a.gf - a.ga)) || (b.gf - a.gf) || (a.rank - b.rank)
+  );
+  const virtualRank = Object.fromEntries(virtualRows.map((t, i) => [t.team, i + 1]));
   const byKey = Object.fromEntries((d.fixtures || []).map(f => [fkey(f), f]));
   const assumed = Object.entries(w.picks).map(([k, o]) => { const f = byKey[k]; return f ? (o === 1 ? `${f[2]}-${f[3]} 무승부` : `${o === 0 ? f[2] : f[3]} 승 (vs ${o === 0 ? f[3] : f[2]})`) : null; }).filter(Boolean);
   // 이 결과면 새로 확정되거나 불가능해지는 것
@@ -1977,7 +1986,14 @@ function renderWhatif() {
   const shown = rows.filter(r => r.big || r.t.team === me), hidden = rows.length - shown.length;
   $("whatif").innerHTML = `
     ${w.picks && JSON.stringify(w.picks) !== JSON.stringify(picks) ? `<div class="notice">고른 결과가 바뀌었어요. 아래는 이전 선택으로 계산한 결과입니다. 다시 계산을 눌러 주세요.</div>` : ""}
-    <p><b>가정:</b> ${assumed.map(esc).join(", ")}. 지금 확률 → 이 결과일 때 확률입니다(같은 시드로 ${w.sim.N.toLocaleString()}번).</p>
+    <p><b>가정:</b> ${assumed.map(esc).join(", ")}. 아래 가상 순위표는 선택한 경기 결과를 반영한 현재 순위이며, 승·무·패만 선택할 수 있어 득점은 승리 1-0·무승부 0-0으로 단순 가정합니다. 순위는 승점 → 득실차 → 득점 → 기존 순위 순으로 정렬합니다.</p>
+    <h3 class="sub">가상 순위표</h3>
+    <div class="tablebox"><table><thead><tr><th>가상 순위</th><th>팀</th><th>현재 순위</th><th>경기</th><th>득점</th><th>실점</th><th>득실차</th><th>승점</th><th>순위 변화</th></tr></thead><tbody>
+      ${virtualRows.map((t, i) => { const old = st.find(x => x.team === t.team); const delta = old.rank - (i + 1); return `<tr${t.team === me ? ' class="mine"' : ""}><td><b>${i + 1}</b></td><td>${t.team === me ? '<span class="star">★</span>' : ""}${teamNameHtml(t.team)}</td><td>${old.rank}위</td><td>${t.p}</td><td>${t.gf}</td><td>${t.ga}</td><td>${t.gf - t.ga > 0 ? "+" : ""}${t.gf - t.ga}</td><td><b>${t.pts}</b></td><td>${delta > 0 ? `▲ ${delta}` : delta < 0 ? `▼ ${Math.abs(delta)}` : "—"}</td></tr>`; }).join("")}
+    </tbody></table></div>
+    <p class="meta">선택한 결과에 따른 순위표입니다. 실제 경기 점수와 리그의 세부 동률 규정에 따라 최종 순위는 달라질 수 있습니다.</p>
+    <h3 class="sub">시즌 전망 확률 변화</h3>
+    <p>지금 확률 → 선택한 결과를 반영했을 때의 확률입니다(같은 시드로 ${w.sim.N.toLocaleString()}번).</p>
     ${chips.length ? `<div class="changes">${chips.map(([t, c]) => `<span class="chip${c ? " " + c : ""}">${esc(t)}</span>`).join("")}</div>` : ""}
     <div class="tablebox"><table><thead><tr><th>팀</th>${zones.map(z => `<th>${z.label}</th>`).join("")}</tr></thead><tbody>
       ${shown.map(r => `<tr${r.t.team === me ? ' class="mine"' : ""}><td>${r.t.team === me ? '<span class="star">★</span>' : ""}<b>${teamNameHtml(r.t.team)}</b> <small class="rank">${r.t.rank}위</small></td>${r.cells.map(c => `<td>${c.html}</td>`).join("")}</tr>`).join("")}
