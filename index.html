@@ -299,12 +299,12 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
 .eff .vals { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: 12.5px; color: var(--muted); }
 .eff .vals b { color: var(--fg); font-family: var(--font-data); font-weight: 500; }
 .mlist { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-.mrow { display: grid; grid-template-columns: 96px minmax(0, 1.2fr) minmax(0, 1fr) auto; gap: 8px 14px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.mrow { display: grid; grid-template-columns: 104px minmax(150px, 1.15fr) minmax(150px, 1fr) minmax(240px, 1.45fr); gap: 8px 14px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--line); background: var(--surface); }
 .mrow:last-child { border-bottom: 0; }
 .mrow.picked { background: color-mix(in srgb, var(--accent) 7%, var(--surface)); }
 .mrow.focus-target { outline: 2px solid var(--accent); outline-offset: -2px; background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
 .mdate { font-family: var(--font-data); font-size: 12px; color: var(--muted); }
-.mteams { font-weight: 700; min-width: 0; }
+.mteams { font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
 .mteams small { font-weight: 400; color: var(--muted); }
 .hot { font-size: 10.5px; color: #fff; background: var(--point); border-radius: 4px; padding: 1px 5px; margin-left: 6px; font-weight: 700; vertical-align: 1px; white-space: nowrap; }
 .mnote { grid-column: 2 / -1; font-size: 12.5px; color: var(--muted); }
@@ -315,8 +315,8 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
 .wdl .bar i:nth-child(2) { background: var(--draw); }
 .wdl .bar i:nth-child(3) { background: var(--point); }
 .wdl .lab { display: flex; justify-content: space-between; gap: 6px; font-family: var(--font-data); font-size: 11.5px; color: var(--muted); }
-.pick { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-.pick button { border: 0; border-right: 1px solid var(--line); background: var(--surface); color: var(--fg); padding: 6px 10px; font-size: 12.5px; white-space: nowrap; }
+.pick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.pick button { min-width: 0; width: 100%; border: 0; border-right: 1px solid var(--line); background: var(--surface); color: var(--fg); padding: 6px 4px; font-size: 12.5px; white-space: normal; overflow-wrap: anywhere; }
 .pick button:last-child { border-right: 0; }
 .pick button:hover { background: var(--bar-bg); }
 .pick button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); }
@@ -346,11 +346,11 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
 
 /* 일정 난이도 */
 .sched { display: grid; gap: 10px; }
-.srow { display: grid; grid-template-columns: 24px 96px minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; font-size: 13px; }
+.srow { display: grid; grid-template-columns: 24px minmax(110px, 1fr) minmax(0, 2fr) minmax(220px, 1.45fr); gap: 2px 12px; align-items: center; font-size: 13px; }
 .srow .rank { text-align: right; }
 .srow .sbar { height: 10px; background: var(--bar-bg); border-radius: 5px; overflow: hidden; }
 .srow .sbar b { display: block; height: 100%; border-radius: 5px; }
-.srow .sv { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.srow .sv { min-width: 0; font-size: 12.5px; color: var(--muted); white-space: normal; }
 .srow .sv b { color: var(--fg); font-family: var(--font-data); font-weight: 500; }
 .srow .opps { grid-column: 3 / -1; color: var(--muted); font-size: 12px; }
 .srow.mine .tname { color: var(--point); }
@@ -443,13 +443,14 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
   .sum.mine { grid-column: 1 / -1; }
   .mysel { flex: 1; }
   .mysel select { max-width: none; flex: 1; }
-  .mrow { grid-template-columns: 1fr; gap: 8px; }
+  .mrow { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .mnote { grid-column: auto; }
-  .pick { display: flex; }
-  .pick button { flex: 1; padding: 8px 6px; }
-  .srow { grid-template-columns: 24px minmax(0, 1fr) auto; }
-  .srow .sbar { grid-column: 2 / -1; grid-row: 2; }
-  .srow .opps { grid-column: 2 / -1; }
+  .pick { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pick button { padding: 8px 6px; }
+  .srow { grid-template-columns: 24px minmax(0, 1fr); gap: 4px 10px; }
+  .srow .sv { grid-column: 2; grid-row: 2; }
+  .srow .sbar { grid-column: 2; grid-row: 3; }
+  .srow .opps { grid-column: 2; grid-row: 4; }
 }
 
 /* 최종 순위 분포: 모바일에서는 팀별 접이식 카드로 전환 */
