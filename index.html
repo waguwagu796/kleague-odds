@@ -229,6 +229,9 @@ tr.detail td { white-space: normal; background: var(--bg); padding: 16px; }
 .cheer-choice small { color: var(--muted); font-size: 11.5px; }
 .cheer-choice button { margin-top: 5px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--fg); padding: 6px 4px; font: inherit; font-size: 11.5px; }
 .cheer-choice button:hover { border-color: var(--accent); }
+.cheer-bulk-action { display:grid; gap:8px; padding:14px; border:1px solid var(--line); border-radius:10px; background:var(--bg); }
+.cheer-bulk-action p { margin:0; color:var(--muted); font-size:12px; }
+.cheer-bulk-action .primary { justify-self:start; }
 @media (max-width: 420px) { .cheer-outcomes { gap: 5px; } .cheer-choice { padding: 7px 5px; } .cheer-choice button { font-size: 10.5px; } }
 .team-page-content .team-detail-actions { display: none; }
 
@@ -1108,6 +1111,7 @@ const DATA = { k1: null, k2: null, h1: null, h2: null };
 let SIM = null, BT = null, HISTORY = [], league = "k1", openTeam = null, selectedTeamPage = null, metric = "champ", customSeed = false;
 const CHEER_GOALS = { k1: [{ key: "champ", label: "우승" }, { key: "acle", label: "ACLE권" }, { key: "finalA", label: "파이널A" }, { key: "safe", source: "po", inverse: true, label: "잔류" }], k2: [{ key: "champ", label: "우승" }, { key: "auto", label: "자동 승격" }, { key: "top6", label: "PO권" }, { key: "promo", label: "최종 승격" }] };
 let CHEER_GOAL = { k1: "champ", k2: "auto" };
+const CHEER_BEST_SCENARIO = { k1: {}, k2: {} }; // 응원 목표별 경기 단위 최적 결과
 let db = null, isOwner = false, STANDALONE = false;
 try { const v = localStorage.getItem("kl-odds-league"); if (v === "k1" || v === "k2") league = v; } catch {}
 // 내 팀(리그별, 이 브라우저에만 저장)과 "만약에"에서 고른 경기 결과(0 홈 승, 1 무, 2 원정 승)
@@ -1666,6 +1670,7 @@ function renderCheer() {
     return { f, key, vals, best, swing: valid.length > 1 ? Math.max(...valid.map(x => x.v)) - Math.min(...valid.map(x => x.v)) : 0, probs: item && total ? item.n.map(n => n / total) : [0, 0, 0] };
   }).sort((a, b) => b.swing - a.swing);
   const top = rows.filter(x => x.best).sort((a, b) => (b.best.delta ?? 0) - (a.best.delta ?? 0))[0];
+  CHEER_BEST_SCENARIO[league] = Object.fromEntries(rows.filter(x => x.best).map(x => [x.key, x.best.i]));
   const outcomes = x => [0, 1, 2].map(o => {
     const label = o === 0 ? x.f[2] + " 승" : o === 1 ? "무승부" : x.f[3] + " 승", p = x.vals[o];
     const delta = p == null || baseline == null ? "표본 부족" : `${p - baseline >= 0 ? "+" : ""}${(p - baseline).toFixed(1)}%p`;
@@ -1675,6 +1680,7 @@ function renderCheer() {
   root.innerHTML = `<div class="cheer-top"><div><h2>응원 작전실</h2><p class="cheer-intro">${esc(me)} 팬을 위한 ${roundTitle} 응원 가이드. 경기 결과별 목표 확률을 비교해요.</p></div><label>응원 목표 <select id="cheerGoal">${goals.map(g => `<option value="${g.key}"${g.key === goal.key ? " selected" : ""}>${g.label}</option>`).join("")}</select></label></div>
     ${baseline == null ? "" : `<div class="cheer-summary"><span>현재 ${goal.label} 확률</span><b>${fmtP(baseline)}</b><small>한 경기 결과만 반영한 값입니다. 여러 경기를 고르면 아래 만약에 분석에서 함께 계산할 수 있어요.</small></div>`}
     ${top ? `<div class="cheer-summary"><span>이번 라운드에서 가장 유리한 단일 결과</span><b>${esc(top.best.i === 0 ? top.f[2] + " 승" : top.best.i === 1 ? "무승부" : top.f[3] + " 승")} · ${fmtP(top.best.v)} (${top.best.delta >= 0 ? "+" : ""}${top.best.delta.toFixed(1)}%p)</b><small>${esc(top.f[2])} vs ${esc(top.f[3])}</small></div>` : ""}
+    ${Object.keys(CHEER_BEST_SCENARIO[league]).length ? `<div class="cheer-bulk-action"><button type="button" class="primary" data-cheer-apply-best>모든 최적 결과를 만약에 적용 (${Object.keys(CHEER_BEST_SCENARIO[league]).length}경기)</button><p>각 경기에서 선택한 응원 목표 확률이 가장 높아지는 결과를 #round 페이지에 한꺼번에 입력합니다. 표본이 부족해 최적 결과를 계산하지 못한 경기는 제외됩니다. 여러 경기의 결과를 각각 최적화한 조합이며, 조합 전체의 최적성을 보장하지는 않습니다.</p></div>` : ""}
     <div class="cheer-grid">${rows.length ? rows.map(x => `<article class="cheer-card"><h3>${esc(x.f[2])} vs ${esc(x.f[3])}<small>${esc(x.f[0])} · ${x.f[1] ? x.f[1] + "R" : "일정"}</small></h3><div class="cheer-outcomes">${outcomes(x)}</div></article>`).join("") : `<p class="empty">이번 라운드에 표시할 남은 경기가 없어요.</p>`}</div>`;
   const select = $("cheerGoal"); if (select) select.addEventListener("change", e => { CHEER_GOAL[league] = e.target.value; renderCheer(); });
 }
@@ -2205,6 +2211,7 @@ document.addEventListener("click", e => {
   else if (b.id === "whatifRun") runWhatif();
   else if (b.id === "whatifClear") { PICKS[league] = {}; if (WHATIF && WHATIF.lg === league) WHATIF = null; renderRound(); }
   else if (b.dataset.cheerPick != null) { PICKS[league][b.dataset.key] = Number(b.dataset.cheerPick); goPage("round"); renderRound(); }
+  else if (b.hasAttribute("data-cheer-apply-best")) { const scenario = CHEER_BEST_SCENARIO[league] || {}; if (!Object.keys(scenario).length) { alert("적용할 수 있는 최적 결과가 없습니다."); return; } PICKS[league] = { ...scenario }; goPage("round"); renderRound(); }
   else if (b.dataset.teamPage) { selectedTeamPage = b.dataset.teamPage; goPage("team"); renderTeamPage(); }
   else if (b.dataset.goPage) goPage(b.dataset.goPage);
   else if (b.dataset.team) { openTeam = openTeam === b.dataset.team ? null : b.dataset.team; render(); }
