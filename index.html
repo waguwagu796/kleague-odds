@@ -485,9 +485,6 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
   .dist-mobile { display: block; }
 }
 
-/* LMB 하위 메뉴: 응원 작전실 아래의 팀 비교 바로가기 */
-.lmb nav a.lmb-subnav { margin: -3px 0 5px 10px; padding: 7px 10px 7px 12px; border-left: 2px solid var(--line); border-radius: 0 8px 8px 0; color: var(--muted); font-size: 12.5px; }
-.lmb nav a.lmb-subnav:hover, .lmb nav a.lmb-subnav:focus-visible { color: var(--fg); border-left-color: var(--accent); background: var(--surface); }
 /* 팀 비교 선택기: 기본 브라우저 드롭다운보다 강조된 카드형 UI */
 .compare-pickers { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); gap: 12px; align-items: stretch; margin: 16px 0 20px; }
 .compare-pick-card { min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(145deg, var(--surface), var(--bg)); box-shadow: 0 4px 14px rgba(0,0,0,.045); transition: border-color .15s, box-shadow .15s; }
@@ -541,7 +538,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
     <a href="#dashboard">대시보드</a>
     <a href="#standings">순위표</a>
     <a href="#cheer">응원 작전실</a>
-    <a href="#compare" class="lmb-subnav">↳ 팀 간 상대 전적 비교</a>
+    <a href="#compare">팀 간 상대 전적 비교</a>
     <a href="#round">라운드 프리뷰·만약에</a>
     <a href="#dist">최종 순위 분포</a>
     <a href="#sched">남은 일정 난이도</a>
