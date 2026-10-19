@@ -524,7 +524,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
 
 /* 비공식 서비스·면책 안내 */
 .site-disclaimer { margin: 24px 0 18px; padding: 14px 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; line-height: 1.7; }
-.site-disclaimer summary { cursor: pointer; color: var(--fg); font-size: 12px; font-weight: 700; }
+.site-disclaimer-heading { color: var(--fg); font-size: 12px; font-weight: 700; }
 .site-disclaimer-content { margin-top: 9px; }
 .site-disclaimer-content p { margin: 6px 0; }
 @media (max-width: 600px) { .site-disclaimer { margin-top: 18px; padding: 12px 4px; } }
@@ -543,7 +543,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
     <a href="#cheer">응원 작전실</a>
     <a href="#compare">팀 간 상대 전적 비교</a>
     <a href="#round">라운드 프리뷰·만약에</a>
-    <a href="#dist">최종 순위 분포</a>
+    <a href="#dist">가상 순위표</a>
     <a href="#sched">남은 일정 난이도</a>
     <a href="#trend">확률 추이</a>
     <a href="#backtest">예측 정확도</a>
@@ -586,7 +586,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
       <button type="button" class="dash-shortcut" data-go-page="cheer"><strong>응원 작전실</strong><span>내 팀을 기준으로 이번 라운드에서 응원할 결과와 경우의 수를 살펴봅니다.</span></button>
       <button type="button" class="dash-shortcut" data-go-page="compare"><strong>팀 간 상대 전적 비교</strong><span>두 팀의 시즌 성적과 이번 시즌 맞대결 기록을 비교합니다.</span></button>
       <button type="button" class="dash-shortcut" data-go-page="round"><strong>라운드 프리뷰 · 만약에</strong><span>라운드 전체 경기 전망을 확인하고, 경기 결과에 따른 순위 변화를 계산합니다.</span></button>
-      <button type="button" class="dash-shortcut" data-go-page="dist"><strong>최종 순위 분포</strong><span>시즌 종료 시 각 팀이 순위별로 마칠 확률을 확인합니다.</span></button>
+      <button type="button" class="dash-shortcut" data-go-page="dist"><strong>가상 순위표</strong><span>시즌 종료 시 각 팀이 순위별로 마칠 확률을 확인합니다.</span></button>
       <button type="button" class="dash-shortcut" data-go-page="sched"><strong>남은 일정 난이도</strong><span>각 팀의 남은 경기 난이도와 상대 전력, 홈·원정 조건을 비교합니다.</span></button>
       <button type="button" class="dash-shortcut" data-go-page="trend"><strong>확률 추이</strong><span>라운드별 시즌 전망과 팀별 확률이 어떻게 변했는지 살펴봅니다.</span></button>
     </div></section>
@@ -635,7 +635,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
 
   <div class="page" id="page-dist" hidden>
   <section class="panel">
-    <div class="panel-head"><h2>최종 순위 분포</h2><span class="meta">시즌을 몇 위로 마칠지, 순위별 확률(%)</span></div>
+    <div class="panel-head"><h2>가상 순위표</h2><span class="meta">시즌을 몇 위로 마칠지, 순위별 확률(%)</span></div>
     <div id="dist"></div>
   </section>
   </div>
@@ -698,14 +698,12 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
 </div>
 
   <footer class="site-disclaimer" aria-label="서비스 안내">
-    <details>
-      <summary>서비스 안내 · 비공식 팬메이드 서비스</summary>
+    <div class="site-disclaimer-heading">서비스 안내 · 비공식 팬메이드 서비스</div>
       <div class="site-disclaimer-content">
         <p>본 사이트는 K리그 팬을 위한 비공식 팬메이드 서비스이며, 한국프로축구연맹 및 각 구단과 공식적인 제휴·협력 관계가 없습니다.</p>
         <p>제공되는 확률 및 순위 예측은 자체 계산에 따른 참고용 정보이며, 실제 경기 결과나 최종 순위를 보장하지 않습니다. 데이터의 정확성·완전성·최신성을 보장하지 않으며, 이용 전 공식 자료를 확인해 주세요.</p>
         <p>K리그 및 각 구단과 관련된 명칭·상표 등은 해당 권리자에게 권리가 있습니다. 본 사이트는 공식 서비스로 오인되지 않도록 운영되며, 관련 권리자의 공식 서비스가 아닙니다.</p>
       </div>
-    </details>
   </footer>
 
 <script type="text/plain" id="engine-src">
