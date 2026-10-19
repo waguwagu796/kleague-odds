@@ -64,9 +64,10 @@
 .dash-empty { padding:18px 0; color:var(--muted); }
 @media(max-width:760px){ .dash-grid { grid-template-columns:1fr; } .dash-team-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } .dash-shortcuts { grid-template-columns:1fr; } .dash-shortcut { min-height:0; } .dash-hero { padding:17px; } }
 
-/* 구단별 팀 컬러: 단색은 글자색, 복수 색상은 글자 안에 컬러 패턴으로 표현 */
-.team-color-name { font-weight: inherit; -webkit-text-stroke: .25px var(--surface); paint-order: stroke fill; }
+/* 구단별 팀 컬러: 팀명은 기본 글자색을 유지하고 옆의 작은 원으로 구단 색상을 표시 */
+.team-color-name { display: inline-flex; align-items: baseline; gap: 5px; color: inherit !important; -webkit-text-fill-color: currentColor !important; background: none !important; -webkit-background-clip: initial !important; background-clip: initial !important; }
 .team-color-name.tname { font-weight: 800; }
+.team-color-dot { display: inline-block; width: 8px; height: 8px; flex: 0 0 8px; align-self: center; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent); box-sizing: border-box; }
 </style>
 </head>
 <body class="app">
@@ -1142,6 +1143,7 @@ const TEAM_COLORS = {
   "수원FC": { gradient: "repeating-linear-gradient(90deg,#d71920 0 4px,#17479e 4px 8px)" },
   "울산HD": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#f2c500 50% 100%)" },
   "울산 HD": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#f2c500 50% 100%)" },
+  "울산현대": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#f2c500 50% 100%)" },
   "인천유나이티드": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#202020 50% 100%)" },
   "인천": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#202020 50% 100%)" },
   "전북현대": { color: "#00843d" }, "전북": { color: "#00843d" },
@@ -1153,6 +1155,8 @@ const TEAM_COLORS = {
   "부산아이파크": { gradient: "linear-gradient(90deg,#d71920 0 50%,#202020 50% 100%)" }, "부산": { gradient: "linear-gradient(90deg,#d71920 0 50%,#202020 50% 100%)" },
   "서울이랜드": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#202020 50% 100%)" }, "서울E": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#202020 50% 100%)" },
   "수원삼성": { gradient: "linear-gradient(90deg,#0755a6 0 50%,#d71920 50% 100%)" }, "수원삼성블루윙즈": { gradient: "linear-gradient(90deg,#0755a6 0 50%,#d71920 50% 100%)" },
+  "김해FC": { gradient: "linear-gradient(90deg,#cb171a 0 50%,#202020 50% 100%)" },
+  "김해FC2008": { gradient: "linear-gradient(90deg,#cb171a 0 50%,#202020 50% 100%)" },
   "성남FC": { color: "#303030" }, "성남": { color: "#303030" },
   "안산그리너스": { color: "#16834a" }, "안산": { color: "#16834a" },
   "충남아산": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#f2c500 50% 100%)" }, "충남아산FC": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#f2c500 50% 100%)" },
@@ -1165,9 +1169,25 @@ const TEAM_COLORS = {
   "안양": { color: "#6f2da8" }, "FC안양": { color: "#6f2da8" }, "FC 안양": { color: "#6f2da8" }
 };
 function teamNameHtml(name, extraClass = "") {
-  const cfg = TEAM_COLORS[String(name ?? "")];
-  const style = cfg ? (cfg.gradient ? `background-image:${cfg.gradient};background-clip:text;-webkit-background-clip:text;color:transparent;-webkit-text-fill-color:transparent;` : `color:${cfg.color};`) : "";
-  return `<span class="team-color-name${extraClass ? ` ${extraClass}` : ""}"${style ? ` style="${style}"` : ""}>${esc(name)}</span>`;
+  const rawName = String(name ?? "");
+  const normalized = rawName.replace(/[\s·._-]/g, "").toLowerCase();
+  const normalizedColors = Object.entries(TEAM_COLORS).reduce((map, [team, cfg]) => {
+    map[team.replace(/[\s·._-]/g, "").toLowerCase()] = cfg;
+    return map;
+  }, {});
+  let cfg = TEAM_COLORS[rawName] || normalizedColors[normalized];
+  // 데이터마다 구단명 표기가 다른 경우를 위한 별칭 처리
+  if (!cfg) {
+    if (normalized.startsWith("수원삼성")) cfg = TEAM_COLORS["수원삼성"];
+    else if (normalized.startsWith("수원fc")) cfg = TEAM_COLORS["수원FC"];
+    else if (normalized.startsWith("김해fc") || normalized.startsWith("김해")) cfg = TEAM_COLORS["김해FC"];
+    else if (normalized.startsWith("fc서울") || normalized.startsWith("서울fc")) cfg = TEAM_COLORS["FC서울"];
+    else if (normalized.startsWith("서울이랜드")) cfg = TEAM_COLORS["서울이랜드"];
+    else if (normalized.startsWith("울산hd") || normalized.startsWith("울산현대") || normalized === "울산") cfg = TEAM_COLORS["울산HD"];
+  }
+  const dotStyle = cfg ? `background:${cfg.gradient || cfg.color};` : "background:transparent;";
+  const dot = cfg ? `<i class="team-color-dot" aria-hidden="true" style="${dotStyle}"></i>` : "";
+  return `<span class="team-color-name${extraClass ? ` ${extraClass}` : ""}">${dot}${esc(rawName)}</span>`;
 }
 const DATA = { k1: null, k2: null, h1: null, h2: null };
 let SIM = null, BT = null, HISTORY = [], league = "k1", openTeam = null, selectedTeamPage = null, metric = "champ", customSeed = false;
