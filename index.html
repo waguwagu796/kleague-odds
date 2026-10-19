@@ -567,6 +567,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
     <section class="dash-panel"><div class="dash-panel-head"><h2>리그 순위 미리보기</h2><button type="button" class="dash-link" data-go-page="standings">전체 순위표 →</button></div><div id="dashStandings" class="dash-table"><p class="dash-empty">순위 정보를 불러오는 중입니다.</p></div></section>
     <section><div class="dash-panel-head"><h2>바로가기</h2><span class="meta">분석 기능으로 바로 이동</span></div><div class="dash-shortcuts">
       <button type="button" class="dash-shortcut" data-go-page="cheer"><strong>응원 작전실</strong><span>내 팀을 기준으로 이번 라운드에서 응원할 결과와 경우의 수를 살펴봅니다.</span></button>
+      <button type="button" class="dash-shortcut" data-go-page="compare"><strong>팀 간 상대 전적 비교</strong><span>두 팀의 시즌 성적과 이번 시즌 맞대결 기록을 비교합니다.</span></button>
       <button type="button" class="dash-shortcut" data-go-page="round"><strong>라운드 프리뷰 · 만약에</strong><span>라운드 전체 경기 전망을 확인하고, 경기 결과에 따른 순위 변화를 계산합니다.</span></button>
       <button type="button" class="dash-shortcut" data-go-page="dist"><strong>최종 순위 분포</strong><span>시즌 종료 시 각 팀이 순위별로 마칠 확률을 확인합니다.</span></button>
       <button type="button" class="dash-shortcut" data-go-page="sched"><strong>남은 일정 난이도</strong><span>각 팀의 남은 경기 난이도와 상대 전력, 홈·원정 조건을 비교합니다.</span></button>
@@ -588,6 +589,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
   </div>
 
   <div class="page" id="page-team" hidden><section class="panel team-page-content" id="teamPage"></section></div>
+  <div class="page" id="page-compare" hidden><section class="panel" id="comparePage"></section></div>
   <div class="page" id="page-cheer" hidden><section class="panel" id="cheer"></section></div>
   <div class="page" id="page-round" hidden>
   <section class="panel" id="roundPanel">
@@ -1139,7 +1141,7 @@ const TEAM_COLORS = {
   "대구FC": { color: "#00a5df" }, "대구": { color: "#00a5df" },
   "대전하나시티즌": { color: "#6f2da8" }, "대전": { color: "#6f2da8" },
   "부천FC1995": { color: "#d71920" }, "부천": { color: "#d71920" },
-  "FC서울": { gradient: "repeating-linear-gradient(90deg,#202020 0 4px,#d71920 4px 8px)" },
+  "FC서울": { gradient: "repeating-linear-gradient(90deg,#202020 0 4px,#d71920 4px 8px)" }, "서울": { gradient: "repeating-linear-gradient(90deg,#202020 0 4px,#d71920 4px 8px)" },
   "수원FC": { gradient: "repeating-linear-gradient(90deg,#d71920 0 4px,#17479e 4px 8px)" },
   "울산HD": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#f2c500 50% 100%)" },
   "울산 HD": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#f2c500 50% 100%)" },
@@ -1154,7 +1156,7 @@ const TEAM_COLORS = {
   "김포FC": { color: "#16834a" }, "김포": { color: "#16834a" },
   "부산아이파크": { gradient: "linear-gradient(90deg,#d71920 0 50%,#202020 50% 100%)" }, "부산": { gradient: "linear-gradient(90deg,#d71920 0 50%,#202020 50% 100%)" },
   "서울이랜드": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#202020 50% 100%)" }, "서울E": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#202020 50% 100%)" },
-  "수원삼성": { gradient: "linear-gradient(90deg,#0755a6 0 50%,#d71920 50% 100%)" }, "수원삼성블루윙즈": { gradient: "linear-gradient(90deg,#0755a6 0 50%,#d71920 50% 100%)" },
+  "수원삼성": { color: "#0755a6" }, "수원삼성블루윙즈": { color: "#0755a6" },
   "김해FC": { gradient: "linear-gradient(90deg,#cb171a 0 50%,#202020 50% 100%)" },
   "김해FC2008": { gradient: "linear-gradient(90deg,#cb171a 0 50%,#202020 50% 100%)" },
   "성남FC": { color: "#303030" }, "성남": { color: "#303030" },
@@ -1178,10 +1180,11 @@ function teamNameHtml(name, extraClass = "") {
   let cfg = TEAM_COLORS[rawName] || normalizedColors[normalized];
   // 데이터마다 구단명 표기가 다른 경우를 위한 별칭 처리
   if (!cfg) {
+    if (normalized === "수원") cfg = league === "k2" ? TEAM_COLORS["수원삼성"] : TEAM_COLORS["수원FC"];
     if (normalized.startsWith("수원삼성")) cfg = TEAM_COLORS["수원삼성"];
     else if (normalized.startsWith("수원fc")) cfg = TEAM_COLORS["수원FC"];
     else if (normalized.startsWith("김해fc") || normalized.startsWith("김해")) cfg = TEAM_COLORS["김해FC"];
-    else if (normalized.startsWith("fc서울") || normalized.startsWith("서울fc")) cfg = TEAM_COLORS["FC서울"];
+    else if (normalized === "서울" || normalized.startsWith("fc서울") || normalized.startsWith("서울fc")) cfg = TEAM_COLORS["FC서울"];
     else if (normalized.startsWith("서울이랜드")) cfg = TEAM_COLORS["서울이랜드"];
     else if (normalized.startsWith("울산hd") || normalized.startsWith("울산현대") || normalized === "울산") cfg = TEAM_COLORS["울산HD"];
   }
@@ -1238,7 +1241,7 @@ function clearTrendTeams() {
   saveTrendSel();
   renderChart();
 }
-const PAGES = ["dashboard", "standings", "team", "cheer", "round", "dist", "sched", "trend", "backtest", "method"];
+const PAGES = ["dashboard", "standings", "team", "compare", "cheer", "round", "dist", "sched", "trend", "backtest", "method"];
 function currentPage() {
   const id = decodeURIComponent((location.hash || "").replace(/^#/, ""));
   return PAGES.includes(id) ? id : "dashboard";
@@ -1277,6 +1280,7 @@ function showPage() {
   closeNav();
   if (id === "trend") requestAnimationFrame(() => renderChart());
   if (id === "team") renderTeamPage();
+  if (id === "compare") renderComparePage();
   if (id === "cheer") renderCheer();
   breakAtSentenceEnds();
 }
@@ -1414,6 +1418,32 @@ function renderTeamPage() {
     <div class="team-page-probs">${zones.map(z => `<article><span>${esc(z.label)}</span><b>${ptxt(r[z.key] / SIM.N * 100, dec[z.key])}</b><i><b style="width:${Math.max(0, Math.min(100, r[z.key] / SIM.N * 100))}%"></b></i></article>`).join("")}</div>
     <div class="team-page-form"><b>최근 5경기</b><span class="form">${form.map(f => `<i class="${f.r}" title="${esc(f.date)} ${f.my}-${f.op}">${f.r === "W" ? "승" : f.r === "D" ? "무" : "패"}</i>`).join("") || "기록 없음"}</span></div>
     <h3 class="sub">일정·전력·최종 순위 전망</h3>${detailInner(d, t, r)}`;
+}
+
+/* ---------- 팀 간 상대 전적 비교 ---------- */
+function renderComparePage() {
+  const root = $("comparePage"), d = DATA[league];
+  if (!root || !d || !d.standings) { if(root) root.innerHTML = '<p class="empty">팀 데이터를 불러오는 중입니다.</p>'; return; }
+  const teams = d.standings.slice().sort((a,b)=>a.rank-b.rank);
+  const savedA = root.querySelector('#compareA')?.value || MY[league] || teams[0]?.team || '';
+  const savedB = root.querySelector('#compareB')?.value || teams.find(t=>t.team!==savedA)?.team || teams[1]?.team || '';
+  const opts = selected => teams.map(t=>`<option value="${esc(t.team)}" ${t.team===selected?'selected':''}>${esc(t.team)}</option>`).join('');
+  root.innerHTML = `<div class="section-head"><div><h2>팀 간 상대 전적 비교</h2><p class="meta">${league==='k1'?'K리그1':'K리그2'} · ${esc(d.asOf||'')} 기준</p></div><button type="button" class="ghost" data-go-page="standings">순위표</button></div>
+    <div class="controls" style="margin:12px 0;flex-wrap:wrap"><label>팀 A <select id="compareA">${opts(savedA)}</select></label><span aria-hidden="true">VS</span><label>팀 B <select id="compareB">${opts(savedB)}</select></label></div><div id="compareResult"></div>`;
+  const aName=root.querySelector('#compareA').value, bName=root.querySelector('#compareB').value;
+  const a=teams.find(t=>t.team===aName), b=teams.find(t=>t.team===bName), out=root.querySelector('#compareResult');
+  if(!a||!b||aName===bName){out.innerHTML='<p class="empty">서로 다른 두 팀을 선택해 주세요.</p>';}
+  else {
+    const rows=[['현재 순위',`${a.rank}위`,`${b.rank}위`],['경기 수',a.p,b.p],['승점',a.pts,b.pts],['승',a.w,b.w],['무',a.d,b.d],['패',a.l,b.l],['득점',a.gf,b.gf],['실점',a.ga,b.ga],['득실차',(a.gf-a.ga>0?'+':'')+(a.gf-a.ga),(b.gf-b.ga>0?'+':'')+(b.gf-b.ga)]];
+    const results=(d.results||[]).filter(g=>(g[2]===aName&&g[3]===bName)||(g[2]===bName&&g[3]===aName)).sort((x,y)=>String(y[0]).localeCompare(String(x[0])));
+    let aw=0,ad=0,al=0,agf=0,aga=0; results.forEach(g=>{const isHome=g[2]===aName, gf=Number(isHome?g[4]:g[5]),ga=Number(isHome?g[5]:g[4]);agf+=gf;aga+=ga;if(gf>ga)aw++;else if(gf===ga)ad++;else al++;});
+    const avgA=results.length?(agf/results.length).toFixed(2):'—',avgB=results.length?(aga/results.length).toFixed(2):'—';
+    out.innerHTML=`<div class="tablebox"><table><thead><tr><th>비교 항목</th><th>${teamNameHtml(aName)}</th><th>${teamNameHtml(bName)}</th></tr></thead><tbody>${rows.map(r=>`<tr><th>${r[0]}</th><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</tbody></table></div>
+      <section class="panel" style="margin-top:16px"><h3>이번 시즌 맞대결</h3><p class="meta">${results.length?`총 ${results.length}경기 · ${aName} 기준 ${aw}승 ${ad}무 ${al}패`:'이번 시즌 맞대결 결과 데이터가 없습니다.'}</p>
+      <div class="summary"><div><span>${esc(aName)} 평균 득점</span><b>${avgA}</b></div><div><span>${esc(bName)} 평균 득점</span><b>${avgB}</b></div></div>
+      ${results.length?`<div class="tablebox"><table><thead><tr><th>날짜</th><th>라운드</th><th>경기</th><th>결과</th></tr></thead><tbody>${results.map(g=>`<tr><td>${esc(g[0]||'—')}</td><td>${esc(String(g[1]??'—'))}</td><td>${teamNameHtml(g[2])} vs ${teamNameHtml(g[3])}</td><td><b>${g[4]} - ${g[5]}</b></td></tr>`).join('')}</tbody></table></div>`:''}</section>`;
+  }
+  ['compareA','compareB'].forEach(id=>root.querySelector('#'+id)?.addEventListener('change',()=>renderComparePage()));
 }
 
 /* ---------- 대시보드: 기존 데이터만 재사용해 첫 화면 요약을 구성 ---------- */
@@ -1576,6 +1606,7 @@ function render() {
     : [["var(--accent)", "자동 승격 (1~2위)"], ["var(--warn)", "승격 플레이오프 (3~6위)"]])
     .map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join("") + `<span>팀을 누르면 남은 일정, 전력, 최종 순위 분포를 볼 수 있어요.</span>`;
   if (currentPage() === "team") renderTeamPage();
+  if (currentPage() === "compare") renderComparePage();
   if (currentPage() === "cheer") renderCheer();
   breakAtSentenceEnds();
 }
@@ -1892,26 +1923,6 @@ function renderWhatif() {
     if (outK) chips.push([`${t.team} ${ZSHORT[league][outK]} 불가`, "bad"]);
     if (league === "k1" && t.team !== exempt && s.po.out && !b.po.out) chips.push([`${t.team} 잔류 확정`, ""]);
   });
-  // 사용자가 선택한 승/무/패를 즉시 반영한 가상 순위표를 구성한다.
-  // 승패만 선택되므로 득점은 승리 1-0, 무승부 0-0으로 가정한다.
-  const projected = d.standings.map(t => ({ ...t, _baseRank: t.rank }));
-  const projectedByTeam = Object.fromEntries(projected.map(t => [t.team, t]));
-  const fixtureByKey = Object.fromEntries((d.fixtures || []).map(f => [fkey(f), f]));
-  Object.entries(w.picks || {}).forEach(([key, outcome]) => {
-    const f = fixtureByKey[key];
-    if (!f || outcome == null) return;
-    const home = projectedByTeam[f[2]], away = projectedByTeam[f[3]];
-    if (!home || !away) return;
-    const hg = outcome === 0 ? 1 : 0;
-    const ag = outcome === 2 ? 1 : 0;
-    home.p++; away.p++;
-    home.gf += hg; home.ga += ag; away.gf += ag; away.ga += hg;
-    if (hg > ag) home.pts += 3;
-    else if (ag > hg) away.pts += 3;
-    else { home.pts++; away.pts++; }
-  });
-  projected.sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf || a._baseRank - b._baseRank);
-  const projectedTable = `<section class="panel" style="padding:14px;margin:10px 0"><h3 class="sub">선택 결과 기준 가상 순위표</h3><p class="meta">선택한 경기만 반영했습니다. 승리는 1-0, 무승부는 0-0으로 가정하며, 미선택 경기와 이후 일정은 반영하지 않습니다. 실제 리그의 세부 순위 결정 기준과 다를 수 있습니다.</p><div class="tablebox"><table><thead><tr><th>예상 순위</th><th>팀</th><th>경기</th><th>승점</th><th>득점</th><th>실점</th><th>득실차</th></tr></thead><tbody>${projected.map((t, i) => `<tr${t.team === me ? ' class="mine"' : ""}><td class="num">${i + 1}</td><td>${teamNameHtml(t.team)}</td><td class="num">${t.p}</td><td class="num"><b>${t.pts}</b></td><td class="num">${t.gf}</td><td class="num">${t.ga}</td><td class="num">${t.gf - t.ga > 0 ? "+" : ""}${t.gf - t.ga}</td></tr>`).join("")}</tbody></table></div></section>`;
   const val = (v, N, s) => s.sure ? 100 : s.out ? 0 : v / N * 100;
   const rows = st.map(t => {
     const cells = zones.map(z => {
@@ -1927,7 +1938,6 @@ function renderWhatif() {
   $("whatif").innerHTML = `
     ${w.picks && JSON.stringify(w.picks) !== JSON.stringify(picks) ? `<div class="notice">고른 결과가 바뀌었어요. 아래는 이전 선택으로 계산한 결과입니다. 다시 계산을 눌러 주세요.</div>` : ""}
     <p><b>가정:</b> ${assumed.map(esc).join(", ")}. 지금 확률 → 이 결과일 때 확률입니다(같은 시드로 ${w.sim.N.toLocaleString()}번).</p>
-    ${projectedTable}
     ${chips.length ? `<div class="changes">${chips.map(([t, c]) => `<span class="chip${c ? " " + c : ""}">${esc(t)}</span>`).join("")}</div>` : ""}
     <div class="tablebox"><table><thead><tr><th>팀</th>${zones.map(z => `<th>${z.label}</th>`).join("")}</tr></thead><tbody>
       ${shown.map(r => `<tr${r.t.team === me ? ' class="mine"' : ""}><td>${r.t.team === me ? '<span class="star">★</span>' : ""}<b>${teamNameHtml(r.t.team)}</b> <small class="rank">${r.t.rank}위</small></td>${r.cells.map(c => `<td>${c.html}</td>`).join("")}</tr>`).join("")}
