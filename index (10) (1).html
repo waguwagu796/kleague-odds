@@ -1,0 +1,2277 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}
+/* 내 팀 경기 프리뷰 */
+.my-preview { border:1px solid var(--line); border-top:3px solid var(--accent); border-radius:12px; padding:16px; background:var(--surface); display:grid; gap:14px; }
+.my-preview-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+.my-preview-title { margin:0; font-size:17px; }
+.my-preview-meta { color:var(--muted); font-size:12.5px; }
+.my-preview-match { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:12px; align-items:center; }
+.my-preview-side { min-width:0; display:grid; gap:4px; }
+.my-preview-side:last-child { text-align:right; }
+.my-preview-team { font-size:18px; font-weight:800; overflow-wrap:anywhere; }
+.my-preview-sub { color:var(--muted); font-size:12px; }
+.my-preview-vs { font-size:12px; color:var(--muted); font-weight:700; }
+.my-preview-probs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.my-preview-prob { border:1px solid var(--line); background:var(--bg); border-radius:9px; padding:10px; display:grid; gap:5px; min-width:0; }
+.my-preview-prob b { font-size:18px; font-variant-numeric:tabular-nums; }
+.my-preview-prob span { color:var(--muted); font-size:12px; }
+.my-preview-prob i { height:5px; background:var(--bar-bg); border-radius:9px; overflow:hidden; display:block; }
+.my-preview-prob i em { height:100%; display:block; background:var(--accent); border-radius:inherit; }
+.my-preview-form { display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+.my-preview-form .form { display:inline-flex; }
+.my-preview-note { color:var(--muted); font-size:12px; line-height:1.55; }
+@media(max-width:600px){ .my-preview { padding:13px; } .my-preview-team { font-size:16px; } .my-preview-prob { padding:8px; } .my-preview-prob b { font-size:16px; } }
+/* 대시보드: 기존 서비스의 데이터와 기능으로 구성하는 첫 화면 */
+.dashboard-page { gap: 18px; }
+.dash-hero { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; padding:22px; border:1px solid var(--line); border-radius:14px; background:linear-gradient(125deg,var(--surface),var(--bg)); }
+.dash-eyebrow { color:var(--accent); font-size:11px; font-weight:800; letter-spacing:.14em; }
+.dash-title { margin-top:5px; font-size:clamp(25px,4vw,34px); }
+.dash-desc { margin:8px 0 0; color:var(--muted); }
+.dash-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.dash-grid { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr); gap:14px; align-items:stretch; }
+.dash-panel { min-width:0; padding:17px; border:1px solid var(--line); border-radius:12px; background:var(--surface); }
+.dash-panel-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; }
+.dash-panel-head h2 { font-size:17px; }
+.dash-link { border:0; padding:0; background:transparent; color:var(--accent); font:inherit; font-size:12px; font-weight:700; white-space:nowrap; }
+.dash-team-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:14px; }
+.dash-stat { padding:11px; border-radius:9px; background:var(--bg); min-width:0; }
+.dash-stat span { display:block; color:var(--muted); font-size:11px; }
+.dash-stat b { display:block; margin-top:4px; font-size:20px; font-family:var(--font-display); font-weight:400; overflow-wrap:anywhere; }
+.dash-team-name { font-size:24px; font-family:var(--font-display); }
+.dash-team-sub { color:var(--muted); font-size:12px; }
+.dash-form { display:flex; align-items:center; gap:5px; flex-wrap:wrap; margin-top:13px; }
+.dash-form-label { color:var(--muted); font-size:12px; margin-right:4px; }
+.dash-fixture { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; padding:13px 0; border-bottom:1px solid var(--line); }
+.dash-fixture:last-child { border-bottom:0; }
+.dash-fixture-team { min-width:0; font-weight:700; overflow-wrap:anywhere; }
+.dash-fixture-team:last-child { text-align:right; }
+.dash-vs { color:var(--muted); font-size:11px; font-weight:700; }
+.dash-fixture-meta { color:var(--muted); font-size:11px; margin-top:3px; }
+.dash-score { font-family:var(--font-data); font-weight:700; white-space:nowrap; }
+.dash-table { overflow-x:auto; }
+.dash-table table { min-width:530px; }
+.dash-table th,.dash-table td { padding:8px 9px; }
+.dash-table tr.mine { background:color-mix(in srgb,var(--accent) 10%,transparent); }
+.dash-shortcuts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.dash-shortcut { display:flex; flex-direction:column; align-items:flex-start; gap:7px; min-height:100px; padding:14px; text-align:left; border:1px solid var(--line); border-radius:11px; color:var(--fg); background:var(--surface); }
+.dash-shortcut:hover { border-color:var(--accent); transform:translateY(-1px); }
+.dash-shortcut strong { font-size:14px; }
+.dash-shortcut span { color:var(--muted); font-size:12px; line-height:1.45; }
+.dash-empty { padding:18px 0; color:var(--muted); }
+@media(max-width:760px){ .dash-grid { grid-template-columns:1fr; } .dash-team-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } .dash-shortcuts { grid-template-columns:1fr; } .dash-shortcut { min-height:0; } .dash-hero { padding:17px; } }
+</style>
+</head>
+<body class="app">
+<title>K LEAGUE INSIGHT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: 왼쪽 메뉴로 페이지 전환. 공통 헤더(기준일·리그) 아래 순위표·빅매치·분포·난이도·추이·검증·계산 방법 */
+/* 색: K리그 느낌의 남색(메인) + 빨강(포인트), 바탕은 푸른 기가 도는 회색 */
+:root {
+  --bg: #f3f5f9;
+  --surface: #ffffff;
+  --fg: #0f1730;
+  --muted: #5a6480;
+  --line: #d7dce8;
+  --accent: #1a2b6d;
+  --accent-fg: #ffffff;
+  --point: #d6302a;
+  --bar: #2c4fc4;
+  --bar-bg: #e3e8f5;
+  --win: #1f8a4c; --draw: #8a93a6; --loss: #d6302a;
+  --warn: #d98200;
+  --s1: #1a2b6d; --s2: #d6302a; --s3: #2c8fd6; --s4: #d98200; --s5: #1f8a4c; --s6: #7a4cc2;
+  --font-display: "Black Han Sans", "Malgun Gothic", sans-serif;
+  --font-body: "IBM Plex Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1120; --surface: #131b31; --fg: #e7ebf5; --muted: #98a2bd; --line: #26304d;
+    --accent: #3f66e8; --accent-fg: #ffffff; --point: #ff5a4f; --bar: #5b86ff; --bar-bg: #222d4b;
+    --win: #3fbf7a; --draw: #7f8aa3; --loss: #ff5a4f; --warn: #f2a33a;
+    --s1: #7f9cff; --s2: #ff5a4f; --s3: #4cc3ff; --s4: #f2a33a; --s5: #3fbf7a; --s6: #b98ae6; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b1120; --surface: #131b31; --fg: #e7ebf5; --muted: #98a2bd; --line: #26304d;
+  --accent: #3f66e8; --accent-fg: #ffffff; --point: #ff5a4f; --bar: #5b86ff; --bar-bg: #222d4b;
+  --win: #3fbf7a; --draw: #7f8aa3; --loss: #ff5a4f; --warn: #f2a33a;
+  --s1: #7f9cff; --s2: #ff5a4f; --s3: #4cc3ff; --s4: #f2a33a; --s5: #3fbf7a; --s6: #b98ae6; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 14.5px; line-height: 1.55; }
+body.app { display: grid; grid-template-columns: 228px minmax(0, 1fr); align-items: start; min-height: 100vh; }
+.lmb { position: sticky; top: 0; height: 100vh; background: var(--surface); border-right: 1px solid var(--line); padding: 22px 12px 24px; display: flex; flex-direction: column; gap: 18px; z-index: 30; overflow: auto; }
+.lmb .brand { font-family: var(--font-display); color: var(--accent); font-size: 20px; padding: 2px 10px 4px; line-height: 1.25; }
+.lmb nav { display: grid; gap: 4px; }
+.lmb a { display: block; padding: 9px 12px; border-radius: 8px; color: var(--fg); text-decoration: none; font-weight: 500; font-size: 13.5px; }
+.lmb a:hover { background: var(--bar-bg); }
+.lmb a[aria-current="page"] { background: var(--accent); color: var(--accent-fg); }
+.nav-toggle { display: none; }
+.nav-scrim { display: none; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 48px; display: grid; gap: 20px; min-width: 0; }
+.page { display: grid; gap: 20px; min-width: 0; }
+h1, h2 { font-family: var(--font-display); font-weight: 400; margin: 0; text-wrap: balance; line-height: 1.2; }
+h1 { font-size: clamp(26px, 4.5vw, 38px); color: var(--accent); }
+h1::after { content: ""; display: block; width: 48px; height: 4px; margin-top: 10px; border-radius: 2px; background: var(--point); }
+body { border-top: 6px solid var(--accent); }
+h2 { font-size: 19px; }
+.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+button { font: inherit; cursor: pointer; }
+button:focus-visible, tr.team:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 14px; }
+.meta { color: var(--muted); font-size: 13px; display: grid; gap: 2px; }
+.meta b { color: var(--fg); font-weight: 700; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tabs { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.tabs button { border: 0; background: transparent; color: var(--fg); padding: 8px 16px; font-weight: 500; }
+.tabs button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); }
+.tabs.small button { padding: 5px 11px; font-size: 13px; }
+.ghost { border: 1px solid var(--line); background: var(--surface); color: var(--fg); padding: 8px 14px; border-radius: 8px; font-size: 13.5px; }
+.ghost:hover { border-color: var(--accent); }
+.ghost:disabled { opacity: .5; cursor: default; }
+
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.sum { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; align-content: start; }
+.sum span { font-size: 12.5px; color: var(--muted); }
+.sum b { font-family: var(--font-display); font-weight: 400; font-size: 22px; }
+.sum em { font-style: normal; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.tablebox { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+#main-table { min-width: 1200px; }
+th, td { padding: 9px 9px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: .02em; background: var(--surface); }
+th.grp { text-align: center; border-bottom: 0; padding-bottom: 0; font-size: 11.5px; letter-spacing: .06em; }
+th.p, td.p { width: 112px; }
+.sticky { position: sticky; left: 0; background: var(--surface); z-index: 1; }
+tbody tr.team { cursor: pointer; }
+tbody tr.team:hover td, tbody tr.team[aria-expanded="true"] td { background: var(--bar-bg); }
+.zone { width: 4px; padding: 0; }
+.rank { font-family: var(--font-data); color: var(--muted); }
+.tname { font-weight: 700; }
+.form { display: inline-flex; gap: 3px; }
+.form i { width: 18px; height: 18px; border-radius: 4px; font-style: normal; font-size: 11px; font-weight: 700; display: inline-grid; place-items: center; color: #fff; }
+.form i.W { background: var(--win); } .form i.D { background: var(--draw); } .form i.L { background: var(--loss); }
+.pc { display: grid; grid-template-columns: 50px 1fr; gap: 6px; align-items: center; }
+.pc span { font-family: var(--font-data); font-size: 13px; text-align: right; }
+.pc i { display: block; height: 7px; border-radius: 4px; background: var(--bar-bg); overflow: hidden; }
+.pc i b { display: block; height: 100%; background: var(--bar); border-radius: 4px; }
+.pc.dim span { color: var(--muted); }
+.pc.danger i b { background: var(--loss); }
+.pc.fixed span { font-family: var(--font-body); font-weight: 700; font-size: 12px; }
+.mg { font-size: 13px; }
+.mg b { font-size: 15px; margin-right: 1px; }
+.mg.sure { font-weight: 700; color: var(--accent); }
+.mg.off { color: var(--muted); font-size: 12.5px; }
+
+tr.detail td { white-space: normal; background: var(--bg); padding: 16px; }
+.team-record { margin: 0 0 16px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.team-record-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.team-record-head h3 { margin: 0; font-size: 14px; color: var(--fg); }
+.team-record-head span { font-size: 11.5px; color: var(--muted); }
+.team-record-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.team-record-stat { min-width: 0; text-align: center; padding: 10px 4px; border-radius: 8px; background: var(--bg); }
+.team-record-stat span { display: block; font-size: 11.5px; color: var(--muted); margin-bottom: 4px; }
+.team-record-stat b { display: block; font-family: var(--font-data); font-size: 19px; line-height: 1.2; color: var(--fg); }
+.team-record-stat.win b { color: var(--win); }
+.team-record-stat.draw b { color: var(--muted); }
+.team-record-stat.loss b { color: var(--loss); }
+.dgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+.dgrid h3 { font-size: 13px; margin: 0 0 8px; color: var(--muted); font-weight: 700; letter-spacing: .04em; }
+.dgrid ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13.5px; }
+.dgrid li { display: flex; justify-content: space-between; gap: 10px; }
+.dgrid li small { color: var(--muted); }
+.hist { display: flex; align-items: end; gap: 3px; height: 70px; }
+.hist div { flex: 1; background: var(--bar); border-radius: 3px 3px 0 0; min-height: 1px; }
+.hist div.cur { background: var(--accent); outline: 2px solid var(--fg); outline-offset: -2px; }
+.histx { display: flex; gap: 3px; font-family: var(--font-data); font-size: 10.5px; color: var(--muted); }
+.histx span { flex: 1; text-align: center; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 12px 16px; font-size: 12.5px; color: var(--muted); line-height: 1.65; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+.team-page-head { display: flex; align-items: center; gap: 16px; }
+.team-page-head h2 { margin: 4px 0; font-size: 26px; }
+.team-page-head p { margin: 0; color: var(--muted); }
+.team-page-probs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.team-page-probs article { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--line); border-radius: 10px; }
+.team-page-probs article span { color: var(--muted); font-size: 12.5px; }
+.team-page-probs article > b { font-size: 21px; }
+.team-page-probs i { display: block; height: 7px; border-radius: 5px; background: var(--bar-bg); overflow: hidden; }
+.team-page-probs i b { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+.team-page-form { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.team-detail-actions { margin-top: 12px; }
+.cheer-intro { color: var(--muted); }
+.cheer-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.cheer-top select { min-height: 38px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--fg); font: inherit; }
+.cheer-summary { border-left: 4px solid var(--point); background: var(--bg); border-radius: 8px; padding: 12px 14px; display: grid; gap: 3px; }
+.cheer-summary b { font-size: 17px; }
+.cheer-grid { display: grid; gap: 12px; }
+.cheer-card { border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 10px; background: var(--surface); }
+.cheer-card h3 { margin: 0; font-size: 15px; }
+.cheer-card h3 small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+.cheer-outcomes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.cheer-choice { min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 9px; display: grid; gap: 3px; align-content: start; }
+.cheer-choice.best { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: color-mix(in srgb, var(--accent) 6%, var(--surface)); }
+.cheer-choice b, .cheer-choice small { overflow-wrap: anywhere; }
+.cheer-choice span { font-family: var(--font-data); font-size: 15px; font-weight: 700; }
+.cheer-choice small { color: var(--muted); font-size: 11.5px; }
+.cheer-choice button { margin-top: 5px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--fg); padding: 6px 4px; font: inherit; font-size: 11.5px; }
+.cheer-choice button:hover { border-color: var(--accent); }
+@media (max-width: 420px) { .cheer-outcomes { gap: 5px; } .cheer-choice { padding: 7px 5px; } .cheer-choice button { font-size: 10.5px; } }
+.team-page-content .team-detail-actions { display: none; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-width: 0; }
+.panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
+/* 설명 문구: 페이지마다 자연스럽게 줄바꿈하고 한글 문단의 호흡을 넉넉히 둔다 */
+.page :is(p, li, .meta, .legend span, .cheer-intro, .notice) { white-space: normal; word-break: keep-all; overflow-wrap: anywhere; line-height: 1.75; }
+.panel p, .panel li { margin: 0; color: var(--muted); font-size: 13.5px; max-width: 78ch; line-height: 1.75; }
+.panel p + p { margin-top: 8px; }
+.panel ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
+.panel table { font-size: 13px; }
+.panel table td, .panel table th { padding: 6px 8px; }
+.empty { padding: 40px 20px; text-align: center; color: var(--muted); white-space: normal; }
+.notice { border-left: 4px solid var(--warn); padding: 8px 12px; background: var(--surface); font-size: 13px; color: var(--fg); border-radius: 0 8px 8px 0; }
+.progress { height: 4px; background: var(--bar-bg); border-radius: 2px; overflow: hidden; }
+.progress b { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+
+.chart svg { width: 100%; height: auto; display: block; }
+/* 추이 차트 툴팁: 차트 영역 안에서 가로 위치를 따라다닌다. 마우스 이벤트를 가로채지 않도록 pointer-events 없음 */
+#chart { position: relative; }
+#chart svg { touch-action: pan-y; }   /* 휴대폰에서 세로 스크롤은 그대로 되고, 가로로 짚으면 툴팁이 따라온다 */
+.ctip { position: absolute; z-index: 5; pointer-events: none; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; box-shadow: 0 4px 14px rgba(0, 0, 0, .18); white-space: nowrap; display: grid; gap: 3px; }
+.ctip b { font-size: 12.5px; }
+.ctip .tmetric { color: var(--muted); font-size: 11.5px; }
+.ctip .trow { display: flex; align-items: center; gap: 6px; }
+.ctip .trow i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.ctip .trow span { flex: 1; }
+.ctip .trow em { font-style: normal; font-family: var(--font-data); font-weight: 700; }
+/* 추이 차트 팀 선택 칩: 선택되면 그래프 선 색과 같은 색 점·테두리를 보여준다 */
+.trend-range { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+.trend-range select { max-width: 100%; min-height: 36px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--fg); font: inherit; }
+.trend-teams { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.trend-teams .tchip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: 3px 10px; font-size: 12.5px; font-weight: 500; }
+.trend-teams .tchip.ghost { border-radius: 8px; }
+.trend-teams .tchip i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--muted); box-sizing: border-box; }
+.trend-teams .tchip[aria-pressed="true"] { border-color: var(--c); font-weight: 700; }
+.trend-teams .tchip[aria-pressed="true"] i { background: var(--c); border-color: var(--c); }
+.trend-teams .tmeta { font-size: 12.5px; color: var(--muted); margin-left: 4px; }
+.chart .grid line { stroke: var(--line); }
+.chart text { fill: var(--muted); font-size: 11px; font-family: var(--font-data); }
+.chart text.lab { font-family: var(--font-body); font-size: 12px; font-weight: 700; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.kpi { border-left: 3px solid var(--accent); padding: 2px 0 2px 10px; display: grid; gap: 2px; }
+.kpi span { font-size: 12px; color: var(--muted); }
+.kpi b { font-family: var(--font-data); font-size: 17px; font-weight: 500; }
+.ok { color: var(--win); font-weight: 700; }
+.bad { color: var(--loss); font-weight: 700; }
+/* 내 팀 */
+.mysel { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.mysel select { font: inherit; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; max-width: 150px; }
+tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(--point) 8%, var(--surface)); }
+.star { color: var(--point); margin-right: 3px; }
+.tcard.mine { box-shadow: 0 0 0 2px var(--point); }
+.sum.mine { border-color: var(--point); box-shadow: inset 0 3px 0 var(--point); }
+
+/* 빅매치·만약에 */
+.panel h3.sub { margin: 6px 0 0; font-size: 15px; }
+.big { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 12px; }
+.bigc { border: 1px solid var(--line); border-top: 3px solid var(--point); border-radius: 10px; padding: 12px 14px; display: grid; gap: 9px; align-content: start; background: var(--bg); min-width: 0; }
+.bigc .tag { font-size: 11.5px; font-weight: 700; color: var(--point); letter-spacing: .04em; }
+.bigc h3 { margin: 0; font-size: 16px; }
+.bigc h3 small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+.eff { display: grid; gap: 2px; font-size: 13px; }
+.eff .who { font-weight: 700; }
+.eff .vals { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: 12.5px; color: var(--muted); }
+.eff .vals b { color: var(--fg); font-family: var(--font-data); font-weight: 500; }
+.mlist { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.mrow { display: grid; grid-template-columns: 96px minmax(0, 1.2fr) minmax(0, 1fr) auto; gap: 8px 14px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.mrow:last-child { border-bottom: 0; }
+.mrow.picked { background: color-mix(in srgb, var(--accent) 7%, var(--surface)); }
+.mdate { font-family: var(--font-data); font-size: 12px; color: var(--muted); }
+.mteams { font-weight: 700; min-width: 0; }
+.mteams small { font-weight: 400; color: var(--muted); }
+.hot { font-size: 10.5px; color: #fff; background: var(--point); border-radius: 4px; padding: 1px 5px; margin-left: 6px; font-weight: 700; vertical-align: 1px; white-space: nowrap; }
+.mnote { grid-column: 2 / -1; font-size: 12.5px; color: var(--muted); }
+.mnote b { color: var(--fg); font-family: var(--font-data); font-weight: 500; }
+.wdl { display: grid; gap: 3px; min-width: 0; }
+.wdl .bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--bar-bg); }
+.wdl .bar i:nth-child(1) { background: var(--accent); }
+.wdl .bar i:nth-child(2) { background: var(--draw); }
+.wdl .bar i:nth-child(3) { background: var(--point); }
+.wdl .lab { display: flex; justify-content: space-between; gap: 6px; font-family: var(--font-data); font-size: 11.5px; color: var(--muted); }
+.pick { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.pick button { border: 0; border-right: 1px solid var(--line); background: var(--surface); color: var(--fg); padding: 6px 10px; font-size: 12.5px; white-space: nowrap; }
+.pick button:last-child { border-right: 0; }
+.pick button:hover { background: var(--bar-bg); }
+.pick button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.primary { border: 0; background: var(--accent); color: var(--accent-fg); padding: 9px 16px; border-radius: 8px; font-weight: 700; font-size: 13.5px; }
+.primary:disabled { opacity: .45; cursor: default; }
+.delta { font-family: var(--font-data); font-size: 11.5px; margin-left: 5px; }
+.delta.up { color: var(--win); } .delta.down { color: var(--loss); }
+.was { color: var(--muted); font-family: var(--font-data); font-size: 12.5px; }
+.changes { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border-radius: 999px; padding: 3px 11px; font-size: 12.5px; font-weight: 700; background: color-mix(in srgb, var(--accent) 12%, var(--surface)); color: var(--accent); }
+.chip.bad { background: color-mix(in srgb, var(--loss) 12%, var(--surface)); color: var(--loss); }
+:root[data-theme="dark"] .chip:not(.bad) { color: var(--s1); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .chip:not(.bad) { color: var(--s1); } }
+#whatif { display: grid; gap: 10px; }
+#whatif:empty { display: none; }
+
+/* 순위 분포 */
+.panel .heat { font-size: 12.5px; }
+.panel .heat th, .panel .heat td { padding: 6px 0; text-align: center; min-width: 36px; border-bottom: 1px solid var(--surface); }
+.panel .heat td.h { font-family: var(--font-data); }
+.panel .heat .tn { text-align: left; padding: 6px 12px 6px 8px; position: sticky; left: 0; background: var(--surface); z-index: 1; font-weight: 700; }
+.panel .heat .sep { border-left: 2px solid var(--line); }
+.panel .heat td.cur { box-shadow: inset 0 0 0 2px var(--fg); }
+.panel .heat tr.mine .tn { color: var(--point); }
+.panel .heat td.mode { padding: 6px 10px; font-family: var(--font-data); white-space: nowrap; }
+
+/* 일정 난이도 */
+.sched { display: grid; gap: 10px; }
+.srow { display: grid; grid-template-columns: 24px 96px minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; font-size: 13px; }
+.srow .rank { text-align: right; }
+.srow .sbar { height: 10px; background: var(--bar-bg); border-radius: 5px; overflow: hidden; }
+.srow .sbar b { display: block; height: 100%; border-radius: 5px; }
+.srow .sv { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.srow .sv b { color: var(--fg); font-family: var(--font-data); font-weight: 500; }
+.srow .opps { grid-column: 3 / -1; color: var(--muted); font-size: 12px; }
+.srow.mine .tname { color: var(--point); }
+.tier { display: inline-block; font-size: 11px; font-weight: 700; border-radius: 4px; padding: 0 5px; margin-right: 6px; color: #fff; }
+
+/* 휴대폰: 표 대신 팀별 카드 */
+.cards { display: none; gap: 10px; }
+.tcard { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--zone); border-radius: 10px; padding: 12px 14px; display: grid; gap: 10px; min-width: 0; }
+.tcard-head { display: flex; align-items: center; gap: 8px; border: 0; background: none; color: var(--fg); padding: 0; text-align: left; width: 100%; }
+.tcard-head .tname { font-size: 16px; }
+.tcard-head .chev { color: var(--muted); font-size: 12px; transition: transform .15s; }
+.tcard.open .tcard-head .chev { transform: rotate(180deg); }
+.tcard-pts { margin-left: auto; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.tcard-pts b { font-size: 18px; color: var(--fg); margin-right: 1px; }
+.tcard-meta { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); }
+.tcard-probs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+.tcard-probs .lab { display: block; font-size: 11.5px; color: var(--muted); margin-bottom: 3px; }
+.tcard-magic { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; }
+.tcard .dgrid { border-top: 1px solid var(--line); padding-top: 12px; }
+@media (max-width: 960px) {
+  body.app { grid-template-columns: minmax(0, 1fr); }
+  .nav-toggle { display: inline-flex; align-items: center; }
+  .lmb { position: fixed; left: 0; top: 0; width: min(280px, 86vw); transform: translateX(-105%); transition: transform .2s ease; box-shadow: none; }
+  body.nav-open { overflow: hidden; }
+  body.nav-open .lmb { transform: none; box-shadow: 8px 0 28px rgba(15, 23, 48, .28); }
+  .nav-scrim { position: fixed; inset: 0; z-index: 25; border: 0; padding: 0; background: rgba(15, 23, 48, .4); cursor: pointer; }
+  body.nav-open .nav-scrim { display: block; }
+}
+@media (max-width: 760px) {
+  #mainBox { display: none; }
+  .cards { display: grid; }
+  h1 { font-size: 26px; }
+  /* 모바일: 사이트명과 메뉴 버튼을 하나의 상단 고정 헤더처럼 표시 */
+  body.app::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 64px;
+    z-index: 40;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 2px 8px rgba(15, 23, 48, .06);
+  }
+  .top > div:first-child {
+    width: 100%;
+    align-items: center;
+    text-align: center;
+    padding-inline: 44px;
+    padding-top: 56px;
+  }
+  .top > div:first-child h1 {
+    position: fixed;
+    top: 17px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 45;
+    width: max-content;
+    max-width: calc(100vw - 112px);
+    font-size: clamp(18px, 4.5vw, 24px);
+    white-space: nowrap;
+  }
+  .top > div:first-child h1::after { margin-inline: auto; }
+  .nav-toggle {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 46;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--accent);
+    border-radius: 9px;
+    background: var(--accent);
+    color: var(--accent-fg);
+    font-size: 24px;
+    line-height: 1;
+    box-shadow: 0 2px 8px rgba(15, 23, 48, .18);
+  }
+  .controls { width: 100%; }
+  .controls .tabs { flex: 1 1 100%; width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+  .controls .tabs button { flex: 1; min-width: 0; padding: 10px 8px; white-space: nowrap; }
+  .summary { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .sum { padding: 12px; }
+  .sum b { font-size: 19px; }
+  .panel { padding: 14px; }
+  .panel-head .meta { max-width: 100%; text-align: left; }
+  .sum.mine { grid-column: 1 / -1; }
+  .mysel { flex: 1; }
+  .mysel select { max-width: none; flex: 1; }
+  .mrow { grid-template-columns: 1fr; gap: 8px; }
+  .mnote { grid-column: auto; }
+  .pick { display: flex; }
+  .pick button { flex: 1; padding: 8px 6px; }
+  .srow { grid-template-columns: 24px minmax(0, 1fr) auto; }
+  .srow .sbar { grid-column: 2 / -1; grid-row: 2; }
+  .srow .opps { grid-column: 2 / -1; }
+}
+
+/* 최종 순위 분포: 모바일에서는 팀별 접이식 카드로 전환 */
+.dist-mobile { display: none; }
+.dist-mobile-hint { color: var(--muted); font-size: 12.5px; margin: 0 0 10px; }
+.dist-team { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); margin-bottom: 8px; overflow: hidden; }
+.dist-team[open] { border-color: color-mix(in srgb, var(--bar) 55%, var(--line)); }
+.dist-team > summary { display: flex; align-items: center; gap: 8px; padding: 12px; cursor: pointer; list-style: none; min-height: 44px; }
+.dist-team > summary::-webkit-details-marker { display: none; }
+.dist-team-name { display: flex; flex-direction: column; gap: 3px; min-width: 0; font-weight: 700; }
+.dist-team-name small, .dist-team-mode small { font-size: 11.5px; font-weight: 400; color: var(--muted); }
+.dist-team-mode { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; margin-left: auto; text-align: right; white-space: nowrap; font-size: 12.5px; }
+.dist-chevron { color: var(--muted); font-size: 19px; margin-left: 2px; transition: transform .15s; }
+.dist-team[open] .dist-chevron { transform: rotate(180deg); }
+.dist-detail { border-top: 1px solid var(--line); padding: 10px 12px 12px; }
+.dist-detail-title { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; font-weight: 700; margin: 0 0 10px; }
+.dist-detail-title span { font-size: 11px; color: var(--muted); font-weight: 400; text-align: right; }
+.dist-prob-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.dist-prob { display: grid; grid-template-columns: 30px 1fr; gap: 3px 7px; align-items: center; padding: 7px; border-radius: 7px; background: var(--bg); min-width: 0; }
+.dist-prob > span { color: var(--muted); font-size: 11.5px; }
+.dist-prob > b { font-size: 12.5px; text-align: right; font-variant-numeric: tabular-nums; }
+.dist-prob > i { grid-column: 1 / -1; height: 4px; background: var(--bar-bg); border-radius: 99px; overflow: hidden; }
+.dist-prob > i > em { display: block; height: 100%; background: var(--bar); border-radius: inherit; }
+.dist-prob.current { outline: 1px solid var(--accent); background: color-mix(in srgb, var(--bar) 8%, var(--surface)); }
+@media (max-width: 760px) {
+  .dist-desktop, .dist-desktop-note { display: none; }
+  .dist-mobile { display: block; }
+}
+
+/* 로고 링크: 사이드바 로고와 상단 제목을 누르면 홈으로 */
+/* 사이드바 상단 헤더: 로고는 왼쪽, 접기 버튼은 같은 줄 오른쪽 */
+.lmb-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.lmb a.brand { flex: 1 1 auto; min-width: 0; display: block; padding: 2px 10px 4px; color: var(--accent); font-weight: 400; font-size: 20px; text-decoration: none; border-radius: 8px; }
+.lmb a.brand:hover { background: transparent; opacity: .8; }
+h1 a.home-link { color: inherit; text-decoration: none; }
+h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* LMB 접기 버튼: 기본은 숨기고 PC 폭(961px 이상)에서만 보인다 */
+.lmb button.lmb-collapse { display: none; }
+@media (min-width: 961px) {
+  body.app { transition: grid-template-columns .2s ease; }
+  .lmb button.lmb-collapse { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 32px; height: 32px; padding: 0; font-size: 18px; line-height: 1; }
+  /* 접힌 상태: 좁은 레일만 남기고 로고·메뉴는 숨긴다 (접기 버튼은 남겨 다시 펼 수 있게) */
+  body.app.lmb-collapsed { grid-template-columns: 56px minmax(0, 1fr); }
+  body.lmb-collapsed .lmb { padding-inline: 8px; overflow: hidden; }
+  body.lmb-collapsed .lmb .brand, body.lmb-collapsed .lmb nav { display: none; }
+  body.lmb-collapsed .lmb-head { justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+</style>
+
+<button type="button" class="nav-scrim" id="navScrim" aria-label="메뉴 닫기"></button>
+<aside class="lmb" id="lmb" aria-label="페이지 메뉴">
+  <div class="lmb-head">
+    <a class="brand" href="./" title="홈으로">K LEAGUE INSIGHT</a>
+    <button type="button" class="ghost lmb-collapse" id="lmbCollapse" aria-label="메뉴 접기" title="메뉴 접기" aria-expanded="true">«</button>
+  </div>
+  <nav>
+    <a href="#dashboard">대시보드</a>
+    <a href="#standings">순위표</a>
+    <a href="#cheer">응원 작전실</a>
+    <a href="#round">라운드 프리뷰·만약에</a>
+    <a href="#dist">최종 순위 분포</a>
+    <a href="#sched">남은 일정 난이도</a>
+    <a href="#trend">확률 추이</a>
+    <a href="#backtest">예측 정확도</a>
+    <a href="#method">계산 방법</a>
+  </nav>
+</aside>
+<div class="wrap">
+  <div class="top">
+    <div style="display:grid; gap:6px">
+      <h1><a class="home-link" href="./" title="홈으로">K LEAGUE INSIGHT</a></h1>
+      <div class="meta">
+        <span>데이터 기준 <b id="asOf">불러오는 중</b> · 남은 경기를 <b id="nsim">50,000</b>번 시뮬레이션 <span id="seedNote"></span></span>
+        <span id="srcLine"></span>
+      </div>
+    </div>
+    <div class="controls">
+      <button type="button" class="ghost nav-toggle" id="navToggle" aria-label="메뉴 열기" title="메뉴" aria-expanded="false" aria-controls="lmb">☰</button>
+      <div class="tabs" role="group" aria-label="리그 선택">
+        <button type="button" id="tabK1" aria-pressed="true">K리그1</button>
+        <button type="button" id="tabK2" aria-pressed="false">K리그2</button>
+      </div>
+      <label class="mysel">내 팀 <select id="myTeam" aria-label="내 팀 선택"><option value="">선택 안 함</option></select></label>
+      <button type="button" class="ghost" id="rerun" disabled>새 시드로 다시 계산</button>
+    </div>
+  </div>
+  <div class="progress" id="progress" hidden><b id="progressBar"></b></div>
+
+  <div class="notice" id="notice" hidden></div>
+  <div class="page dashboard-page" id="page-dashboard" hidden>
+    <section class="dash-hero">
+      <div><div class="dash-eyebrow">K LEAGUE INSIGHT / DASHBOARD</div><h2 class="dash-title">K리그 현황을 한눈에</h2><p class="dash-desc" id="dashIntro">리그 주요 지표와 경기 정보를 확인하세요.</p></div>
+      <div class="dash-actions"><button type="button" class="ghost" data-go-page="standings">전체 순위표</button><button type="button" class="primary" data-go-page="round">라운드 프리뷰</button></div>
+    </section>
+    <div class="dash-grid">
+      <section class="dash-panel"><div class="dash-panel-head"><h2 id="dashTeamHeading">내 팀</h2><button type="button" class="dash-link" data-go-page="standings">팀 상세 보기 →</button></div><div id="dashTeam"><p class="dash-empty">데이터를 불러오는 중입니다.</p></div></section>
+      <section class="dash-panel"><div class="dash-panel-head"><h2>가장 가까운 경기</h2><button type="button" class="dash-link" data-go-page="round">경기 분석 →</button></div><div id="dashNext"><p class="dash-empty">경기 정보를 불러오는 중입니다.</p></div></section>
+    </div>
+    <section class="dash-panel"><div class="dash-panel-head"><h2>리그 순위 미리보기</h2><button type="button" class="dash-link" data-go-page="standings">전체 순위표 →</button></div><div id="dashStandings" class="dash-table"><p class="dash-empty">순위 정보를 불러오는 중입니다.</p></div></section>
+    <section><div class="dash-panel-head"><h2>바로가기</h2><span class="meta">기존 분석 기능으로 이동</span></div><div class="dash-shortcuts">
+      <button type="button" class="dash-shortcut" data-go-page="round"><strong>라운드 프리뷰 · 만약에</strong><span>경기별 승률을 확인하고 결과를 바꿔 가며 순위를 시뮬레이션합니다.</span></button>
+      <button type="button" class="dash-shortcut" data-go-page="dist"><strong>최종 순위 분포</strong><span>시즌 종료 시 팀별 예상 순위와 주요 목표 달성 확률을 확인합니다.</span></button>
+      <button type="button" class="dash-shortcut" data-go-page="trend"><strong>확률 추이</strong><span>팀별 시즌 전망이 데이터에 따라 어떻게 변했는지 살펴봅니다.</span></button>
+    </div></section>
+  </div>
+
+  <div class="page" id="page-standings">
+  <div class="summary" id="summary"></div>
+
+  <div class="tablebox" id="mainBox">
+    <table id="main-table">
+      <thead id="thead"></thead>
+      <tbody id="tbody"><tr><td class="empty" colspan="16">순위와 일정 데이터를 불러오는 중입니다. 매일 아침 자동으로 최신 데이터가 채워집니다.</td></tr></tbody>
+    </table>
+  </div>
+  <div class="cards" id="cards"><p class="empty">순위와 일정 데이터를 불러오는 중입니다.</p></div>
+  <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="page" id="page-team" hidden><section class="panel team-page-content" id="teamPage"></section></div>
+  <div class="page" id="page-cheer" hidden><section class="panel" id="cheer"></section></div>
+  <div class="page" id="page-round" hidden>
+  <section class="panel" id="roundPanel">
+    <section class="my-preview" id="myPreview" aria-live="polite">
+      <div class="my-preview-head">
+        <div><h2 class="my-preview-title">내 팀 경기 프리뷰</h2><div class="my-preview-note" id="myPreviewIntro">상단에서 응원 팀을 설정하면 다음 경기 분석을 볼 수 있습니다.</div></div>
+        <span class="my-preview-meta" id="myPreviewRank"></span>
+      </div>
+      <div id="myPreviewBody"><p class="empty">내 팀을 선택해 주세요.</p></div>
+    </section>
+    <div class="panel-head">
+      <h2 id="roundTitle">이번 라운드 프리뷰</h2>
+      <span class="meta" id="roundMeta"></span>
+    </div>
+    <div class="big" id="bigMatches"></div>
+    <h3 class="sub">만약에 — 경기 결과를 골라 다시 계산</h3>
+    <div class="mlist" id="matchList"></div>
+    <div class="actions">
+      <button type="button" class="primary" id="whatifRun" disabled>고른 결과로 다시 계산</button>
+      <button type="button" class="ghost" id="whatifClear" disabled>선택 초기화</button>
+      <span class="meta" id="whatifNote"></span>
+    </div>
+    <div id="whatif"></div>
+  </section>
+  </div>
+
+  <div class="page" id="page-dist" hidden>
+  <section class="panel">
+    <div class="panel-head"><h2>최종 순위 분포</h2><span class="meta">시즌을 몇 위로 마칠지, 순위별 확률(%)</span></div>
+    <div id="dist"></div>
+  </section>
+  </div>
+
+  <div class="page" id="page-sched" hidden>
+  <section class="panel">
+    <div class="panel-head"><h2>남은 일정 난이도</h2><span class="meta">어려운 일정부터</span></div>
+    <div id="sched"></div>
+  </section>
+  </div>
+
+  <div class="page" id="page-trend" hidden>
+  <section class="panel chart">
+    <div class="panel-head">
+      <h2>확률 추이</h2>
+      <div class="tabs small" role="group" aria-label="추이 지표" id="metricTabs"></div>
+    </div>
+    <div class="trend-range">
+      <label for="trendStartRound">시작 라운드</label>
+      <select id="trendStartRound" aria-label="확률 추이 시작 라운드"></select>
+    </div>
+    <div class="trend-teams" id="trendTeams" role="group" aria-label="추이에 표시할 팀"></div>
+    <div id="chart"></div>
+  </section>
+  </div>
+
+  <div class="page" id="page-backtest" hidden>
+  <section class="panel">
+    <div class="panel-head">
+      <h2>예측 정확도</h2>
+      <span class="meta" id="btStatus">검증 계산 대기 중</span>
+    </div>
+    <div id="backtest"><p>지난 시즌 데이터로 검증하는 중입니다.</p></div>
+  </section>
+  </div>
+
+  <div class="page" id="page-method" hidden>
+  <section class="panel">
+    <h2>계산 방법</h2>
+    <ul>
+      <li>매일 아침 자동 작업이 Daum 스포츠에서 시즌 전체 경기 결과와 남은 일정을 받아 저장합니다. 이 페이지는 열 때마다 저장된 데이터로 남은 경기를 직접 시뮬레이션합니다.</li>
+      <li><b>팀 전력</b>: 득점 기대값을 "리그 평균 × 홈·원정 배율 × 내 공격력 × 상대 수비력"으로 보고, 시즌 전체 경기 결과에 가장 잘 맞는 공격력·수비력을 반복 계산으로 찾습니다. 강팀을 상대로 넣은 골은 더 높게, 약팀을 상대로 넣은 골은 더 낮게 평가됩니다. 오래된 경기일수록 가중치가 줄어(180일마다 절반) 최근 흐름이 더 크게 반영됩니다. 홈·원정 배율도 그 시즌 리그의 실제 홈·원정 득점 비율로 정합니다.</li>
+      <li><b>무승부 보정</b>: 두 팀의 골 수를 따로 뽑으면 무승부가 실제보다 적게 나옵니다. Dixon-Coles 방식으로 0-0, 1-1 같은 저득점 무승부 확률을 높이고, 보정 정도는 그 시즌 실제 무승부 수에 맞춥니다.</li>
+      <li><b>불확실성</b>: 시뮬레이션마다 팀 전력을 추정 오차만큼 흔듭니다. 근거가 된 골 수가 적은 팀일수록 더 크게 흔들립니다.</li>
+      <li><b>순위 결정</b>: 승점 → 다득점 → 득실차 → 다승 → 승자승(동률 팀끼리의 승점) 순서로 가리고, 그래도 같으면 추첨합니다. 실제 규정의 벌점 기준은 데이터가 없어 추첨으로 대신합니다.</li>
+      <li><b>K리그1</b>: 33라운드 뒤 상위 6팀(파이널A)과 하위 6팀(파이널B)이 같은 그룹끼리 한 번씩 더 붙습니다. 일정 발표 전에는 시즌 홈 경기가 적은 팀을 홈으로 둡니다. 12위는 K리그2 플레이오프 준우승팀과 승강 플레이오프를 치르고, 김천 상무가 12위면 승강 플레이오프가 없습니다.</li>
+      <li><b>K리그2</b>: 1·2위 자동 승격, 3~6위 플레이오프(3위 대 6위, 4위 대 5위, 결승. 상위 팀 홈, 무승부면 상위 팀 진출). 결승 승자는 승격하고 준우승팀은 승강 플레이오프에 나갑니다. 승강 플레이오프에서 K리그2 팀의 득점 기대값을 0.85배로, 합계 동점이면 K리그2 팀이 45% 확률로 이긴다고 둔 것은 검증 데이터가 없는 가정입니다.</li>
+      
+      <li><b>남은 승점</b>: "우승까지", "자동승격까지", "PO권까지", "잔류까지"는 다른 팀 결과와 상관없이 그 목표를 확정하려면 앞으로 더 따야 하는 승점입니다. 경쟁 팀이 남은 경기를 모두 이긴다고 가정하고, 승점이 같아 다득점으로 갈리는 경우를 피하도록 1점을 더 잡았습니다. "자력 불가"는 남은 경기를 다 이겨도 경쟁 팀이 승점을 잃어야 한다는 뜻입니다.</li>
+      <li><b>확정·불가</b>: 남은 경기를 모두 이기거나 모두 지는 경우까지 따져 수학적으로 결정된 경우에만 표시합니다. 결정되지 않았으면 아무리 높아도 ">99.9%", 아무리 낮아도 "&lt;0.1%"로 표시합니다.</li>
+      <li><b>빅매치</b>: 50,000번 시뮬레이션을 다음 라운드 각 경기의 결과(홈 승·무·원정 승)별로 나눠 셉니다. 결과에 따라 어떤 팀의 우승·승격·잔류 확률이 가장 크게 달라지는 경기를 빅매치로 고르고, 경기 옆 승·무·패 확률도 같은 시뮬레이션에서 나온 값입니다.</li>
+      <li><b>만약에</b>: 고른 경기는 그 결과가 나올 때까지 점수를 다시 뽑아(점수는 모델이 정함) 같은 시드로 50,000번 다시 계산합니다. "확정·불가"는 고른 결과를 1-0, 0-0, 0-1로 넣고 수학적으로 판정합니다.</li>
+      <li><b>남은 일정 난이도</b>: 리그 평균 전력 팀이 그 팀의 남은 경기를 대신 치른다면 경기당 얻을 기대 승점입니다. 상대의 공격력·수비력과 홈·원정을 반영하고, 낮을수록 어려운 일정입니다.</li>
+      <li><b>내 팀</b>: 고른 팀은 이 브라우저에만 저장되고, 표·카드·그래프·빅매치에서 강조됩니다.</li>
+      <li><b>오차</b>: 50,000번 시뮬레이션의 95% 오차 범위는 어느 확률이든 ±0.5%p 이내입니다(숫자에 마우스를 올리면 보입니다). 같은 데이터에서는 같은 시드를 써서 열 때마다 같은 숫자가 나옵니다.</li>
+      <li>재미로 보는 추정치입니다. 실제 결과와 다를 수 있습니다.</li>
+    </ul>
+  </section>
+  </div>
+</div>
+
+<script type="text/plain" id="engine-src">
+// K리그 확률 엔진. 페이지(kleague-odds.html)의 <script id="engine-src">에 그대로 들어간다.
+// 이 파일을 고친 뒤에는 build.py로 페이지에 다시 넣는다.
+
+// halfLife·prior는 2025·2026시즌 K리그1·2 742경기 백테스트(경기 전 데이터만으로 예측)에서 고른 값.
+// 격자 탐색(halfLife 45~무한대 × prior 2~12)에서 로그 손실 1.0659로 최저권, 기준선(리그 승·무·패 비율) 1.1024.
+// halfLife 180~365일은 차이가 0.0001 이내라 최근 흐름을 조금 더 보는 180을 골랐다.
+const PARAMS = {
+  halfLife: 180,      // 경기 가중치가 절반이 되는 기간(일). 최근 경기를 더 크게 본다
+  prior: 8,           // 리그 평균 쪽으로 당기는 가상 경기 수
+  crossLeague: 0.85,  // 승강 플레이오프에서 K리그2 팀 득점 기대값 배율 (가정)
+  crossTieK2: 0.45,   // 승강 플레이오프 합계 동점 시 K리그2 팀이 이길 확률 (가정)
+};
+
+const DAY = 86400000;
+function toMs(d) { return Date.parse(d + "T00:00:00Z"); }
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function poissonDraw(l, rnd) { const L = Math.exp(-l); let k = 0, p = 1; do { k++; p *= rnd(); } while (p > L); return k - 1; }
+function gauss(rnd) { let u = 0, v = 0; while (!u) u = rnd(); while (!v) v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+function pois(k, l) { let p = Math.exp(-l); for (let i = 1; i <= k; i++) p *= l / i; return p; }
+
+/* ---------- 전력 추정 ----------
+   득점 기대값 = 리그 평균 × 홈/원정 배율 × 내 공격력 × 상대 수비력.
+   공격력·수비력은 상대 전력을 감안해 반복 계산으로 맞추고(강팀 상대로 넣은 골은 더 높게 평가),
+   경기마다 오래될수록 가중치를 줄여 최근 흐름을 반영한다. */
+function fitModel(teams, matches, asOf, P) {
+  const ref = toMs(asOf);
+  const ms = matches.map(m => ({ h: m[2], a: m[3], hs: m[4], as: m[5], w: Math.pow(0.5, Math.max(0, (ref - toMs(m[0])) / DAY) / P.halfLife) }));
+  let hg = 0, ag = 0;
+  ms.forEach(m => { hg += m.hs; ag += m.as; });
+  const home = ms.length ? Math.sqrt((hg + 10) / (ag + 10)) : 1.08, away = 1 / home;
+  let mu = ms.length ? (hg + ag) / (2 * ms.length) : 1.3;
+  const R = {};
+  teams.forEach(t => R[t] = { att: 1, def: 1 });
+  let nA, dA, nD, dD;
+  for (let it = 0; it < 40; it++) {
+    nA = {}; dA = {}; nD = {}; dD = {};
+    teams.forEach(t => { nA[t] = dA[t] = nD[t] = dD[t] = 0; });
+    const eh = mu * home, ea = mu * away;
+    for (const m of ms) {
+      nA[m.h] += m.w * m.hs; dA[m.h] += m.w * eh * R[m.a].def;
+      nA[m.a] += m.w * m.as; dA[m.a] += m.w * ea * R[m.h].def;
+      nD[m.h] += m.w * m.as; dD[m.h] += m.w * ea * R[m.a].att;
+      nD[m.a] += m.w * m.hs; dD[m.a] += m.w * eh * R[m.h].att;
+    }
+    const k = P.prior * mu;
+    teams.forEach(t => { R[t].att = (nA[t] + k) / (dA[t] + k); R[t].def = (nD[t] + k) / (dD[t] + k); });
+    const ma = teams.reduce((s, t) => s + R[t].att, 0) / teams.length;
+    const md = teams.reduce((s, t) => s + R[t].def, 0) / teams.length;
+    teams.forEach(t => { R[t].att /= ma; R[t].def /= md; });
+    let num = 0, den = 0;
+    for (const m of ms) { num += m.w * (m.hs + m.as); den += m.w * (home * R[m.h].att * R[m.a].def + away * R[m.a].att * R[m.h].def); }
+    if (den > 0) mu = num / den;
+  }
+  // 전력 추정의 불확실성(로그 척도 표준오차): 근거가 된 골 수가 적을수록 크다
+  const k = P.prior * mu;
+  teams.forEach(t => {
+    R[t].seA = 1 / Math.sqrt(nA[t] + k);
+    R[t].seD = 1 / Math.sqrt(nD[t] + k);
+  });
+  // 무승부 보정 계수(Dixon-Coles rho): 모델의 무승부 수가 실제 무승부 수와 같아지도록 맞춘다
+  let rho = 0;
+  if (ms.length >= 30) {
+    const pairs = ms.map(m => [mu * home * R[m.h].att * R[m.a].def, mu * away * R[m.a].att * R[m.h].def]);
+    const draws = ms.filter(m => m.hs === m.as).length;
+    rho = fitRho(pairs, draws);
+  }
+  return { R, mu, home, away, rho };
+}
+
+function drawProb(l, m, rho) {
+  let s = 0;
+  for (let k = 0; k <= 10; k++) s += pois(k, l) * pois(k, m);
+  return s - 2 * rho * l * m * Math.exp(-l - m);
+}
+function fitRho(pairs, draws) {
+  const maxL = Math.max(1, ...pairs.map(p => Math.max(p[0], p[1])));
+  let lo = Math.max(-0.4, -1 / maxL + 1e-3), hi = 0.25;
+  const f = r => pairs.reduce((s, p) => s + drawProb(p[0], p[1], r), 0) - draws;
+  if (f(lo) <= 0) return lo;
+  if (f(hi) >= 0) return hi;
+  for (let i = 0; i < 40; i++) { const mid = (lo + hi) / 2; if (f(mid) > 0) lo = mid; else hi = mid; }
+  return (lo + hi) / 2;
+}
+function tau(x, y, l, m, rho) {
+  if (x === 0 && y === 0) return 1 - l * m * rho;
+  if (x === 0 && y === 1) return 1 + l * rho;
+  if (x === 1 && y === 0) return 1 + m * rho;
+  if (x === 1 && y === 1) return 1 - rho;
+  return 1;
+}
+function matchProbs(l, m, rho) {
+  let pH = 0, pD = 0, pA = 0;
+  for (let x = 0; x <= 10; x++) for (let y = 0; y <= 10; y++) {
+    const p = pois(x, l) * pois(y, m) * tau(x, y, l, m, rho);
+    if (x > y) pH += p; else if (x === y) pD += p; else pA += p;
+  }
+  const s = pH + pD + pA;
+  return [pH / s, pD / s, pA / s];
+}
+// Dixon-Coles 분포에서 점수 뽑기 (독립 포아송 + 기각 표본추출)
+function sampleScore(l, m, rho, rnd) {
+  const tmax = Math.max(1, 1 - l * m * rho, 1 - rho, 1 + l * rho, 1 + m * rho);
+  for (;;) {
+    const x = poissonDraw(l, rnd), y = poissonDraw(m, rnd);
+    if (rnd() * tmax <= tau(x, y, l, m, rho)) return [x, y];
+  }
+}
+
+/* ---------- 리그 상태 ---------- */
+// results 행: [날짜, 라운드, 홈, 원정, 홈득점, 원정득점, 단계], fixtures 행: [날짜, 라운드, 홈, 원정, 단계]
+function makeCtx(doc, P, opt) {
+  opt = opt || {};
+  const teams = doc.standings.map(s => s.team);
+  const n = teams.length, ix = {};
+  teams.forEach((t, i) => ix[t] = i);
+  const all = doc.results.filter(r => r[6] !== "P");
+  const known = opt.cutoff ? all.filter(r => r[0] < opt.cutoff) : all;
+  const split = doc.format && doc.format.split;
+  let regFix, finFix;
+  if (opt.cutoff) {
+    const later = all.filter(r => r[0] >= opt.cutoff);
+    regFix = later.filter(r => !r[6] && (!split || r[1] <= split.after)).map(r => [ix[r[2]], ix[r[3]]]);
+    finFix = [];
+  } else {
+    // 일정 행: [홈, 원정, 경기 키, 고정 결과(-1 = 시뮬레이션), 추적 번호(-1 = 추적 안 함)]
+    const row = f => [ix[f[2]], ix[f[3]], f[0] + "|" + f[2] + "|" + f[3], -1, -1];
+    regFix = (doc.fixtures || []).filter(f => !f[4]).map(row);
+    finFix = (doc.fixtures || []).filter(f => f[4]).map(row);
+  }
+  const asOf = opt.cutoff || doc.asOf;
+  const model = fitModel(teams, known, asOf, P);
+  const pts = new Int32Array(n), gf = new Int32Array(n), ga = new Int32Array(n), w = new Int32Array(n), hc = new Int32Array(n);
+  const h2h = new Int32Array(n * n);
+  known.forEach(r => applyRes(ix[r[2]], ix[r[3]], r[4], r[5], n, pts, gf, ga, w, h2h));
+  known.forEach(r => hc[ix[r[2]]]++);
+  regFix.forEach(f => hc[f[0]]++);
+  let groupA = null;
+  const aTeams = new Set();
+  known.filter(r => r[6] === "A").forEach(r => { aTeams.add(ix[r[2]]); aTeams.add(ix[r[3]]); });
+  (opt.cutoff ? [] : (doc.fixtures || [])).filter(f => f[4] === "A").forEach(f => { aTeams.add(ix[f[2]]); aTeams.add(ix[f[3]]); });
+  if (aTeams.size) groupA = aTeams;
+  return {
+    teams, n, ix, split, regFix, finFix, groupA, pts, gf, ga, w, h2h, hc,
+    att: teams.map(t => model.R[t].att), def: teams.map(t => model.R[t].def),
+    seA: teams.map(t => model.R[t].seA), seD: teams.map(t => model.R[t].seD),
+    mu: model.mu, home: model.home, away: model.away, rho: model.rho,
+    noPlayoff: doc.format && doc.format.noPlayoffTeam != null ? ix[doc.format.noPlayoffTeam] : -1,
+  };
+}
+function applyRes(h, a, hs, as, n, pts, gf, ga, w, h2h) {
+  gf[h] += hs; ga[h] += as; gf[a] += as; ga[a] += hs;
+  if (hs > as) { pts[h] += 3; w[h]++; h2h[h * n + a] += 3; }
+  else if (hs < as) { pts[a] += 3; w[a]++; h2h[a * n + h] += 3; }
+  else { pts[h]++; pts[a]++; h2h[h * n + a]++; h2h[a * n + h]++; }
+}
+// 순위: 승점 → 다득점 → 득실차 → 다승 → 승자승(동률 팀끼리 승점) → 추첨(벌점 정보 없음)
+function sortIdx(list, n, pts, gf, ga, w, h2h, rnd) {
+  const arr = list.slice();
+  const k4 = (a, b) => pts[b] - pts[a] || gf[b] - gf[a] || (gf[b] - ga[b]) - (gf[a] - ga[a]) || w[b] - w[a];
+  arr.sort(k4);
+  const out = [];
+  for (let i = 0; i < arr.length;) {
+    let j = i + 1;
+    while (j < arr.length && k4(arr[i], arr[j]) === 0) j++;
+    if (j - i === 1) out.push(arr[i]);
+    else {
+      const grp = arr.slice(i, j), mp = {}, rk = {};
+      grp.forEach(x => { mp[x] = 0; rk[x] = rnd ? rnd() : x; grp.forEach(y => { if (x !== y) mp[x] += h2h[x * n + y]; }); });
+      grp.sort((a, b) => mp[b] - mp[a] || rk[a] - rk[b]);
+      out.push(...grp);
+    }
+    i = j;
+  }
+  return out;
+}
+
+// 0 = 홈 승, 1 = 무승부, 2 = 원정 승
+const outcomeOf = (x, y) => x > y ? 0 : x === y ? 1 : 2;
+
+// outBuf가 있으면 추적 중인 경기의 결과를 그 자리에 적는다
+function simOnce(c, rnd, outBuf) {
+  const n = c.n;
+  const pts = c.pts.slice(), gf = c.gf.slice(), ga = c.ga.slice(), w = c.w.slice(), h2h = c.h2h.slice();
+  const att = new Float64Array(n), def = new Float64Array(n);
+  for (let i = 0; i < n; i++) { att[i] = c.att[i] * Math.exp(c.seA[i] * gauss(rnd)); def[i] = c.def[i] * Math.exp(c.seD[i] * gauss(rnd)); }
+  const play = (h, a, forced, ti) => {
+    const l = c.mu * c.home * att[h] * def[a], m = c.mu * c.away * att[a] * def[h];
+    let [x, y] = sampleScore(l, m, c.rho, rnd);
+    // 결과를 정해 둔 경기: 그 결과가 나올 때까지 점수를 다시 뽑는다(점수 분포는 그 결과 안에서 자연스럽게 유지)
+    if (forced >= 0) for (let k = 0; outcomeOf(x, y) !== forced; k++) {
+      if (k > 500) { x = forced === 0 ? 1 : 0; y = forced === 2 ? 1 : 0; break; }
+      [x, y] = sampleScore(l, m, c.rho, rnd);
+    }
+    if (ti >= 0 && outBuf) outBuf[ti] = outcomeOf(x, y);
+    applyRes(h, a, x, y, n, pts, gf, ga, w, h2h);
+  };
+  for (const f of c.regFix) play(f[0], f[1], f[3] ?? -1, f[4] ?? -1);
+  const all = [...Array(n).keys()];
+  let order;
+  if (c.split && !c.groupA) {
+    // 파이널 라운드: 같은 그룹끼리 한 번씩. 홈은 시즌 홈 경기가 적은 팀(같으면 추첨)
+    const first = sortIdx(all, n, pts, gf, ga, w, h2h, rnd);
+    const gA = first.slice(0, c.split.size), gB = first.slice(c.split.size);
+    const hc = c.hc.slice();
+    for (const g of [gA, gB]) for (let i = 0; i < g.length; i++) for (let j = i + 1; j < g.length; j++) {
+      let h = g[i], a = g[j];
+      if (hc[a] < hc[h] || (hc[a] === hc[h] && rnd() < 0.5)) { h = g[j]; a = g[i]; }
+      hc[h]++; play(h, a, -1, -1);
+    }
+    order = sortIdx(gA, n, pts, gf, ga, w, h2h, rnd).concat(sortIdx(gB, n, pts, gf, ga, w, h2h, rnd));
+  } else if (c.split && c.groupA) {
+    for (const f of c.finFix) play(f[0], f[1], f[3] ?? -1, f[4] ?? -1);
+    const gA = all.filter(i => c.groupA.has(i)), gB = all.filter(i => !c.groupA.has(i));
+    order = sortIdx(gA, n, pts, gf, ga, w, h2h, rnd).concat(sortIdx(gB, n, pts, gf, ga, w, h2h, rnd));
+  } else {
+    order = sortIdx(all, n, pts, gf, ga, w, h2h, rnd);
+  }
+  return { order, pts, att, def };
+}
+
+/* ---------- 현재 시즌: 두 리그를 함께 시뮬레이션 ---------- */
+// opts.forced = { k1: { 경기키: 0|1|2 }, k2: {...} }: 결과를 정해 두고 시뮬레이션 ("만약에")
+// opts.track = { k1: [경기키...], k2: [...] }: 그 경기 결과별로 팀 확률을 따로 센다 (빅매치)
+const ZONE_KEYS = { k1: ["champ", "acle", "finalA", "po"], k2: ["champ", "auto", "top6", "promo"] };
+function prepFix(c, forced, track) {
+  const ti = {};
+  (track || []).forEach((k, i) => ti[k] = i);
+  for (const f of c.regFix.concat(c.finFix)) {
+    f[3] = forced && forced[f[2]] != null ? forced[f[2]] : -1;
+    f[4] = ti[f[2]] ?? -1;
+  }
+}
+function simulateCurrent(d1, d2, N, seed, onProgress, opts) {
+  opts = opts || {};
+  const P = PARAMS, rnd = mulberry32(seed);
+  const c1 = makeCtx(d1, P), c2 = makeCtx(d2, P);
+  const tr1 = (opts.track && opts.track.k1) || [], tr2 = (opts.track && opts.track.k2) || [];
+  prepFix(c1, opts.forced && opts.forced.k1, tr1);
+  prepFix(c2, opts.forced && opts.forced.k2, tr2);
+  const ob1 = new Int8Array(tr1.length), ob2 = new Int8Array(tr2.length);
+  const hit1 = new Uint8Array(c1.n * 4), hit2 = new Uint8Array(c2.n * 4);
+  const T1 = { n: new Float64Array(tr1.length * 3), z: new Float64Array(tr1.length * 3 * c1.n * 4) };
+  const T2 = { n: new Float64Array(tr2.length * 3), z: new Float64Array(tr2.length * 3 * c2.n * 4) };
+  const tally = (T, ob, hit) => {
+    const m = hit.length;
+    for (let j = 0; j < ob.length; j++) {
+      const o = ob[j];
+      if (o < 0) continue;
+      T.n[j * 3 + o]++;
+      const base = (j * 3 + o) * m;
+      for (let i = 0; i < m; i++) if (hit[i]) T.z[base + i]++;
+    }
+  };
+  const z = n => ({ posDist: new Float64Array(n * n), ptsSum: new Float64Array(n) });
+  const o1 = Object.assign(z(c1.n), { champ: new Float64Array(c1.n), acle: new Float64Array(c1.n), finalA: new Float64Array(c1.n), po: new Float64Array(c1.n), relegated: new Float64Array(c1.n) });
+  const o2 = Object.assign(z(c2.n), { champ: new Float64Array(c2.n), auto: new Float64Array(c2.n), top6: new Float64Array(c2.n), promo: new Float64Array(c2.n) });
+  const muX = Math.sqrt(c1.mu * c2.mu), rhoX = (c1.rho + c2.rho) / 2;
+  for (let s = 0; s < N; s++) {
+    ob1.fill(-1); ob2.fill(-1); hit1.fill(0); hit2.fill(0);
+    const s1 = simOnce(c1, rnd, ob1), s2 = simOnce(c2, rnd, ob2);
+    s1.order.forEach((t, i) => {
+      o1.posDist[t * c1.n + i]++; o1.ptsSum[t] += s1.pts[t];
+      if (i === 0) { o1.champ[t]++; hit1[t * 4] = 1; }
+      if (i < 2) { o1.acle[t]++; hit1[t * 4 + 1] = 1; }
+      if (i < 6) { o1.finalA[t]++; hit1[t * 4 + 2] = 1; }
+    });
+    s2.order.forEach((t, i) => {
+      o2.posDist[t * c2.n + i]++; o2.ptsSum[t] += s2.pts[t];
+      if (i === 0) { o2.champ[t]++; hit2[t * 4] = 1; }
+      if (i < 2) { o2.auto[t]++; o2.promo[t]++; hit2[t * 4 + 1] = 1; hit2[t * 4 + 3] = 1; }
+      if (i < 6) { o2.top6[t]++; hit2[t * 4 + 2] = 1; }
+    });
+    // K리그2 플레이오프: 단판, 상위 팀 홈, 무승부면 상위 팀
+    const tie = (hi, lo) => { const [a, b] = sampleScore(c2.mu * c2.home * s2.att[hi] * s2.def[lo], c2.mu * c2.away * s2.att[lo] * s2.def[hi], c2.rho, rnd); return a >= b ? hi : lo; };
+    const sd = s2.order;
+    const w1 = tie(sd[2], sd[5]), w2 = tie(sd[3], sd[4]);
+    const hi = sd.indexOf(w1) < sd.indexOf(w2) ? w1 : w2, lo = hi === w1 ? w2 : w1;
+    const champ = tie(hi, lo), runner = champ === hi ? lo : hi;
+    o2.promo[champ]++; hit2[champ * 4 + 3] = 1;
+    // 승강 플레이오프: K리그1 12위(예외 팀 제외) vs K리그2 PO 준우승, 2경기 합산
+    const last = s1.order[c1.n - 1];
+    if (last !== c1.noPlayoff) {
+      o1.po[last]++; hit1[last * 4 + 3] = 1;
+      const [a1, b1] = sampleScore(muX * c2.home * s2.att[runner] * s1.def[last] * P.crossLeague, muX * c2.away * s1.att[last] * s2.def[runner], rhoX, rnd);
+      const [a2, b2] = sampleScore(muX * c1.home * s1.att[last] * s2.def[runner], muX * c1.away * s2.att[runner] * s1.def[last] * P.crossLeague, rhoX, rnd);
+      const k2g = a1 + b2, k1g = b1 + a2;
+      if (k2g > k1g || (k2g === k1g && rnd() < P.crossTieK2)) { o2.promo[runner]++; hit2[runner * 4 + 3] = 1; o1.relegated[last]++; }
+    }
+    tally(T1, ob1, hit1); tally(T2, ob2, hit2);
+    if (onProgress && (s + 1) % 2000 === 0) onProgress(s + 1);
+  }
+  const pack = (c, o, keys) => {
+    const out = {};
+    c.teams.forEach((t, i) => {
+      out[t] = { posDist: Array.from(o.posDist.slice(i * c.n, (i + 1) * c.n)), exp: o.ptsSum[i] / N };
+      keys.forEach(k => out[t][k] = o[k][i]);
+    });
+    return out;
+  };
+  // 추적 경기: 결과별 횟수 n[홈승, 무, 원정승]과, 그 결과일 때 팀별 구간 달성 횟수 z[팀][구간] = [홈승, 무, 원정승]
+  const packTrack = (c, T, tr, keys) => tr.map((key, j) => {
+    const zz = {};
+    c.teams.forEach((t, i) => {
+      zz[t] = {};
+      keys.forEach((k, q) => zz[t][k] = [0, 1, 2].map(o => T.z[(j * 3 + o) * c.n * 4 + i * 4 + q]));
+    });
+    return { key, n: [0, 1, 2].map(o => T.n[j * 3 + o]), z: zz };
+  });
+  return {
+    N, seed,
+    k1: pack(c1, o1, ["champ", "acle", "finalA", "po", "relegated"]),
+    k2: pack(c2, o2, ["champ", "auto", "top6", "promo"]),
+    model: { k1: modelInfo(c1), k2: modelInfo(c2) },
+    track: { k1: packTrack(c1, T1, tr1, ZONE_KEYS.k1), k2: packTrack(c2, T2, tr2, ZONE_KEYS.k2) },
+  };
+}
+function modelInfo(c) {
+  const r = {};
+  c.teams.forEach((t, i) => r[t] = { att: c.att[i], def: c.def[i] });
+  return { mu: c.mu, home: c.home, rho: c.rho, R: r };
+}
+
+/* ---------- 백테스트 ---------- */
+// 지난 시즌을 cutoff 날짜 시점에서 시뮬레이션하고 실제 최종 순위와 비교
+function backtestSeason(doc, cutoff, N, seed) {
+  const P = PARAMS, rnd = mulberry32(seed);
+  const c = makeCtx(doc, P, { cutoff });
+  const posDist = new Float64Array(c.n * c.n);
+  for (let s = 0; s < N; s++) simOnce(c, rnd).order.forEach((t, i) => posDist[t * c.n + i]++);
+  // 실제 최종 순위
+  const n = c.n, pts = new Int32Array(n), gf = new Int32Array(n), ga = new Int32Array(n), w = new Int32Array(n), h2h = new Int32Array(n * n);
+  const all = doc.results.filter(r => r[6] !== "P");
+  all.forEach(r => applyRes(c.ix[r[2]], c.ix[r[3]], r[4], r[5], n, pts, gf, ga, w, h2h));
+  const aSet = new Set();
+  all.filter(r => r[6] === "A").forEach(r => { aSet.add(c.ix[r[2]]); aSet.add(c.ix[r[3]]); });
+  const idx = [...Array(n).keys()];
+  const actual = aSet.size
+    ? sortIdx(idx.filter(i => aSet.has(i)), n, pts, gf, ga, w, h2h, null).concat(sortIdx(idx.filter(i => !aSet.has(i)), n, pts, gf, ga, w, h2h, null))
+    : sortIdx(idx, n, pts, gf, ga, w, h2h, null);
+  const atCut = sortIdx(idx, n, c.pts, c.gf, c.ga, c.w, c.h2h, null);
+  return {
+    teams: c.teams, cutoff, N,
+    posDist: c.teams.map((_, i) => Array.from(posDist.slice(i * n, (i + 1) * n)).map(v => v / N)),
+    actualRank: c.teams.map((_, i) => actual.indexOf(i) + 1),
+    cutRank: c.teams.map((_, i) => atCut.indexOf(i) + 1),
+    cutPts: Array.from(c.pts),
+    remaining: c.regFix.length,
+  };
+}
+
+// 경기 단위 검증: 각 경기일마다 그 전 경기만으로 전력을 다시 맞춰 승·무·패 확률을 예측
+function evalMatches(docs, P) {
+  const tot = { n: 0, ll: 0, llBase: 0, br: 0, brBase: 0, dPred: 0, dAct: 0, hPred: 0, hAct: 0, buckets: [0, 0, 0, 0, 0].map(() => ({ p: 0, o: 0, n: 0 })) };
+  const per = [];
+  for (const doc of docs) {
+    const teams = doc.standings.map(s => s.team);
+    const res = doc.results.filter(r => r[6] !== "P").slice().sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
+    const dates = [...new Set(res.map(r => r[0]))];
+    const st = { n: 0, ll: 0, llBase: 0 };
+    let p0 = 0;
+    for (const D of dates) {
+      while (p0 < res.length && res[p0][0] < D) p0++;
+      const prior = res.slice(0, p0);
+      if (prior.length < teams.length * 3) continue;
+      const m = fitModel(teams, prior, D, P, []);
+      let bh = 1, bd = 1, ba = 1;
+      prior.forEach(r => { if (r[4] > r[5]) bh++; else if (r[4] === r[5]) bd++; else ba++; });
+      const bs = bh + bd + ba, base = [bh / bs, bd / bs, ba / bs];
+      for (const r of res.filter(x => x[0] === D)) {
+        const l = m.mu * m.home * m.R[r[2]].att * m.R[r[3]].def, mm = m.mu * m.away * m.R[r[3]].att * m.R[r[2]].def;
+        const p = matchProbs(l, mm, m.rho);
+        const o = r[4] > r[5] ? 0 : r[4] === r[5] ? 1 : 2;
+        const ll = -Math.log(Math.max(1e-9, p[o])), llb = -Math.log(base[o]);
+        let br = 0, brb = 0;
+        for (let k = 0; k < 3; k++) { br += (p[k] - (k === o)) ** 2; brb += (base[k] - (k === o)) ** 2; }
+        tot.n++; tot.ll += ll; tot.llBase += llb; tot.br += br; tot.brBase += brb;
+        tot.dPred += p[1]; tot.dAct += o === 1; tot.hPred += p[0]; tot.hAct += o === 0;
+        const b = tot.buckets[Math.min(4, Math.floor(p[0] * 5))]; b.p += p[0]; b.o += o === 0; b.n++;
+        st.n++; st.ll += ll; st.llBase += llb;
+      }
+    }
+    per.push({ league: doc.league, season: doc.season, n: st.n, ll: st.ll / st.n, llBase: st.llBase / st.n });
+  }
+  return { per, n: tot.n, ll: tot.ll / tot.n, llBase: tot.llBase / tot.n, br: tot.br / tot.n, brBase: tot.brBase / tot.n,
+    drawPred: tot.dPred / tot.n, drawAct: tot.dAct / tot.n, homePred: tot.hPred / tot.n, homeAct: tot.hAct / tot.n,
+    buckets: tot.buckets.map(b => ({ n: b.n, pred: b.n ? b.p / b.n : 0, act: b.n ? b.o / b.n : 0 })) };
+}
+
+// 워커에서 실행될 때의 메시지 처리
+if (typeof self !== "undefined" && typeof window === "undefined") {
+  self.onmessage = e => {
+    const m = e.data;
+    try {
+      if (m.type === "current") {
+        const r = simulateCurrent(m.d1, m.d2, m.N, m.seed, done => self.postMessage({ type: "progress", id: m.id, done }), m.opts);
+        self.postMessage({ type: "current", id: m.id, result: r });
+      } else if (m.type === "backtest") {
+        const matches = evalMatches(m.docs, PARAMS);
+        const seasons = m.seasons.map(s => Object.assign({ league: s.doc.league, season: s.doc.season }, backtestSeason(s.doc, s.cutoff, m.N, m.seed)));
+        self.postMessage({ type: "backtest", id: m.id, result: { matches, seasons } });
+      }
+    } catch (err) {
+      self.postMessage({ type: "error", id: m.id, message: String(err && err.stack || err) });
+    }
+  };
+}
+
+</script>
+
+<script>
+const ENGINE = document.getElementById("engine-src").textContent;
+const E = new Function(ENGINE + "\nreturn { PARAMS, simulateCurrent, evalMatches, backtestSeason, hashStr, matchProbs };")();
+const NSIM = 50000;
+const ZONES = {
+  k1: [
+    { key: "champ", label: "우승" },
+    { key: "acle", label: "ACLE권 (1~2위)" },
+    { key: "finalA", label: "파이널A (1~6위)" },
+    { key: "po", label: "승강 PO", danger: true },
+  ],
+  k2: [
+    { key: "champ", label: "우승" },
+    { key: "auto", label: "자동 승격 (1~2위)" },
+    { key: "top6", label: "6위 이내 (PO권 이상)" },
+    { key: "promo", label: "최종 승격" },
+  ],
+};
+const MAGIC = {
+  k1: [{ key: "champ", label: "우승까지" }, { key: "safe", label: "잔류까지", title: "승강 플레이오프(12위)를 확실히 피하려면 더 따야 하는 승점" }],
+  k2: [{ key: "champ", label: "우승까지" }, { key: "auto", label: "자동승격까지", title: "2위 이내를 확정하려면 더 따야 하는 승점" }, { key: "top6", label: "PO권까지", title: "6위 이내(플레이오프 진출 이상)를 확정하려면 더 따야 하는 승점" }],
+};
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const DATA = { k1: null, k2: null, h1: null, h2: null };
+let SIM = null, BT = null, HISTORY = [], league = "k1", openTeam = null, selectedTeamPage = null, metric = "champ", customSeed = false;
+const CHEER_GOALS = { k1: [{ key: "champ", label: "우승" }, { key: "acle", label: "ACLE권" }, { key: "finalA", label: "파이널A" }, { key: "safe", source: "po", inverse: true, label: "잔류" }], k2: [{ key: "champ", label: "우승" }, { key: "auto", label: "자동 승격" }, { key: "top6", label: "PO권" }, { key: "promo", label: "최종 승격" }] };
+let CHEER_GOAL = { k1: "champ", k2: "auto" };
+let db = null, isOwner = false, STANDALONE = false;
+try { const v = localStorage.getItem("kl-odds-league"); if (v === "k1" || v === "k2") league = v; } catch {}
+// 내 팀(리그별, 이 브라우저에만 저장)과 "만약에"에서 고른 경기 결과(0 홈 승, 1 무, 2 원정 승)
+const MY = { k1: "", k2: "" };
+try { MY.k1 = localStorage.getItem("kl-odds-my-k1") || ""; MY.k2 = localStorage.getItem("kl-odds-my-k2") || ""; } catch {}
+const PICKS = { k1: {}, k2: {} };
+// 추이 차트에 그릴 팀 선택. null = 자동(확률 높은 팀), 배열 = 직접 고른 팀(칸 번호가 곧 색 번호라 팀을 빼도 다른 팀 색이 안 바뀐다)
+const TREND_MAX = 6;                       // 팔레트(--s1~--s6)가 6색이라 최대 6팀
+const TSEL = { k1: null, k2: null };       // 리그별 직접 선택 (이 브라우저에만 저장)
+const AUTO_PICK = { k1: [], k2: [] };      // 자동 상태에서 지금 그려지는 팀 (처음 누를 때 시작점으로 씀)
+const TREND_START = { k1: 1, k2: 1 };      // 확률 추이 시작 라운드(리그별)
+let trendFull = false;                     // 6팀이 이미 찼는데 더 누르면 안내 문구를 한 번 보여주는 표시
+try {
+  ["k1", "k2"].forEach(lg => {
+    const v = JSON.parse(localStorage.getItem("kl-odds-trend-" + lg) || "null");
+    // 저장값이 배열이면 길이를 6칸으로 맞추고, 문자열이 아닌 칸은 비운다
+    if (Array.isArray(v)) TSEL[lg] = Array.from({ length: TREND_MAX }, (_, i) => typeof v[i] === "string" ? v[i] : null);
+  });
+} catch {}
+// 현재 리그의 선택을 저장한다 (자동이면 저장값을 지운다)
+function saveTrendSel() {
+  try {
+    const key = "kl-odds-trend-" + league;
+    if (TSEL[league]) localStorage.setItem(key, JSON.stringify(TSEL[league])); else localStorage.removeItem(key);
+  } catch {}
+}
+// 팀 칩을 눌렀을 때: 선택/해제를 바꾼다
+function toggleTrendTeam(t) {
+  // 자동 상태에서 처음 누르면, 지금 그려진 팀들을 시작점으로 삼아 직접 선택으로 바꾼다
+  if (!TSEL[league]) TSEL[league] = Array.from({ length: TREND_MAX }, (_, i) => AUTO_PICK[league][i] ?? null);
+  const slots = TSEL[league], at = slots.indexOf(t);
+  if (at >= 0) slots[at] = null;                       // 이미 선택된 팀이면 해제
+  else {
+    const free = slots.indexOf(null);                  // 비어 있는 첫 칸(= 안 쓰는 색)
+    if (free < 0) trendFull = true; else slots[free] = t;
+  }
+  saveTrendSel();
+  renderChart();
+}
+function clearTrendTeams() {
+  TSEL[league] = Array.from({ length: TREND_MAX }, () => null);
+  saveTrendSel();
+  renderChart();
+}
+const PAGES = ["dashboard", "standings", "team", "cheer", "round", "dist", "sched", "trend", "backtest", "method"];
+function currentPage() {
+  const id = decodeURIComponent((location.hash || "").replace(/^#/, ""));
+  return PAGES.includes(id) ? id : "dashboard";
+}
+function closeNav() {
+  document.body.classList.remove("nav-open");
+  const tog = $("navToggle");
+  if (tog) tog.setAttribute("aria-expanded", "false");
+}
+function breakAtSentenceEnds() {
+  const targets = document.querySelectorAll(".page p, .page li, .page .meta, .page .cheer-intro, .page .cheer-summary small, .page .notice");
+  targets.forEach(el => {
+    if (el.querySelector("br[data-sentence-break]")) return;
+    const walker = document.createTreeWalker(el, 4), nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(node => {
+      const text = node.nodeValue, re = /([.!?])\s+(?=\S)/g;
+      let match, last = 0, changed = false;
+      const fragment = document.createDocumentFragment();
+      while ((match = re.exec(text))) {
+        fragment.appendChild(document.createTextNode(text.slice(last, match.index + 1)));
+        const br = document.createElement("br"); br.dataset.sentenceBreak = "true"; fragment.appendChild(br);
+        last = re.lastIndex; changed = true;
+      }
+      if (changed) { fragment.appendChild(document.createTextNode(text.slice(last))); node.parentNode.replaceChild(fragment, node); }
+    });
+  });
+}
+function showPage() {
+  const id = currentPage();
+  PAGES.forEach(p => { const el = $("page-" + p); if (el) el.hidden = p !== id; });
+  document.querySelectorAll("#lmb a[href^='#']").forEach(a => {
+    if (a.getAttribute("href") === "#" + id) a.setAttribute("aria-current", "page");
+    else a.removeAttribute("aria-current");
+  });
+  closeNav();
+  if (id === "trend") requestAnimationFrame(() => renderChart());
+  if (id === "team") renderTeamPage();
+  if (id === "cheer") renderCheer();
+  breakAtSentenceEnds();
+}
+function goPage(id) {
+  if (!PAGES.includes(id)) id = "dashboard";
+  if ((location.hash || "") !== "#" + id) history.pushState(null, "", "#" + id);
+  showPage();
+  window.scrollTo(0, 0);
+}
+let WHATIF = null, whatifRunning = false;
+const ZSHORT = { k1: { champ: "우승", acle: "ACLE권", finalA: "파이널A", po: "승강 PO" }, k2: { champ: "우승", auto: "자동 승격", top6: "PO권", promo: "최종 승격" } };
+const fkey = f => f[0] + "|" + f[2] + "|" + f[3];
+const dow = d => "일월화수목금토"[new Date(d + "T00:00:00Z").getUTCDay()];
+
+/* ---------- 워커 ---------- */
+let worker = null, reqId = 0;
+const pending = {};
+function getWorker() {
+  if (worker !== null) return worker;
+  try {
+    worker = new Worker(URL.createObjectURL(new Blob([ENGINE], { type: "text/javascript" })));
+    worker.onmessage = e => {
+      const m = e.data, p = pending[m.id];
+      if (!p) return;
+      if (m.type === "progress") p.onProgress && p.onProgress(m.done);
+      else if (m.type === "error") { delete pending[m.id]; p.reject(new Error(m.message)); }
+      else { delete pending[m.id]; p.resolve(m.result); }
+    };
+  } catch { worker = false; }
+  return worker;
+}
+function call(msg, onProgress) {
+  const w = getWorker();
+  if (!w) {
+    // 워커를 못 쓰면 화면 스레드에서 계산
+    return new Promise((res, rej) => setTimeout(() => {
+      try {
+        if (msg.type === "current") res(E.simulateCurrent(msg.d1, msg.d2, msg.N, msg.seed, null, msg.opts));
+        else res({ matches: E.evalMatches(msg.docs, E.PARAMS), seasons: msg.seasons.map(s => Object.assign({ league: s.doc.league, season: s.doc.season }, E.backtestSeason(s.doc, s.cutoff, msg.N, msg.seed))) });
+      } catch (err) { rej(err); }
+    }, 30));
+  }
+  const id = ++reqId;
+  return new Promise((resolve, reject) => { pending[id] = { resolve, reject, onProgress }; w.postMessage(Object.assign({ id }, msg)); });
+}
+
+/* ---------- 공통 계산 ---------- */
+function lastN(results, team, n) {
+  return results.filter(r => r[2] === team || r[3] === team)
+    .slice().sort((a, b) => a[0] < b[0] ? 1 : a[0] > b[0] ? -1 : 0).slice(0, n)
+    .map(r => {
+      const home = r[2] === team, my = home ? r[4] : r[5], op = home ? r[5] : r[4];
+      return { r: my > op ? "W" : my < op ? "L" : "D", date: r[0], my, op, opp: home ? r[3] : r[2], home };
+    });
+}
+
+// 남은 경기를 모두 이기거나 모두 지는 극단을 가정한 수학적 판정과 남은 승점
+function decided(d, lg) {
+  const st = d.standings, fx = d.fixtures || [], fmt = d.format || {};
+  const splitStarted = d.results.some(r => r[6]) || fx.some(f => f[4]);
+  const regLeft = t => fx.filter(f => !f[4] && (f[2] === t || f[3] === t)).length;
+  const finLeft = t => splitStarted ? fx.filter(f => f[4] && (f[2] === t || f[3] === t)).length : (fmt.split ? fmt.split.size - 1 : 0);
+  const left = t => regLeft(t.team) + finLeft(t.team);
+  const maxAll = t => t.pts + 3 * left(t);
+  const maxReg = t => t.pts + 3 * regLeft(t.team);
+  const top = (t, k, maxFn) => {
+    const others = st.filter(o => o.team !== t.team);
+    return { sure: others.filter(o => maxFn(o) >= t.pts).length < k, out: others.filter(o => o.pts > maxFn(t)).length >= k };
+  };
+  // k위 이내를 확정하려면 더 따야 하는 승점: 경쟁 팀 최대 승점 중 k번째로 큰 값을 넘어야 한다
+  const needTop = (t, k) => {
+    const maxes = st.filter(o => o.team !== t.team).map(maxAll).sort((a, b) => b - a);
+    const need = (maxes[k - 1] ?? -1) + 1 - t.pts;
+    return { need, reachable: need <= 3 * left(t) };
+  };
+  const exempt = fmt.noPlayoffTeam;
+  const out = {};
+  st.forEach(t => {
+    if (lg === "k1") {
+      const c = top(t, 1, maxAll), a = top(t, 2, maxAll), f = top(t, 6, maxReg);
+      if (f.out) { c.out = true; a.out = true; }
+      const others = st.filter(o => o.team !== t.team && o.team !== exempt);
+      const safeNeed = Math.min(...others.map(maxAll)) + 1 - t.pts;
+      const safe = t.team === exempt ? { na: true } : { need: f.sure ? 0 : safeNeed, reachable: safeNeed <= 3 * left(t) };
+      out[t.team] = {
+        champ: c, acle: a, finalA: f, po: { sure: false, out: f.sure || (safe.need !== undefined && safe.need <= 0) },
+        m: { champ: c.out ? { out: true } : needTop(t, 1), safe },
+      };
+    } else {
+      const c = top(t, 1, maxAll), a = top(t, 2, maxAll), s6 = top(t, 6, maxAll);
+      out[t.team] = {
+        champ: c, auto: a,
+        top6: s6,
+        promo: { sure: a.sure, out: s6.out },
+        m: { champ: c.out ? { out: true } : needTop(t, 1), auto: a.out ? { out: true } : needTop(t, 2), top6: s6.out ? { out: true } : needTop(t, 6) },
+      };
+    }
+  });
+  return out;
+}
+
+/* ---------- 화면 ---------- */
+const fmtP = p => p >= 99.95 ? ">99.9%" : p < 0.05 ? "<0.1%" : (p < 10 || p > 90 ? p.toFixed(1) : Math.round(p)) + "%";
+const ptxt = (p, st) => st && st.sure ? "확정" : st && st.out ? "불가" : fmtP(p);
+function ci(p) { return 1.96 * Math.sqrt(Math.max(p * (1 - p), 0) / NSIM) * 100; }
+function pcCell(v, danger, st) {
+  let p = v / SIM.N * 100;
+  if (st && st.sure) p = 100; else if (st && st.out) p = 0;
+  const fixed = st && (st.sure || st.out);
+  const txt = st && st.sure ? "확정" : st && st.out ? "불가" : fmtP(p);
+  const tip = fixed ? "수학적으로 결정됨" : `${(v / SIM.N * 100).toFixed(2)}% ± ${ci(v / SIM.N).toFixed(2)}%p (95%)`;
+  return `<div class="pc${p < 0.5 ? " dim" : ""}${danger ? " danger" : ""}${fixed ? " fixed" : ""}" title="${tip}"><span>${txt}</span><i><b style="width:${p}%"></b></i></div>`;
+}
+function magicCell(m, sureLabel) {
+  if (!m) return "";
+  if (m.na) return `<span class="mg off">해당 없음</span>`;
+  if (m.out) return `<span class="mg off">불가</span>`;
+  if (m.need <= 0) return `<span class="mg sure">${sureLabel}</span>`;
+  if (!m.reachable) return `<span class="mg off" title="남은 경기를 모두 이겨도 자력으로는 안 되고, 경쟁 팀이 승점을 잃어야 합니다">자력 불가</span>`;
+  return `<span class="mg"><b class="num">${m.need}</b>점</span>`;
+}
+const SURE_LABEL = { champ: "우승 확정", safe: "잔류 확정", auto: "승격 확정", top6: "PO권 확정" };
+function zoneColor(lg, i, n) {
+  if (lg === "k1") return i < 2 ? "var(--accent)" : i < 6 ? "var(--bar)" : i === n - 1 ? "var(--loss)" : "transparent";
+  return i < 2 ? "var(--accent)" : i < 6 ? "var(--warn)" : "transparent";
+}
+
+function renderTeamPage() {
+  const root = $("teamPage"), d = DATA[league];
+  if (!root || !d || !SIM || !selectedTeamPage) { if (root) root.innerHTML = `<p class="empty">순위표에서 팀을 골라 주세요.</p>`; return; }
+  const t = d.standings.find(x => x.team === selectedTeamPage), r = SIM[league][selectedTeamPage];
+  if (!t || !r) { root.innerHTML = `<p class="empty">이 팀의 정보를 찾을 수 없어요.</p><button type="button" class="ghost" data-go-page="standings">순위표로 돌아가기</button>`; return; }
+  const zones = ZONES[league], dec = decided(d, league)[t.team], form = lastN(d.results, t.team, 5).reverse();
+  root.innerHTML = `<div class="team-page-head"><button type="button" class="ghost" data-go-page="standings">← 순위표</button><div><span class="meta">${league === "k1" ? "K리그1" : "K리그2"} · ${d.asOf || ""} 기준</span><h2>${esc(t.team)}</h2><p>${t.rank}위 · ${t.p}경기 · ${t.pts}점 · 득실 ${t.gf - t.ga > 0 ? "+" : ""}${t.gf - t.ga}</p></div></div>
+    <div class="team-page-probs">${zones.map(z => `<article><span>${esc(z.label)}</span><b>${ptxt(r[z.key] / SIM.N * 100, dec[z.key])}</b><i><b style="width:${Math.max(0, Math.min(100, r[z.key] / SIM.N * 100))}%"></b></i></article>`).join("")}</div>
+    <div class="team-page-form"><b>최근 5경기</b><span class="form">${form.map(f => `<i class="${f.r}" title="${esc(f.date)} ${f.my}-${f.op}">${f.r === "W" ? "승" : f.r === "D" ? "무" : "패"}</i>`).join("") || "기록 없음"}</span></div>
+    <h3 class="sub">일정·전력·최종 순위 전망</h3>${detailInner(d, t, r)}`;
+}
+
+/* ---------- 대시보드: 기존 데이터만 재사용해 첫 화면 요약을 구성 ---------- */
+function renderDashboard() {
+  const d = DATA[league];
+  if (!d || !SIM || !d.standings) return;
+  const me = MY[league];
+  const st = d.standings.slice().sort((a, b) => a.rank - b.rank);
+  const mine = me ? st.find(t => t.team === me) : null;
+  const recent = me ? lastN(d.results || [], me, 5).reverse() : [];
+  const fixtures = (d.fixtures || []).filter(f => f[1] != null).slice().sort((a,b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
+  const next = me ? fixtures.find(f => f[2] === me || f[3] === me) : fixtures[0];
+  const lgName = league === "k1" ? "K리그1" : "K리그2";
+  $("dashIntro").textContent = `${lgName} · ${d.asOf || "기준일 정보 없음"} 기준${me ? ` · ${me} 중심으로 표시 중` : " · 내 팀을 선택하면 팀별 정보가 표시됩니다"}`;
+  $("dashTeamHeading").textContent = me ? `MY TEAM · ${me}` : "내 팀 설정";
+  if (!mine) {
+    $("dashTeam").innerHTML = `<div class="dash-empty">응원 팀을 선택하면 순위, 승점, 득점·실점과 최근 경기 흐름을 이곳에서 확인할 수 있습니다.</div><button type="button" class="primary" data-dashboard-select>내 팀 선택하기</button>`;
+  } else {
+    const gd = mine.gf - mine.ga;
+    const form = recent.map(f => `<i class="${f.r}" title="${esc(f.date)} ${esc(f.opp)} ${f.my}-${f.op}">${f.r === "W" ? "승" : f.r === "D" ? "무" : "패"}</i>`).join("") || '<span class="dash-team-sub">최근 경기 기록 없음</span>';
+    const probs = SIM[league][me];
+    const zones = ZONES[league].slice(0, 2).map(z => `${z.label} ${fmtP(probs[z.key] / SIM.N * 100)}`).join(" · ");
+    $("dashTeam").innerHTML = `<div class="dash-team-name">${esc(me)} <span class="dash-team-sub">${mine.rank}위</span></div><div class="dash-team-sub">${mine.p}경기 · ${mine.w ?? ""}${mine.w != null ? "승" : ""}${mine.d != null ? ` ${mine.d}무` : ""}${mine.l != null ? ` ${mine.l}패` : ""}</div><div class="dash-team-stats"><div class="dash-stat"><span>승점</span><b>${mine.pts}</b></div><div class="dash-stat"><span>득점</span><b>${mine.gf}</b></div><div class="dash-stat"><span>실점</span><b>${mine.ga}</b></div><div class="dash-stat"><span>득실차</span><b>${gd > 0 ? "+" : ""}${gd}</b></div></div><div class="dash-form"><span class="dash-form-label">최근 5경기</span><span class="form">${form}</span></div><p class="dash-team-sub">시즌 전망 · ${esc(zones || "확률 정보 없음")}</p>`;
+  }
+  if (!next) {
+    $("dashNext").innerHTML = `<div class="dash-empty">현재 등록된 남은 경기가 없습니다.</div><button type="button" class="ghost" data-go-page="round">라운드 프리뷰 보기</button>`;
+  } else {
+    const home = me ? next[2] === me : true;
+    const date = `${next[0]}${next[1] != null ? ` · ${next[1]}R` : ""}`;
+    const isMyFixture = !!me && (next[2] === me || next[3] === me);
+    const homeName = next[2], awayName = next[3];
+    let probLine = "";
+    if (isMyFixture) {
+      const opponent = home ? awayName : homeName;
+      const model = SIM.model[league], own = model.R && model.R[me], opp = model.R && model.R[opponent];
+      if (own && opp && Number.isFinite(model.mu) && Number.isFinite(model.home)) {
+        const l = model.mu * (home ? model.home : 1 / model.home) * (home ? own.att : opp.att) * (home ? opp.def : own.def);
+        const m = model.mu * (home ? 1 / model.home : model.home) * (home ? opp.att : own.att) * (home ? own.def : opp.def);
+        const raw = E.matchProbs(l, m, model.rho), p = home ? raw : [raw[2], raw[1], raw[0]];
+        probLine = `<div class="dash-team-sub" style="margin-top:9px">내 팀 기준 승 ${Math.round(p[0]*100)}% · 무 ${Math.round(p[1]*100)}% · 패 ${Math.round(p[2]*100)}%</div>`;
+      }
+    }
+    $("dashNext").innerHTML = `<div class="dash-fixture"><div><div class="dash-fixture-team">${esc(homeName)}</div><div class="dash-fixture-meta">홈</div></div><span class="dash-vs">VS</span><div><div class="dash-fixture-team">${esc(awayName)}</div><div class="dash-fixture-meta" style="text-align:right">원정</div></div></div><div class="dash-fixture-meta">${esc(date)}${me && !isMyFixture ? " · 내 팀 경기 외 가장 가까운 일정" : ""}</div>${probLine}<div class="dash-actions" style="margin-top:12px"><button type="button" class="primary" data-go-page="round">경기 분석 보기</button></div>`;
+  }
+  const preview = mine ? st.filter(t => Math.abs(t.rank - mine.rank) <= 2) : st.slice(0, 5);
+  const rows = preview.slice().sort((a,b) => a.rank-b.rank).map(t => `<tr class="${t.team === me ? "mine" : ""}"><td>${t.rank}</td><td>${t.team === me ? "★ " : ""}${esc(t.team)}</td><td class="num">${t.p}</td><td class="num">${t.gf}</td><td class="num">${t.ga}</td><td class="num">${t.gf-t.ga > 0 ? "+" : ""}${t.gf-t.ga}</td><td class="num"><b>${t.pts}</b></td></tr>`).join("");
+  $("dashStandings").innerHTML = `<table><thead><tr><th>순위</th><th>팀</th><th>경기</th><th>득점</th><th>실점</th><th>득실차</th><th>승점</th></tr></thead><tbody>${rows}</tbody></table>${mine ? `<p class="dash-team-sub" style="margin:10px 0 0">내 팀 순위를 기준으로 위아래 2개 팀을 표시합니다.</p>` : `<p class="dash-team-sub" style="margin:10px 0 0">상위 5개 팀을 표시합니다. 내 팀을 선택하면 해당 팀 주변 순위로 바뀝니다.</p>`}`;
+}
+
+function render() {
+  $("tabK1").setAttribute("aria-pressed", league === "k1");
+  $("tabK2").setAttribute("aria-pressed", league === "k2");
+  renderMySel();
+  renderChart();
+  renderBacktest();
+  const d = DATA[league];
+  if (!d || !SIM) return;
+  renderRound(); renderDist(); renderSched();
+  const me = MY[league];
+  renderDashboard();
+  const res = SIM[league], zones = ZONES[league], mags = MAGIC[league], n = d.standings.length;
+  $("asOf").textContent = d.asOf || "-";
+  $("srcLine").textContent = d.source ? "출처 · " + d.source : "";
+  $("seedNote").textContent = customSeed ? "· 새 시드로 다시 계산한 결과" : "";
+  const notes = [d.note].filter(Boolean);
+  const stale = d.asOf && (Date.now() - Date.parse(d.asOf + "T07:00:00+09:00")) > 36 * 3600 * 1000;
+  if (stale) notes.unshift(`데이터가 ${d.asOf} 기준이에요. 자동 갱신이 하루 넘게 멈춰 있을 수 있어요${STANDALONE ? "(GitHub Actions 실행 기록을 확인해 주세요)" : "(Claude 앱이 켜져 있어야 갱신됩니다)"}.`);
+  $("notice").hidden = !notes.length; $("notice").textContent = notes.join(" ");
+
+  const st = d.standings.slice().sort((a, b) => a.rank - b.rank);
+  const dec = decided(d, league);
+  const leader = st[0], lm = dec[leader.team].m.champ;
+  const best = key => st.map(t => ({ t, v: res[t.team][key], s: dec[t.team][key] })).sort((a, b) => b.v - a.v)[0];
+  const pct = b => b.s && b.s.sure ? "확정" : fmtP(b.v / SIM.N * 100);
+  const cards = [];
+  cards.push(lm.need <= 0 ? [`1위 ${leader.team}`, "우승 확정", " "]
+    : [`1위 ${leader.team} 우승까지`, lm.reachable ? lm.need + "점" : "자력 불가", lm.reachable ? `${Math.ceil(lm.need / 3)}승이면 자력 확정` : "경쟁 팀 결과에 달림"]);
+  if (league === "k1") {
+    const b = best("champ"), p = best("po");
+    cards.push(["우승 후보 1순위", b.t.team, pct(b)], ["승강 PO 가능성 최고", p.t.team, pct(p)]);
+  } else {
+    const b = best("champ"), p = best("promo");
+    cards.push(["우승 후보 1순위", b.t.team, pct(b)], ["최종 승격 가능성 최고", p.t.team, pct(p)]);
+  }
+  // 선택한 팀이 시즌 종료까지 치러야 하는 잔여 경기 수를 표시한다.
+  // K리그1에서 파이널 라운드 대진이 아직 확정되지 않았다면,
+  // 정규 라운드 잔여 경기 외에 팀당 파이널 라운드 5경기를 더한다.
+  const splitPending = league === "k1"
+    && !d.results.some(r => r[6])
+    && !(d.fixtures || []).some(f => f[4]);
+  const myRemainingFixtures = me
+    ? (d.fixtures || []).filter(f => f[2] === me || f[3] === me).length + (splitPending ? 5 : 0)
+    : null;
+  cards.push([
+    "내 팀의 잔여 경기",
+    me ? `${myRemainingFixtures}경기` : "팀 미선택",
+    me ? `${me}의 시즌 종료까지 남은 경기 수` : "상단에서 내 팀을 선택해 주세요."
+  ]);
+  const mt = me && st.find(t => t.team === me);
+  if (mt) {
+    const exempt = (d.format || {}).noPlayoffTeam;
+    const keys = (league === "k1" ? ["champ", "finalA", "po"] : ["auto", "top6", "promo"]).filter(k => !(k === "po" && me === exempt));
+    const em = keys.map(k => `${ZSHORT[league][k]} ${ptxt(res[me][k] / SIM.N * 100, dec[me][k])}`).join(" · ");
+    cards.unshift([`★ 내 팀 ${me}`, `${mt.rank}위 · ${mt.pts}점`, em, "mine"]);
+  }
+  $("summary").innerHTML = cards.map(([a, b, c, cls]) => `<div class="sum${cls ? " " + cls : ""}"><span>${esc(a)}</span><b>${esc(b)}</b><em>${esc(c)}</em></div>`).join("");
+
+  const ncols = 10 + mags.length + zones.length;
+  $("thead").innerHTML = `<tr><th class="zone"></th><th>순위</th><th class="sticky">팀</th><th>경기</th><th>승점</th><th>득점</th><th>실점</th><th>득실차</th><th>최근 5경기</th><th>예상 승점</th>
+    ${mags.map(m => `<th${m.title ? ` title="${esc(m.title)}"` : ""}>${m.label}</th>`).join("")}
+    ${zones.map(z => `<th class="p">${z.label}</th>`).join("")}</tr>`;
+  $("tbody").innerHTML = st.map((t, i) => {
+    const r = res[t.team], dc = dec[t.team];
+    const form = lastN(d.results, t.team, 5).reverse();
+    const row = `<tr class="team${t.team === me ? " mine" : ""}" data-team="${esc(t.team)}" aria-expanded="${openTeam === t.team}" tabindex="0">
+      <td class="zone" style="background:${zoneColor(league, i, n)}"></td>
+      <td class="rank">${t.rank}</td>
+      <td class="sticky">${t.team === me ? '<span class="star" title="내 팀">★</span>' : ""}<span class="tname">${esc(t.team)}</span></td>
+      <td class="num">${t.p}</td><td class="num"><b>${t.pts}</b></td><td class="num">${t.gf}</td><td class="num">${t.ga}</td><td class="num">${t.gf - t.ga > 0 ? "+" : ""}${t.gf - t.ga}</td>
+      <td><span class="form">${form.map(f => `<i class="${f.r}" title="${esc(f.date)} ${f.home ? "홈" : "원정"} ${esc(f.opp)} ${f.my}-${f.op}">${f.r === "W" ? "승" : f.r === "D" ? "무" : "패"}</i>`).join("")}</span></td>
+      <td class="num">${r.exp.toFixed(1)}</td>
+      ${mags.map(m => `<td>${magicCell(dc.m[m.key], SURE_LABEL[m.key])}</td>`).join("")}
+      ${zones.map(z => `<td class="p">${(z.key === "po" && t.team === (d.format || {}).noPlayoffTeam) ? '<span class="mg off">해당 없음</span>' : pcCell(r[z.key], z.danger, dc[z.key])}</td>`).join("")}
+    </tr>`;
+    return row + (openTeam === t.team ? detailRow(d, t, r, ncols) : "");
+  }).join("");
+
+  // 휴대폰용 카드 (CSS가 화면 폭에 따라 표와 카드 중 하나만 보여 준다)
+  $("cards").innerHTML = st.map((t, i) => {
+    const r = res[t.team], dc = dec[t.team], open = openTeam === t.team;
+    const form = lastN(d.results, t.team, 5).reverse();
+    const zc = zoneColor(league, i, n);
+    const gd = t.gf - t.ga;
+    return `<article class="tcard${open ? " open" : ""}${t.team === me ? " mine" : ""}" style="--zone:${zc === "transparent" ? "var(--line)" : zc}">
+      <button type="button" class="tcard-head" data-team="${esc(t.team)}" aria-expanded="${open}">
+        <span class="rank">${t.rank}</span>${t.team === me ? '<span class="star">★</span>' : ""}<span class="tname">${esc(t.team)}</span>
+        <span class="tcard-pts"><b class="num">${t.pts}</b>점</span><span class="chev" aria-hidden="true">▼</span>
+      </button>
+      <div class="tcard-meta"><span>${t.p}경기 · 득점 ${t.gf} · 실점 ${t.ga} · 득실차 ${gd > 0 ? "+" : ""}${gd} · 예상 ${r.exp.toFixed(1)}점</span>
+        <span class="form">${form.map(f => `<i class="${f.r}" title="${esc(f.date)} ${f.home ? "홈" : "원정"} ${esc(f.opp)} ${f.my}-${f.op}">${f.r === "W" ? "승" : f.r === "D" ? "무" : "패"}</i>`).join("")}</span></div>
+      <div class="tcard-probs">${zones.map(z => `<div><span class="lab">${z.label}</span>${(z.key === "po" && t.team === (d.format || {}).noPlayoffTeam) ? '<span class="mg off">해당 없음</span>' : pcCell(r[z.key], z.danger, dc[z.key])}</div>`).join("")}</div>
+      <div class="tcard-magic">${mags.map(m => `<span>${m.label} ${magicCell(dc.m[m.key], SURE_LABEL[m.key])}</span>`).join("")}</div>
+      ${open ? detailInner(d, t, r) : ""}
+    </article>`;
+  }).join("");
+
+  $("legend").innerHTML = (league === "k1"
+    ? [["var(--accent)", "ACLE 출전권 (1~2위)"], ["var(--bar)", "파이널A (3~6위)"], ["var(--loss)", "승강 플레이오프 (12위)"]]
+    : [["var(--accent)", "자동 승격 (1~2위)"], ["var(--warn)", "승격 플레이오프 (3~6위)"]])
+    .map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join("") + `<span>팀을 누르면 남은 일정, 전력, 최종 순위 분포를 볼 수 있어요.</span>`;
+  if (currentPage() === "team") renderTeamPage();
+  if (currentPage() === "cheer") renderCheer();
+  breakAtSentenceEnds();
+}
+
+const detailRow = (d, t, r, cols) => `<tr class="detail"><td colspan="${cols}">${detailInner(d, t, r)}</td></tr>`;
+function detailInner(d, t, r) {
+  const fx = (d.fixtures || []).filter(f => f[2] === t.team || f[3] === t.team);
+  const total = r.posDist.reduce((a, b) => a + b, 0) || 1, max = Math.max(...r.posDist);
+  const cur = t.rank - 1;
+  const recent = lastN(d.results, t.team, 5);
+  const m = SIM.model[league], R = m.R[t.team];
+  const splitPending = (d.format || {}).split && !d.results.some(x => x[6]) && !(d.fixtures || []).some(f => f[4]);
+  // 팀 수가 홀수(K리그2)면 라운드마다 한 팀이 쉰다: 남은 라운드 중 이 팀 경기가 없는 라운드를 휴식으로 표시
+  const teamRounds = new Set(d.results.concat(d.fixtures || []).filter(m => m[2] === t.team || m[3] === t.team).map(m => m[1]));
+  const futureRounds = {};
+  (d.fixtures || []).forEach(f => { if (f[1] != null && (!futureRounds[f[1]] || f[0] < futureRounds[f[1]])) futureRounds[f[1]] = f[0]; });
+  const rests = roundIndex(d).map(r => r.rd).filter(rd => futureRounds[rd] && !teamRounds.has(rd));
+  const sched = fx.map(f => ({ rd: f[1], f })).concat(rests.map(rd => ({ rd, rest: true, date: futureRounds[rd] })))
+    .sort((a, b) => (a.f ? a.f[0] : a.date) < (b.f ? b.f[0] : b.date) ? -1 : (a.f ? a.f[0] : a.date) > (b.f ? b.f[0] : b.date) ? 1 : a.rd - b.rd);
+  const played = (d.results || []).filter(f => f[2] === t.team || f[3] === t.team);
+  const record = played.reduce((a, f) => {
+    const home = f[2] === t.team, gf = Number(home ? f[4] : f[5]), ga = Number(home ? f[5] : f[4]);
+    a.gf += gf; a.ga += ga;
+    if (gf > ga) a.w++;
+    else if (gf === ga) a.d++;
+    else a.l++;
+    return a;
+  }, { w: 0, d: 0, l: 0, gf: 0, ga: 0 });
+  return `<section class="team-record" aria-label="${esc(t.team)} 시즌 성적">
+    <div class="team-record-head"><h3>시즌 성적</h3><span>${played.length}경기 기준</span></div>
+    <div class="team-record-grid">
+      <div class="team-record-stat win"><span>승</span><b>${record.w}</b></div>
+      <div class="team-record-stat draw"><span>무</span><b>${record.d}</b></div>
+      <div class="team-record-stat loss"><span>패</span><b>${record.l}</b></div>
+      <div class="team-record-stat"><span>득점</span><b>${record.gf}</b></div>
+      <div class="team-record-stat"><span>실점</span><b>${record.ga}</b></div>
+    </div>
+  </section>
+  <div class="dgrid">
+    <div><h3>남은 경기 ${fx.length}${rests.length ? ` · 휴식 ${rests.length}` : ""}</h3><ul>${sched.length ? sched.map(it => it.rest
+      ? `<li><span><b>휴식</b></span><small>${esc(it.date)} ${it.rd}R</small></li>`
+      : `<li><span>${it.f[2] === t.team ? "홈" : "원정"} · ${esc(it.f[2] === t.team ? it.f[3] : it.f[2])}</span><small>${esc(it.f[0])} ${esc(it.f[1] ? it.f[1] + "R" : "")}</small></li>`).join("") : "<li><small>남은 정규 일정 없음</small></li>"}
+      ${splitPending ? "<li><small>+ 파이널 라운드 5경기 (그룹 확정 후 일정 발표)</small></li>" : ""}</ul></div>
+    <div><h3>최근 5경기</h3><ul>${recent.map(f => `<li><span>${f.home ? "홈" : "원정"} · ${esc(f.opp)} <b>${f.my}-${f.op}</b></span><small>${esc(f.date)}</small></li>`).join("")}</ul></div>
+    <div><h3>추정 전력 (리그 평균 = 1.00)</h3><ul>
+      <li><span>공격력</span><b class="num">${R.att.toFixed(2)}</b></li>
+      <li><span>수비력 <small>(낮을수록 좋음)</small></span><b class="num">${R.def.toFixed(2)}</b></li>
+    </ul></div>
+    <div><h3>최종 순위 분포</h3>
+      <div class="hist">${r.posDist.map((v, i) => `<div class="${i === cur ? "cur" : ""}" style="height:${max ? v / max * 100 : 0}%" title="${i + 1}위 ${(v / total * 100).toFixed(1)}%"></div>`).join("")}</div>
+      <div class="histx">${r.posDist.map((_, i) => `<span>${i + 1}</span>`).join("")}</div>
+    </div>
+  </div><div class="team-detail-actions"><button type="button" class="ghost" data-team-page="${esc(t.team)}">팀 상세 페이지 보기 →</button></div>`;
+}
+
+/* ---------- 라운드 ---------- */
+const dayNo = d => Math.round(Date.parse(d + "T00:00:00Z") / 864e5);
+const matchKey = m => m[0] + "|" + m[2] + "|" + m[3];
+// 라운드마다 "제때 치른 경기" 목록을 만든다. 라운드 중심 날짜에서 7일 넘게 떨어진 경기는 연기 경기로 보고
+// 그 라운드의 완료 판단에서 뺀다(연기 경기는 실제로 치른 날의 기록에 반영된다).
+// 팀 수가 홀수인 K리그2는 라운드마다 한 팀이 쉬므로, 라운드의 경기 수는 일정에서 그대로 가져온다.
+function roundIndex(d) {
+  const all = d.results.filter(r => r[6] !== "P").concat(d.fixtures || []);
+  const by = {};
+  all.forEach(m => { if (m[1] != null) (by[m[1]] = by[m[1]] || []).push(m); });
+  return Object.keys(by).map(Number).sort((a, b) => a - b).map(rd => {
+    const days = by[rd].map(m => dayNo(m[0])).sort((a, b) => a - b), mid = days.at(Math.floor(days.length / 2));
+    const main = by[rd].filter(m => Math.abs(dayNo(m[0]) - mid) <= 7);
+    return { rd, keys: main.map(matchKey) };
+  });
+}
+// 결과 목록(known) 기준으로 몇 라운드까지 끝났는지, 다음 라운드가 진행 중인지
+function roundState(rounds, known) {
+  const done = new Map(known.map(r => [matchKey(r), r[0]]));
+  let last = 0, lastDate = null, partial = false;
+  for (const r of rounds) {
+    const played = r.keys.filter(k => done.has(k));
+    if (played.length === r.keys.length) { last = r.rd; lastDate = played.map(k => done.get(k)).sort().at(-1); continue; }
+    partial = played.length > 0;
+    break;
+  }
+  return { last, lastDate, partial, next: last + 1 };
+}
+// 그날 기록에 들어 있던 결과: 결과 개수를 저장한 기록은 그 개수만큼, 아니면 그날 이전 경기
+function knownAt(d, h, lg) {
+  const res = d.results.filter(r => r[6] !== "P");
+  const n = h["n_" + lg];
+  return n != null ? res.slice(0, n) : res.filter(r => r[0] < h.asOf);
+}
+// 그래프에 쓸 점: 라운드마다 그 라운드가 끝난 상태의 마지막 기록 하나, 맨 끝 기록이 라운드 중간이면 "진행 중" 점
+function roundPoints(lg) {
+  const d = DATA[lg];
+  const hs = HISTORY.filter(h => h[lg]).sort((a, b) => a.asOf < b.asOf ? -1 : 1);
+  if (!d || !hs.length) return [];
+  const rounds = roundIndex(d);
+  const st = hs.map(h => ({ h, s: roundState(rounds, knownAt(d, h, lg)) }));
+  const byRound = new Map();
+  st.forEach(x => { if (x.s.last > 0 && !x.s.partial) byRound.set(x.s.last, x); });
+  const out = [...byRound.entries()].sort((a, b) => a[0] - b[0]).map(([rd, x]) => ({ rd, h: x.h, date: x.s.lastDate, progress: false }));
+  const tail = st.at(-1);
+  if (tail.s.partial) out.push({ rd: tail.s.next, h: tail.h, date: tail.h.asOf, progress: true });
+  return out;
+}
+
+/* ---------- 내 팀 ---------- */
+function renderMySel() {
+  const d = DATA[league];
+  if (!d) return;
+  const teams = d.standings.slice().sort((a, b) => a.rank - b.rank).map(s => s.team);
+  if (MY[league] && !teams.includes(MY[league])) MY[league] = "";
+  $("myTeam").innerHTML = `<option value="">선택 안 함</option>` + teams.map(t => `<option value="${esc(t)}"${t === MY[league] ? " selected" : ""}>${esc(t)}</option>`).join("");
+}
+
+/* ---------- 이번 라운드: 빅매치와 "만약에" ---------- */
+// 다음으로 치를 라운드의 남은 경기. 가장 이른 남은 경기부터 일주일 안에 가장 많이 몰린 라운드를 고르고,
+// 그 라운드 기간에 끼어 있는 연기 경기도 함께 넣는다
+function focusFixtures(d) {
+  const fx = (d.fixtures || []).filter(f => f[1] != null).slice().sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : a[2] < b[2] ? -1 : 1);
+  if (!fx.length) return { rd: null, list: [] };
+  const d0 = dayNo(fx[0][0]), cnt = {};
+  fx.filter(f => dayNo(f[0]) - d0 <= 6).forEach(f => cnt[f[1]] = (cnt[f[1]] || 0) + 1);
+  const rd = Number(Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a] || a - b)[0]);
+  const inRd = fx.filter(f => f[1] === rd), lo = inRd[0][0], hi = inRd.at(-1)[0];
+  return { rd, list: fx.filter(f => f[1] === rd || (f[0] >= lo && f[0] <= hi)) };
+}
+// 추적한 경기마다: 결과(홈 승/무/원정 승)별 팀 확률과, 결과에 따라 가장 크게 흔들리는 팀
+function matchEffects(lg) {
+  const d = DATA[lg], tr = (SIM.track || {})[lg] || [];
+  const exempt = (d.format || {}).noPlayoffTeam;
+  const byKey = Object.fromEntries((d.fixtures || []).map(f => [fkey(f), f]));
+  return tr.map(t => {
+    const f = byKey[t.key];
+    if (!f) return null;
+    const all = [];
+    Object.entries(t.z).forEach(([team, zs]) => Object.entries(zs).forEach(([k, c]) => {
+      if (k === "po" && team === exempt) return;
+      const p = c.map((v, o) => t.n[o] >= 300 ? v / t.n[o] * 100 : null);
+      const v = p.filter(x => x != null);
+      if (v.length >= 2) all.push({ team, k, p, swing: Math.max(...v) - Math.min(...v) });
+    }));
+    all.sort((a, b) => b.swing - a.swing);
+    const seen = new Set(), best = [];
+    all.forEach(e => { if (!seen.has(e.team)) { seen.add(e.team); best.push(e); } });
+    const tot = t.n[0] + t.n[1] + t.n[2] || 1;
+    return { f, key: t.key, probs: t.n.map(x => x / tot), effects: best, lev: best.length ? best[0].swing : 0 };
+  }).filter(Boolean);
+}
+const wdlBar = p => `<div class="wdl"><div class="bar"><i style="width:${p[0] * 100}%"></i><i style="width:${p[1] * 100}%"></i><i style="width:${p[2] * 100}%"></i></div>
+  <div class="lab"><span>홈승 ${Math.round(p[0] * 100)}%</span><span>무 ${Math.round(p[1] * 100)}%</span><span>원정승 ${Math.round(p[2] * 100)}%</span></div></div>`;
+function effLine(e, f, lg, mine) {
+  const v = x => x == null ? "-" : fmtP(x);
+  return `<div class="eff"><span class="who">${mine ? '<span class="star">★</span>' : ""}${esc(e.team)} ${ZSHORT[lg][e.k]} 확률</span>
+    <span class="vals"><span>${esc(f[2])} 승 <b>${v(e.p[0])}</b></span><span>무 <b>${v(e.p[1])}</b></span><span>${esc(f[3])} 승 <b>${v(e.p[2])}</b></span></span></div>`;
+}
+
+function renderCheer() {
+  const root = $("cheer"), d = DATA[league], me = MY[league];
+  if (!root) return;
+  if (!d || !SIM) { root.innerHTML = `<p class="empty">경기와 시뮬레이션 데이터를 불러오는 중이에요.</p>`; return; }
+  const goals = CHEER_GOALS[league].filter(g => !(g.key === "safe" && me === (d.format || {}).noPlayoffTeam));
+  if (!me) { root.innerHTML = `<div class="cheer-top"><div><h2>응원 작전실</h2><p class="cheer-intro">내 팀을 위해 이번 라운드에서 어떤 결과를 응원할지 살펴보세요.</p></div></div><div class="notice">먼저 상단의 ‘내 팀’에서 응원 팀을 선택해 주세요.</div>`; return; }
+  if (!goals.some(g => g.key === CHEER_GOAL[league])) CHEER_GOAL[league] = goals[0].key;
+  const goal = goals.find(g => g.key === CHEER_GOAL[league]);
+  const sourceKey = goal.source || goal.key, baselineRaw = SIM[league][me]?.[sourceKey];
+  const baseline = baselineRaw == null ? null : baselineRaw / SIM.N * 100 * (goal.inverse ? -1 : 1) + (goal.inverse ? 100 : 0);
+  const trace = (SIM.track || {})[league] || [], byKey = Object.fromEntries(trace.map(x => [x.key, x]));
+  const fx = focusFixtures(d).list;
+  const rows = fx.map(f => {
+    const key = fkey(f), item = byKey[key], data = item?.z?.[me]?.[sourceKey];
+    const vals = [0, 1, 2].map(o => { const n = item?.n?.[o] || 0; if (!data || n < 300) return null; const p = data[o] / n * 100; return goal.inverse ? 100 - p : p; });
+    const valid = vals.map((v, i) => v == null ? null : { i, v, delta: baseline == null ? null : v - baseline }).filter(Boolean);
+    const best = valid.length ? valid.reduce((a, b) => b.v > a.v ? b : a) : null;
+    const total = item ? item.n[0] + item.n[1] + item.n[2] : 0;
+    return { f, key, vals, best, swing: valid.length > 1 ? Math.max(...valid.map(x => x.v)) - Math.min(...valid.map(x => x.v)) : 0, probs: item && total ? item.n.map(n => n / total) : [0, 0, 0] };
+  }).sort((a, b) => b.swing - a.swing);
+  const top = rows.filter(x => x.best).sort((a, b) => (b.best.delta ?? 0) - (a.best.delta ?? 0))[0];
+  const outcomes = x => [0, 1, 2].map(o => {
+    const label = o === 0 ? x.f[2] + " 승" : o === 1 ? "무승부" : x.f[3] + " 승", p = x.vals[o];
+    const delta = p == null || baseline == null ? "표본 부족" : `${p - baseline >= 0 ? "+" : ""}${(p - baseline).toFixed(1)}%p`;
+    return `<div class="cheer-choice${x.best && x.best.i === o ? " best" : ""}"><b>${esc(label)}</b><small>경기 결과 ${Math.round(x.probs[o] * 100)}%</small><span>${p == null ? "-" : fmtP(p)}</span><small>${delta}</small><button type="button" data-cheer-pick="${o}" data-key="${esc(x.key)}">이 결과로 만약에</button></div>`;
+  }).join("");
+  const roundTitle = rows.length ? `${rows[0].f[1]}라운드` : "이번 라운드";
+  root.innerHTML = `<div class="cheer-top"><div><h2>응원 작전실</h2><p class="cheer-intro">${esc(me)} 팬을 위한 ${roundTitle} 응원 가이드. 경기 결과별 목표 확률을 비교해요.</p></div><label>응원 목표 <select id="cheerGoal">${goals.map(g => `<option value="${g.key}"${g.key === goal.key ? " selected" : ""}>${g.label}</option>`).join("")}</select></label></div>
+    ${baseline == null ? "" : `<div class="cheer-summary"><span>현재 ${goal.label} 확률</span><b>${fmtP(baseline)}</b><small>한 경기 결과만 반영한 값입니다. 여러 경기를 고르면 아래 만약에 분석에서 함께 계산할 수 있어요.</small></div>`}
+    ${top ? `<div class="cheer-summary"><span>이번 라운드에서 가장 유리한 단일 결과</span><b>${esc(top.best.i === 0 ? top.f[2] + " 승" : top.best.i === 1 ? "무승부" : top.f[3] + " 승")} · ${fmtP(top.best.v)} (${top.best.delta >= 0 ? "+" : ""}${top.best.delta.toFixed(1)}%p)</b><small>${esc(top.f[2])} vs ${esc(top.f[3])}</small></div>` : ""}
+    <div class="cheer-grid">${rows.length ? rows.map(x => `<article class="cheer-card"><h3>${esc(x.f[2])} vs ${esc(x.f[3])}<small>${esc(x.f[0])} · ${x.f[1] ? x.f[1] + "R" : "일정"}</small></h3><div class="cheer-outcomes">${outcomes(x)}</div></article>`).join("") : `<p class="empty">이번 라운드에 표시할 남은 경기가 없어요.</p>`}</div>`;
+  const select = $("cheerGoal"); if (select) select.addEventListener("change", e => { CHEER_GOAL[league] = e.target.value; renderCheer(); });
+}
+function renderMyPreview() {
+  const root = $("myPreviewBody");
+  if (!root) return;
+  const me = MY[league], d = DATA[league];
+  $("myPreviewRank").textContent = "";
+  if (!d || !SIM || !SIM.model || !SIM.model[league]) {
+    $("myPreviewIntro").textContent = "경기 데이터와 예측 결과를 불러오는 중입니다.";
+    root.innerHTML = '<p class="empty">데이터를 불러오는 중입니다.</p>';
+    return;
+  }
+  if (!me) {
+    $("myPreviewIntro").textContent = "상단의 ‘내 팀’에서 응원 팀을 선택하면 다음 경기 분석이 표시됩니다.";
+    root.innerHTML = '<p class="empty">내 팀이 설정되지 않았습니다. 페이지 상단에서 응원 팀을 선택해 주세요.</p>';
+    return;
+  }
+  const standing = (d.standings || []).find(t => t.team === me);
+  const fixtures = (d.fixtures || []).filter(f => f[2] === me || f[3] === me).slice().sort((a,b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : (a[1] || 0) - (b[1] || 0));
+  const recent = (d.results || []).filter(r => r[6] !== "P" && (r[2] === me || r[3] === me)).slice().sort((a,b) => a[0] > b[0] ? -1 : a[0] < b[0] ? 1 : 0).slice(0,5).reverse();
+  const form = recent.map(r => {
+    const home = r[2] === me, mine = home ? Number(r[4]) : Number(r[5]), opp = home ? Number(r[5]) : Number(r[4]);
+    return { r: mine > opp ? "W" : mine < opp ? "L" : "D", date:r[0], home, oppName:home?r[3]:r[2], mine, opp };
+  });
+  if (standing) $("myPreviewRank").textContent = `현재 ${standing.rank}위 · ${standing.pts}점`;
+  const formHtml = form.length ? form.map(f => `<i class="${f.r}" title="${esc(f.date)} ${f.home ? "홈" : "원정"} vs ${esc(f.oppName)} ${f.mine}-${f.opp}">${f.r === "W" ? "승" : f.r === "D" ? "무" : "패"}</i>`).join("") : '<span class="my-preview-note">확인 가능한 최근 경기 기록이 없습니다.</span>';
+  if (!fixtures.length) {
+    $("myPreviewIntro").textContent = `${me}의 현재 시즌 일정 기준`;
+    root.innerHTML = `<p>현재 등록된 남은 경기가 없습니다.</p><div class="my-preview-form"><b>최근 5경기</b><span class="form">${formHtml}</span></div><p class="my-preview-note">새 일정이 데이터에 반영되면 다음 경기 프리뷰가 표시됩니다.</p>`;
+    return;
+  }
+  const f = fixtures[0], home = f[2] === me, opponent = home ? f[3] : f[2];
+  const model = SIM.model[league], own = model.R && model.R[me], opp = model.R && model.R[opponent];
+  let probs = null;
+  if (own && opp && Number.isFinite(model.mu) && Number.isFinite(model.home)) {
+    const l = model.mu * (home ? model.home : 1 / model.home) * (home ? own.att : opp.att) * (home ? opp.def : own.def);
+    const m = model.mu * (home ? 1 / model.home : model.home) * (home ? opp.att : own.att) * (home ? own.def : opp.def);
+    const raw = E.matchProbs(l, m, model.rho);
+    probs = home ? raw : [raw[2], raw[1], raw[0]];
+  }
+  const dateText = `${f[0]}${f[1] != null ? ` · ${f[1]}라운드` : ""}`;
+  const labels = ["승리", "무승부", "패배"];
+  const probHtml = probs ? probs.map((p,i) => `<div class="my-preview-prob"><span>${labels[i]}</span><b>${(p*100).toFixed(1)}%</b><i><em style="width:${(p*100).toFixed(2)}%"></em></i></div>`).join("") : '<p class="my-preview-note">이 경기의 승·무·패 확률을 계산할 수 없습니다.</p>';
+  const strongest = probs ? Math.max(...probs) : 0;
+  const outlook = probs ? (strongest === probs[0] ? "모델上 가장 유력한 결과는 승리입니다." : strongest === probs[1] ? "모델上 가장 유력한 결과는 무승부입니다." : "모델上 가장 유력한 결과는 패배입니다.") : "";
+  $("myPreviewIntro").textContent = `${me}의 가장 가까운 남은 경기`;
+  root.innerHTML = `<div class="my-preview-match"><div class="my-preview-side"><span class="my-preview-team">${esc(f[2])}</span><span class="my-preview-sub">${home ? "내 팀 · 홈" : "상대 팀 · 홈"}</span></div><span class="my-preview-vs">VS</span><div class="my-preview-side"><span class="my-preview-team">${esc(f[3])}</span><span class="my-preview-sub">${home ? "상대 팀 · 원정" : "내 팀 · 원정"}</span></div></div><div class="my-preview-meta">${esc(dateText)} · ${home ? "홈 경기" : "원정 경기"}</div><div class="my-preview-probs">${probHtml}</div><div class="my-preview-form"><b>최근 5경기</b><span class="form">${formHtml}</span></div><p class="my-preview-note">${esc(outlook)} 확률은 현재 등록된 경기 결과로 추정한 모델 예측이며 실제 결과를 보장하지 않습니다.</p>`;
+}
+
+function renderRound() {
+  renderMyPreview();
+  const d = DATA[league], me = MY[league];
+  const foc = focusFixtures(d);
+  const splitPending = league === "k1" && (d.format || {}).split && !d.results.some(r => r[6]) && !(d.fixtures || []).some(f => f[4]);
+  $("roundTitle").textContent = foc.rd ? `${foc.rd}라운드 프리뷰` : "이번 라운드 프리뷰";
+  const ms = matchEffects(league).sort((a, b) => a.f[0] < b.f[0] ? -1 : a.f[0] > b.f[0] ? 1 : 0);
+  if (!ms.length) {
+    $("roundMeta").textContent = "";
+    $("bigMatches").innerHTML = `<p>${foc.rd ? "경기별 계산을 기다리는 중이에요." : splitPending ? "정규 라운드가 모두 끝났어요. 파이널 라운드 일정이 발표되면 여기에 경기가 나옵니다." : "남은 경기가 없어요."}</p>`;
+    $("matchList").innerHTML = ""; renderWhatif(); return;
+  }
+  const dates = ms.map(m => m.f[0]).sort();
+  $("roundMeta").textContent = `${dates[0].slice(5).replace("-", ".")}~${dates.at(-1).slice(5).replace("-", ".")} · ${ms.length}경기`;
+  // 빅매치: 결과에 따라 어떤 팀의 확률이든 가장 크게 바뀌는 경기 3개
+  const hot = ms.filter(m => m.lev >= 2).sort((a, b) => b.lev - a.lev).slice(0, 3);
+  $("bigMatches").innerHTML = hot.length ? hot.map((m, i) => {
+    const show = m.effects.filter(e => e.swing >= 1.5).slice(0, 2);
+    const mine = me && !show.some(e => e.team === me) && m.effects.find(e => e.team === me && e.swing >= 1);
+    return `<article class="bigc"><span class="tag">빅매치 ${i + 1}</span>
+      <h3>${esc(m.f[2])} vs ${esc(m.f[3])}<small>${m.f[0].slice(5).replace("-", ".")} (${dow(m.f[0])}) · ${esc(m.f[2])} 홈</small></h3>
+      ${wdlBar(m.probs)}
+      ${show.map(e => effLine(e, m.f, league, e.team === me)).join("")}${mine ? effLine(mine, m.f, league, true) : ""}
+    </article>`;
+  }).join("") : `<p>이번 라운드에는 결과에 따라 우승·승격·잔류 확률이 크게 흔들리는 경기가 없어요.</p>`;
+  // 경기 목록: 결과를 골라 "만약에" 계산
+  const picks = PICKS[league], hotKeys = new Set(hot.map(m => m.key));
+  $("matchList").innerHTML = ms.map(m => {
+    const p = picks[m.key], f = m.f;
+    const mineE = me && m.effects.find(e => e.team === me && e.swing >= 1);
+    const btn = (o, lab) => `<button type="button" data-pick="${o}" data-key="${esc(m.key)}" aria-pressed="${p === o}">${esc(lab)}</button>`;
+    return `<div class="mrow${p != null ? " picked" : ""}">
+      <span class="mdate">${f[0].slice(5).replace("-", ".")} (${dow(f[0])})${f[1] !== foc.rd ? ` · ${f[1]}R 연기` : ""}</span>
+      <span class="mteams">${esc(f[2])} <small>vs</small> ${esc(f[3])}${hotKeys.has(m.key) ? '<span class="hot">빅매치</span>' : ""}</span>
+      ${wdlBar(m.probs)}
+      <span class="pick" role="group" aria-label="${esc(f[2])} 대 ${esc(f[3])} 결과 선택">${btn(0, f[2] + " 승")}${btn(1, "무")}${btn(2, f[3] + " 승")}</span>
+      ${mineE ? `<span class="mnote"><span class="star">★</span>${esc(me)} ${ZSHORT[league][mineE.k]}: ${esc(f[2])} 승 <b>${fmtP(mineE.p[0] ?? 0)}</b> · 무 <b>${fmtP(mineE.p[1] ?? 0)}</b> · ${esc(f[3])} 승 <b>${fmtP(mineE.p[2] ?? 0)}</b></span>` : ""}
+    </div>`;
+  }).join("");
+  renderWhatif();
+}
+
+// 고른 결과를 실제로 치른 것처럼 넣은 문서 (확정·불가 판정용, 점수는 1-0 / 0-0 / 0-1로 둔다)
+function hypoDoc(d, picks) {
+  const sc = [[1, 0], [0, 0], [0, 1]];
+  const add = (d.fixtures || []).filter(f => picks[fkey(f)] != null).map(f => { const [x, y] = sc[picks[fkey(f)]]; return [f[0], f[1], f[2], f[3], x, y, f[4]]; });
+  const st = d.standings.map(s => Object.assign({}, s)), by = Object.fromEntries(st.map(s => [s.team, s]));
+  add.forEach(r => {
+    const h = by[r[2]], a = by[r[3]];
+    h.p++; a.p++;
+    if (r[4] > r[5]) h.pts += 3; else if (r[4] < r[5]) a.pts += 3; else { h.pts++; a.pts++; }
+  });
+  return Object.assign({}, d, { results: d.results.concat(add), fixtures: (d.fixtures || []).filter(f => picks[fkey(f)] == null), standings: st });
+}
+function renderWhatif() {
+  const picks = PICKS[league], n = Object.keys(picks).length;
+  $("whatifRun").disabled = !n || whatifRunning || simRunning || !SIM;
+  $("whatifRun").textContent = whatifRunning ? "계산 중…" : "고른 결과로 다시 계산";
+  $("whatifClear").disabled = !n && !(WHATIF && WHATIF.lg === league);
+  $("whatifNote").textContent = n ? `${n}경기 결과를 골랐어요.` : "경기마다 결과를 고르면, 그 결과를 넣고 남은 시즌을 다시 계산해 지금과 비교해 드려요.";
+  const w = WHATIF && WHATIF.lg === league ? WHATIF : null;
+  if (!w) { $("whatif").innerHTML = ""; return; }
+  const d = DATA[league], base = SIM[league], sc = w.sim[league], zones = ZONES[league], me = MY[league];
+  const exempt = (d.format || {}).noPlayoffTeam;
+  const decB = decided(d, league), decS = decided(hypoDoc(d, w.picks), league);
+  const st = d.standings.slice().sort((a, b) => a.rank - b.rank);
+  const byKey = Object.fromEntries((d.fixtures || []).map(f => [fkey(f), f]));
+  const assumed = Object.entries(w.picks).map(([k, o]) => { const f = byKey[k]; return f ? (o === 1 ? `${f[2]}-${f[3]} 무승부` : `${o === 0 ? f[2] : f[3]} 승 (vs ${o === 0 ? f[3] : f[2]})`) : null; }).filter(Boolean);
+  // 이 결과면 새로 확정되거나 불가능해지는 것
+  const order = league === "k1" ? ["champ", "acle", "finalA"] : ["champ", "auto", "top6"];
+  const chips = [];
+  st.forEach(t => {
+    const b = decB[t.team], s = decS[t.team];
+    const sureK = order.find(k => s[k].sure && !b[k].sure);
+    if (sureK) chips.push([`${t.team} ${ZSHORT[league][sureK]} 확정`, ""]);
+    const outK = order.slice().reverse().find(k => s[k].out && !b[k].out);
+    if (outK) chips.push([`${t.team} ${ZSHORT[league][outK]} 불가`, "bad"]);
+    if (league === "k1" && t.team !== exempt && s.po.out && !b.po.out) chips.push([`${t.team} 잔류 확정`, ""]);
+  });
+  const val = (v, N, s) => s.sure ? 100 : s.out ? 0 : v / N * 100;
+  const rows = st.map(t => {
+    const cells = zones.map(z => {
+      if (z.key === "po" && t.team === exempt) return { html: '<span class="mg off">해당 없음</span>', dv: 0 };
+      const bs = decB[t.team][z.key], ss = decS[t.team][z.key];
+      const bv = val(base[t.team][z.key], SIM.N, bs), sv = val(sc[t.team][z.key], w.sim.N, ss), dv = sv - bv;
+      const good = z.danger ? dv < 0 : dv > 0;
+      return { dv, html: `<span class="was">${ptxt(bv, bs)}</span> → <b class="num">${ptxt(sv, ss)}</b>${Math.abs(dv) >= 0.1 ? `<span class="delta ${good ? "up" : "down"}">${dv > 0 ? "+" : ""}${dv.toFixed(1)}</span>` : ""}` };
+    });
+    return { t, cells, big: cells.some(c => Math.abs(c.dv) >= 0.5) };
+  });
+  const shown = rows.filter(r => r.big || r.t.team === me), hidden = rows.length - shown.length;
+  $("whatif").innerHTML = `
+    ${w.picks && JSON.stringify(w.picks) !== JSON.stringify(picks) ? `<div class="notice">고른 결과가 바뀌었어요. 아래는 이전 선택으로 계산한 결과입니다. 다시 계산을 눌러 주세요.</div>` : ""}
+    <p><b>가정:</b> ${assumed.map(esc).join(", ")}. 지금 확률 → 이 결과일 때 확률입니다(같은 시드로 ${w.sim.N.toLocaleString()}번).</p>
+    ${chips.length ? `<div class="changes">${chips.map(([t, c]) => `<span class="chip${c ? " " + c : ""}">${esc(t)}</span>`).join("")}</div>` : ""}
+    <div class="tablebox"><table><thead><tr><th>팀</th>${zones.map(z => `<th>${z.label}</th>`).join("")}</tr></thead><tbody>
+      ${shown.map(r => `<tr${r.t.team === me ? ' class="mine"' : ""}><td>${r.t.team === me ? '<span class="star">★</span>' : ""}<b>${esc(r.t.team)}</b> <small class="rank">${r.t.rank}위</small></td>${r.cells.map(c => `<td>${c.html}</td>`).join("")}</tr>`).join("")}
+    </tbody></table></div>
+    ${hidden ? `<p>확률 변화가 0.5%p 미만인 ${hidden}팀은 생략했어요.</p>` : ""}`;
+}
+async function runWhatif() {
+  const picks = Object.assign({}, PICKS[league]), lg = league;
+  if (!Object.keys(picks).length || !SIM || whatifRunning || simRunning) return;
+  whatifRunning = true; renderWhatif();
+  $("progress").hidden = false; $("progressBar").style.width = "0";
+  try {
+    const sim = await call({ type: "current", d1: DATA.k1, d2: DATA.k2, N: NSIM, seed: SIM.seed, opts: { forced: { [lg]: picks } } },
+      done => { $("progressBar").style.width = (done / NSIM * 100) + "%"; });
+    WHATIF = { lg, picks, sim };
+  } catch (err) {
+    $("notice").hidden = false; $("notice").textContent = "다시 계산 중 오류가 났어요: " + err.message;
+  }
+  whatifRunning = false; $("progress").hidden = true;
+  renderWhatif();
+  if (WHATIF && WHATIF.lg === league) $("whatif").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+/* ---------- 최종 순위 분포 ---------- */
+function renderDist() {
+  const d = DATA[league], res = SIM[league], n = d.standings.length, me = MY[league];
+  const st = d.standings.slice().sort((a, b) => a.rank - b.rank);
+  const sep = i => i === 2 || i === 6 || (league === "k1" && i === n - 1) ? " sep" : "";
+  const cell = p => p >= 99.5 ? ">99" : p >= 1 ? Math.round(p) : p >= 0.5 ? "<1" : "–";
+  const rows = st.map(t => {
+    const ps = res[t.team].posDist.map(v => v / SIM.N * 100);
+    const mode = ps.indexOf(Math.max(...ps));
+    const probs = ps.map((p, i) => `<div class="dist-prob${i === t.rank - 1 ? " current" : ""}"><span>${i + 1}위</span><b>${p.toFixed(1)}%</b><i><em style="width:${Math.max(0, Math.min(100, p))}%"></em></i></div>`).join("");
+    return {
+      desktop: `<tr${t.team === me ? ' class="mine"' : ""}><td class="tn">${t.team === me ? "★ " : ""}${esc(t.team)}</td>${ps.map((p, i) => {
+        const a = p > 0 ? Math.min(1, Math.sqrt(p / 100)) : 0;
+        return `<td class="h${sep(i)}${i === t.rank - 1 ? " cur" : ""}" style="background:color-mix(in srgb, var(--bar) ${(a * 100).toFixed(0)}%, transparent);${a > 0.55 ? "color:#fff" : ""}" title="${esc(t.team)} ${i + 1}위 ${p.toFixed(1)}%">${cell(p)}</td>`;
+      }).join("")}<td class="mode">${mode + 1}위 <small>${fmtP(ps[mode])}</small></td></tr>`,
+      mobile: `<details class="dist-team"${t.team === me ? " open" : ""}><summary><span class="dist-team-name">${t.team === me ? "★ " : ""}${esc(t.team)}<small>현재 ${t.rank}위</small></span><span class="dist-team-mode"><b>최빈 순위 ${mode + 1}위</b><small>${fmtP(ps[mode])}</small></span><span class="dist-chevron" aria-hidden="true">⌄</span></summary><div class="dist-detail"><p class="dist-detail-title">순위별 확률 <span>현재 순위는 테두리로 표시</span></p><div class="dist-prob-grid">${probs}</div></div></details>`
+    };
+  });
+  $("dist").innerHTML = `<div class="dist-desktop"><div class="tablebox"><table class="heat"><thead><tr><th class="tn">팀</th>${st.map((_, i) => `<th class="${sep(i)}">${i + 1}위</th>`).join("")}<th>가장 유력</th></tr></thead><tbody>${rows.map(r => r.desktop).join("")}</tbody></table></div></div>
+  <div class="dist-mobile"><p class="dist-mobile-hint">팀을 누르면 해당 팀의 전체 순위별 확률을 확인할 수 있습니다.</p>${rows.map(r => r.mobile).join("")}</div>
+  <p class="dist-desktop-note">칸이 진할수록 그 순위로 끝날 확률이 높습니다. 테두리 칸은 현재 순위, 굵은 세로선은 ${league === "k1" ? "ACLE권(2위)·파이널A(6위)·승강 PO(12위)" : "자동 승격(2위)·PO권(6위)"} 경계입니다. 0.5% 미만은 비워 두었어요.</p>`;
+}
+/* ---------- 남은 일정 난이도 ---------- */
+// 리그 평균 전력 팀이 이 팀의 남은 일정을 대신 치른다면 경기당 얻을 기대 승점. 낮을수록 어려운 일정
+function renderSched() {
+  const d = DATA[league], m = SIM.model[league], away = 1 / m.home, me = MY[league];
+  const ep = (l, mm, side) => { const p = E.matchProbs(l, mm, m.rho); return side === 0 ? 3 * p[0] + p[1] : 3 * p[2] + p[1]; };
+  const rows = d.standings.map(t => {
+    const fx = (d.fixtures || []).filter(f => f[2] === t.team || f[3] === t.team).sort((a, b) => a[0] < b[0] ? -1 : 1);
+    const my = m.R[t.team];
+    let ease = 0, own = 0;
+    const opps = fx.map(f => {
+      const home = f[2] === t.team, o = home ? f[3] : f[2], R = m.R[o];
+      if (home) { ease += ep(m.mu * m.home * R.def, m.mu * away * R.att, 0); own += ep(m.mu * m.home * my.att * R.def, m.mu * away * R.att * my.def, 0); }
+      else { ease += ep(m.mu * m.home * R.att, m.mu * away * R.def, 2); own += ep(m.mu * m.home * R.att * my.def, m.mu * away * my.att * R.def, 2); }
+      return `${o}${home ? "(홈)" : "(원정)"}`;
+    });
+    return { t, n: fx.length, e: fx.length ? ease / fx.length : null, own, opps };
+  });
+  const has = rows.filter(r => r.n).sort((a, b) => a.e - b.e), none = rows.filter(r => !r.n);
+  if (!has.length) { $("sched").innerHTML = "<p>남은 정규 일정이 없어요.</p>"; return; }
+  const lo = has[0].e, hi = has.at(-1).e, span = hi - lo || 1;
+  const tier = i => i < has.length / 3 ? ["어려움", "var(--loss)"] : i < has.length * 2 / 3 ? ["보통", "var(--warn)"] : ["쉬움", "var(--win)"];
+  const splitPending = league === "k1" && (d.format || {}).split && !d.results.some(r => r[6]) && !(d.fixtures || []).some(f => f[4]);
+  $("sched").innerHTML = `<div class="sched">${has.map((r, i) => {
+    const [tl, tc] = tier(i), w = 12 + 88 * (hi - r.e) / span;
+    return `<div class="srow${r.t.team === me ? " mine" : ""}">
+      <span class="rank">${r.t.rank}</span>
+      <span>${r.t.team === me ? '<span class="star">★</span>' : ""}<span class="tname">${esc(r.t.team)}</span></span>
+      <span class="sbar" title="경기당 ${r.e.toFixed(2)}점 (리그 평균 팀 기준)"><b style="width:${w}%;background:${tc}"></b></span>
+      <span class="sv"><span class="tier" style="background:${tc}">${tl}</span>경기당 <b>${r.e.toFixed(2)}</b>점 · ${r.n}경기</span>
+      <span class="opps">${r.opps.map(esc).join(" · ")} — 이 팀 전력으로 예상 +${r.own.toFixed(1)}점</span>
+    </div>`;
+  }).join("")}</div>
+  ${none.length ? `<p>남은 경기 없음: ${none.map(r => esc(r.t.team)).join(", ")}</p>` : ""}
+  <p>막대가 길수록 어려운 일정입니다. "경기당"은 리그 평균 전력 팀이 이 일정을 대신 치른다면 얻을 기대 승점으로, 상대 전력과 홈·원정을 함께 반영합니다(낮을수록 어려움). "예상"은 이 팀의 실제 전력으로 남은 경기에서 얻을 기대 승점입니다.${league === "k2" ? " K리그2는 휴식 라운드 때문에 팀마다 남은 경기 수가 다를 수 있어요." : ""}${splitPending ? " 파이널 라운드 5경기는 그룹이 정해진 뒤 반영됩니다." : ""}</p>`;
+}
+
+/* ---------- 확률 추이 ---------- */
+function renderChart() {
+  const zones = ZONES[league];
+  if (!zones.some(z => z.key === metric)) metric = "champ";
+  $("metricTabs").innerHTML = zones.map(z => `<button type="button" data-metric="${z.key}" aria-pressed="${z.key === metric}">${z.label.replace(/ \(.*\)/, "")}</button>`).join("");
+  const allPts = roundPoints(league).filter(p => Object.values(p.h[league]).some(v => v[metric] != null));
+  const startSelect = $("trendStartRound");
+  const rounds = [...new Set(allPts.map(p => p.rd))].sort((a, b) => a - b);
+  if (rounds.length) {
+    if (!rounds.includes(TREND_START[league])) TREND_START[league] = rounds[0];
+    startSelect.innerHTML = rounds.map(rd => `<option value="${rd}"${rd === TREND_START[league] ? " selected" : ""}>${rd}라운드부터</option>`).join("");
+    startSelect.disabled = false;
+  } else {
+    startSelect.innerHTML = `<option value="1">1라운드부터</option>`;
+    startSelect.disabled = true;
+  }
+  const pts = allPts.filter(p => p.rd >= TREND_START[league]);
+  if (!pts.length) { $("trendTeams").innerHTML = ""; $("chart").innerHTML = `<p>아직 저장된 기록이 없어요. ${STANDALONE ? "매일 자동 갱신 때 그날의 확률이 기록되고" : "매일 데이터가 갱신된 뒤 이 페이지를 열면 그날의 확률이 기록되고"}, 라운드가 끝날 때마다 추이에 점이 하나씩 생깁니다.</p>`; return; }
+  // 한 번이라도 1% 이상이었던 팀 중 최근 값이 높은 6팀
+  const teams = {};
+  pts.forEach(p => Object.entries(p.h[league]).forEach(([t, v]) => { if (v[metric] != null) teams[t] = Math.max(teams[t] || 0, v[metric]); }));
+  const lastVals = pts.at(-1).h[league];
+  const allTeams = (DATA[league]?.standings || []).slice().sort((a, b) => a.rank - b.rank).map(r => r.team); // 칩은 현재 순위 순
+  const me = MY[league];
+  const manual = !!TSEL[league];
+  let pick;   // 칸 번호 = 색 번호. 직접 선택에서는 빈 칸(null)이 있을 수 있다
+  if (manual) {
+    // 직접 고른 팀: 이번 리그에 없는 팀 이름(저장값이 오래된 경우)은 걷어낸다
+    pick = TSEL[league].map(t => allTeams.includes(t) ? t : null);
+  } else {
+    // 자동: 위에서 구한 상위 6팀 + 내 팀
+    pick = Object.keys(teams).filter(t => teams[t] >= 1).sort((a, b) => (lastVals[b]?.[metric] || 0) - (lastVals[a]?.[metric] || 0)).slice(0, 6);
+    // 내 팀은 확률이 낮아도 항상 그린다
+    if (me && teams[me] != null && !pick.includes(me)) { if (pick.length >= 6) pick.pop(); pick.push(me); }
+    AUTO_PICK[league] = pick.slice();
+  }
+  // 팀 선택 칩: 선택된 팀은 그래프 선과 같은 색 점을 단다
+  const nSel = pick.filter(Boolean).length;
+  $("trendTeams").innerHTML = allTeams.map(t => {
+    const slot = pick.indexOf(t), on = slot >= 0;
+    return `<button type="button" class="tchip" data-trend-team="${esc(t)}" aria-pressed="${on}"${on ? ` style="--c:var(--s${slot + 1})"` : ""}><i></i>${t === me ? "★ " : ""}${esc(t)}</button>`;
+  }).join("")
+    + (nSel ? `<button type="button" class="ghost tchip" id="trendClear">전체 해제</button>` : "")
+    + (manual ? `<button type="button" class="ghost tchip" id="trendAuto">자동 선택으로</button>` : "")
+    + `<span class="tmeta">${trendFull ? `최대 ${TREND_MAX}팀까지 고를 수 있어요. 먼저 하나를 해제해 주세요.` : manual ? `${nSel}/${TREND_MAX}팀 선택` : "자동: 확률 높은 팀과 내 팀 · 눌러서 직접 고르기"}</span>`;
+  trendFull = false;
+  // 직접 선택에서 전부 해제했으면 그래프 대신 안내를 보여준다
+  if (!nSel) { $("chart").innerHTML = `<p>그래프에 그릴 팀을 위에서 골라 주세요.</p>`; return; }
+  // 화면 폭에 맞춰 그려서 휴대폰에서도 글자가 작아지지 않게 한다. 라운드는 같은 간격으로 놓는다
+  const W = Math.max(340, Math.min(720, $("chart").clientWidth || 720)), L = 40, Rr = W < 500 ? 100 : 110, T = 12;
+  const x = i => pts.length === 1 ? (L + (W - Rr)) / 2 : L + i / (pts.length - 1) * (W - Rr - L);
+  // 점마다 라운드와 날짜를 단다. 좁으면 비스듬히 눕히고, 그래도 겹칠 만큼 촘촘하면 몇 개씩 건너뛴다(마지막 점은 항상)
+  const gap = pts.length > 1 ? (W - Rr - L) / (pts.length - 1) : 999;
+  const rotate = gap < 64, step = gap < 13 ? Math.ceil(13 / gap) : 1;
+  const B = rotate ? 88 : 40, H = (W < 500 ? 220 : 260) + (rotate ? 52 : 12);
+  const y = v => T + (1 - v / 100) * (H - T - B);
+  const md = d => d.slice(5).replace("-", ".");
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(zones.find(z => z.key === metric).label)} 라운드별 확률 추이"><g class="grid">`;
+  [0, 25, 50, 75, 100].forEach(v => { s += `<line x1="${L}" x2="${W - Rr}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}%</text>`; });
+  s += `</g>`;
+  pts.forEach((p, i) => {
+    if (i % step && i !== pts.length - 1) return;
+    const lx = x(i), base = H - B;
+    const top = p.rd + "R", bottom = p.progress ? "진행 중" : md(p.date);
+    s += `<line x1="${lx}" x2="${lx}" y1="${base}" y2="${base + 4}" stroke="var(--muted)"/>`;
+    s += rotate
+      ? `<text x="${lx}" y="${base + 16}" text-anchor="end" transform="rotate(-55 ${lx} ${base + 16})"${p.progress ? ' style="fill:var(--point)"' : ""}>${top} · ${bottom}</text>`
+      : `<text x="${lx}" y="${base + 17}" text-anchor="middle"${p.progress ? ' style="fill:var(--point)"' : ""}>${top}</text><text x="${lx}" y="${base + 31}" text-anchor="middle"${p.progress ? ' style="fill:var(--point)"' : ""}>${bottom}</text>`;
+  });
+  const labels = [];
+  pick.forEach((t, i) => {
+    if (!t) return;   // 직접 선택에서 비어 있는 칸
+    const c = `var(--s${i + 1})`;
+    const arr = pts.map((p, j) => ({ j, p, v: p.h[league][t]?.[metric] })).filter(a => a.v != null)
+      .map(a => ({ xy: [x(a.j), y(a.v)], bf: !!a.p.h.backfill, prog: a.p.progress }));
+    const fin = arr.filter(a => !a.prog), prog = arr.find(a => a.prog);
+    // 지난 결과로 다시 계산한 구간은 점선, 그날 실제로 기록한 구간은 실선, 진행 중 라운드로 가는 선은 짧은 점선
+    const lastBf = fin.map(a => a.bf).lastIndexOf(true);
+    const dashed = lastBf >= 0 ? fin.slice(0, lastBf + 2) : [], solid = fin.slice(Math.max(0, lastBf + 1));
+    const line = (ps, dash) => ps.length > 1 ? `<polyline fill="none" stroke="${c}" stroke-width="${t === me ? 3.4 : 2.2}" stroke-linejoin="round"${dash ? ` stroke-dasharray="${dash}"` : ""} points="${ps.map(a => a.xy.join(",")).join(" ")}"/>` : "";
+    s += line(dashed, "5 4") + line(solid, "");
+    if (prog && fin.length) s += line([fin.at(-1), prog], "2 3");
+    fin.forEach(a => { s += a.bf ? `<circle cx="${a.xy[0]}" cy="${a.xy[1]}" r="2.6" fill="var(--surface)" stroke="${c}" stroke-width="1.4"/>` : `<circle cx="${a.xy[0]}" cy="${a.xy[1]}" r="${arr.length > 1 ? 2.8 : 4}" fill="${c}"/>`; });
+    if (prog) s += `<circle cx="${prog.xy[0]}" cy="${prog.xy[1]}" r="4.2" fill="var(--surface)" stroke="${c}" stroke-width="2" stroke-dasharray="2 1.5"/>`;
+    const lp = arr.at(-1);
+    if (lp) labels.push({ y: lp.xy[1], t, c, v: pts.at(-1).h[league][t]?.[metric] });
+  });
+  // 라벨 겹침 방지
+  labels.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 14) labels[i].y = labels[i - 1].y + 14;
+  labels.forEach(l => { s += `<text class="lab" x="${W - Rr + 8}" y="${l.y + 4}" style="fill:${l.c}">${l.t === me ? "★ " : ""}${esc(l.t)} ${l.v != null ? fmtP(l.v) : ""}</text>`; });
+  // 마우스를 올린 라운드를 표시할 세로선과 강조 점 자리 (처음에는 숨김)
+  s += `<line class="hline" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--muted)" stroke-dasharray="3 3" visibility="hidden"/><g class="hdots"></g>`;
+  s += `</svg>`;
+  // 툴팁용 데이터: 라운드마다 가로 위치(x), 제목, 선택한 팀들의 확률(높은 순)과 세로 위치(y)
+  const hov = pts.map((p, j) => ({
+    x: x(j),
+    head: `${p.rd}라운드 · ${p.progress ? "진행 중" : md(p.date)}`,
+    rows: pick.map((t, i) => ({ t, i, v: t ? p.h[league][t]?.[metric] : null }))
+      .filter(r => r.t && r.v != null)            // 선택한 팀 중 이 라운드 값이 있는 팀만
+      .sort((a, b) => b.v - a.v)
+      .map(r => ({ ...r, y: y(r.v) }))
+  }));
+  const metricLabel = zones.find(z => z.key === metric).label.replace(/ \(.*\)/, "");
+  const notes = ["라운드가 끝날 때마다 점이 하나씩 생기고, 아래 날짜는 그 라운드의 마지막 경기일입니다. 연기 경기는 실제로 치른 날 이후 점에 반영됩니다. 그래프 위에 마우스를 올리거나(휴대폰은 손가락으로 짚으면) 그 라운드의 팀별 확률이 보입니다."];
+  // 직접 고른 팀 중 이 지표 값이 한 번도 기록되지 않은 팀(예: 해당 없는 지표)은 선이 없으므로 알려 준다
+  const noData = pick.filter(t => t && teams[t] == null);
+  if (noData.length) notes.push(`${noData.join(", ")}은(는) 이 지표의 기록이 없어 선이 그려지지 않습니다.`);
+  if (league === "k2") notes.push("K리그2는 17팀이라 라운드마다 한 팀이 쉽니다. 쉬는 팀도 다른 팀 결과에 따라 확률이 바뀝니다.");
+  if (pts.some(p => p.progress)) notes.push("맨 끝 빈 점(진행 중)은 아직 끝나지 않은 라운드의 현재 값입니다.");
+  if (pts.some(p => p.h.backfill)) notes.push("점선과 빈 점은 지난 경기 결과만으로 그 시점을 다시 계산한 값이고, 실선과 채운 점은 그날 실제로 기록한 값입니다.");
+  const box = $("chart");
+  box.innerHTML = s + `<p>${notes.join(" ")}</p>`;
+
+  // ---- 마우스오버/터치 툴팁 ----
+  const svg = box.querySelector("svg");
+  const line = svg.querySelector(".hline"), dots = svg.querySelector(".hdots");
+  const tip = document.createElement("div");   // 툴팁 박스 (차트 영역 안에 붙임)
+  tip.className = "ctip"; tip.hidden = true;
+  box.appendChild(tip);
+  const hide = () => { tip.hidden = true; line.setAttribute("visibility", "hidden"); dots.innerHTML = ""; };
+  const show = ev => {
+    const r = svg.getBoundingClientRect(), k = r.width / W;   // 화면 픽셀 → 그래프 좌표 비율
+    const sx = (ev.clientX - r.left) / k;                     // 포인터의 그래프 가로 좌표
+    // 그래프 영역(축 ~ 오른쪽 이름표 앞) 밖이면 숨긴다
+    if (sx < L - 12 || sx > W - Rr + 12) { hide(); return; }
+    // 가장 가까운 라운드 찾기
+    let best = 0;
+    hov.forEach((h, i) => { if (Math.abs(h.x - sx) < Math.abs(hov[best].x - sx)) best = i; });
+    const h = hov[best];
+    // 세로선과 팀별 강조 점
+    line.setAttribute("x1", h.x); line.setAttribute("x2", h.x); line.setAttribute("visibility", "visible");
+    dots.innerHTML = h.rows.map(q => `<circle cx="${h.x}" cy="${q.y}" r="5" fill="var(--s${q.i + 1})" stroke="var(--surface)" stroke-width="1.5"/>`).join("");
+    // 툴팁 내용: 라운드·날짜, 지표 이름, 팀별 확률
+    tip.innerHTML = `<b>${esc(h.head)}</b><span class="tmetric">${esc(metricLabel)}</span>`
+      + (h.rows.length ? h.rows.map(q => `<div class="trow"><i style="background:var(--s${q.i + 1})"></i><span>${q.t === me ? "★ " : ""}${esc(q.t)}</span><em>${fmtP(q.v)}</em></div>`).join("")
+                       : `<span class="tmetric">이 라운드 기록이 없어요</span>`);
+    tip.hidden = false;
+    // 위치: 세로선 오른쪽에 두고, 오른쪽 끝에 닿으면 왼쪽으로 뒤집는다
+    const br = box.getBoundingClientRect();
+    const px = r.left - br.left + h.x * k, py = r.top - br.top + T * k;
+    const left = px + 14 + tip.offsetWidth > box.clientWidth ? px - 14 - tip.offsetWidth : px + 14;
+    tip.style.left = Math.max(0, left) + "px";
+    tip.style.top = py + "px";
+  };
+  svg.addEventListener("pointermove", show);
+  svg.addEventListener("pointerdown", show);    // 터치는 짚는 순간에도 보여 준다
+  svg.addEventListener("pointerleave", hide);
+  svg.addEventListener("pointercancel", hide);
+}
+
+/* ---------- 백테스트 ---------- */
+function renderBacktest() {
+  if (!BT) return;
+  const m = BT.matches;
+  const imp = (1 - m.ll / m.llBase) * 100, impB = (1 - m.br / m.brBase) * 100;
+  const pc = v => (v * 100).toFixed(1) + "%";
+  let h = `<h3 style="margin:0;font-size:15px">경기 하나하나 맞히기</h3>
+    <p>2025·2026시즌 K리그1·2 ${m.n.toLocaleString()}경기를, 경기 당일 이전 결과만으로 다시 예측해 실제 결과와 비교했습니다. 기준선은 "그때까지 리그의 홈승·무승부·원정승 비율을 그대로 쓰는 예측"입니다.</p>
+    <div class="kpis">
+      <div class="kpi"><span>로그 손실 (낮을수록 좋음)</span><b>${m.ll.toFixed(3)} <small class="${imp > 0 ? "ok" : "bad"}">기준선 ${m.llBase.toFixed(3)} 대비 ${imp > 0 ? imp.toFixed(1) + "% 개선" : (-imp).toFixed(1) + "% 악화"}</small></b></div>
+      <div class="kpi"><span>브라이어 점수 (낮을수록 좋음)</span><b>${m.br.toFixed(3)} <small class="${impB > 0 ? "ok" : "bad"}">기준선 ${m.brBase.toFixed(3)} 대비 ${impB.toFixed(1)}% ${impB > 0 ? "개선" : "악화"}</small></b></div>
+      <div class="kpi"><span>무승부 비율 예측 / 실제</span><b>${pc(m.drawPred)} / ${pc(m.drawAct)}</b></div>
+      <div class="kpi"><span>홈 승리 비율 예측 / 실제</span><b>${pc(m.homePred)} / ${pc(m.homeAct)}</b></div>
+    </div>
+    <div class="tablebox"><table><thead><tr><th>예측한 홈 승리 확률</th><th>경기 수</th><th>예측 평균</th><th>실제 홈 승리 비율</th></tr></thead><tbody>
+      ${m.buckets.map((b, i) => b.n ? `<tr><td>${i * 20}~${i * 20 + 20}%</td><td class="num">${b.n}</td><td class="num">${pc(b.pred)}</td><td class="num">${pc(b.act)}</td></tr>` : "").join("")}
+    </tbody></table></div>`;
+  const s = BT.seasons.find(x => x.league === league);
+  if (s) {
+    const n = s.teams.length;
+    const cats = league === "k1"
+      ? [["우승", r => r === 1, d => d[0]], ["상위 6", r => r <= 6, d => d.slice(0, 6).reduce((a, b) => a + b, 0)], ["최하위", r => r === n, d => d[n - 1]]]
+      : [["우승", r => r === 1, d => d[0]], ["상위 2", r => r <= 2, d => d[0] + d[1]], ["상위 5", r => r <= 5, d => d.slice(0, 5).reduce((a, b) => a + b, 0)]];
+    let bModel = 0, bBase = 0;
+    const rows = s.teams.map((t, i) => ({ t, i, act: s.actualRank[i], cut: s.cutRank[i], pts: s.cutPts[i], d: s.posDist[i] })).sort((a, b) => a.act - b.act);
+    rows.forEach(r => cats.forEach(([, f, g]) => { const o = f(r.act) ? 1 : 0; bModel += (g(r.d) - o) ** 2; bBase += ((f(r.cut) ? 1 : 0) - o) ** 2; }));
+    const tot = n * cats.length;
+    h += `<h3 style="margin:8px 0 0;font-size:15px">${s.season}시즌 ${league === "k1" ? "K리그1" : "K리그2"}를 ${s.cutoff} 시점에서 예측했다면</h3>
+      <p>그날까지의 결과만으로 남은 ${s.remaining}경기${league === "k1" ? "와 파이널 라운드" : ""}를 ${s.N.toLocaleString()}번 시뮬레이션한 확률과 실제 최종 순위입니다. 브라이어 점수는 모델 ${(bModel / tot).toFixed(3)}, "그날 순위가 그대로 간다" 기준선 ${(bBase / tot).toFixed(3)}입니다(낮을수록 좋음).</p>
+      <div class="tablebox"><table><thead><tr><th>팀</th><th>그날 순위</th><th>그날 승점</th>${cats.map(c => `<th>${c[0]} 확률</th>`).join("")}<th>실제 순위</th></tr></thead><tbody>
+      ${rows.map(r => `<tr><td><b>${esc(r.t)}</b></td><td class="num">${r.cut}</td><td class="num">${r.pts}</td>${cats.map(([, f, g]) => { const p = g(r.d) * 100; const hit = f(r.act); return `<td class="num${hit ? " ok" : ""}">${fmtP(p)}${hit ? " ✓" : ""}</td>`; }).join("")}<td class="num"><b>${r.act}</b></td></tr>`).join("")}
+      </tbody></table></div><p>✓ 표시는 실제로 그 결과가 나온 팀입니다.</p>`;
+  }
+  $("backtest").innerHTML = h;
+}
+
+/* ---------- 실행 ---------- */
+let simRunning = false, simKey = "";
+async function runSim(seed) {
+  if (!DATA.k1 || !DATA.k2) return;
+  simRunning = true;
+  $("rerun").disabled = true;
+  $("progress").hidden = false; $("progressBar").style.width = "0";
+  WHATIF = null;
+  // 다음 라운드 경기는 결과별로 따로 세어 빅매치 계산에 쓴다 (난수 순서는 그대로라 숫자는 바뀌지 않는다)
+  const track = { k1: focusFixtures(DATA.k1).list.map(fkey), k2: focusFixtures(DATA.k2).list.map(fkey) };
+  try {
+    SIM = await call({ type: "current", d1: DATA.k1, d2: DATA.k2, N: NSIM, seed, opts: { track } }, done => { $("progressBar").style.width = (done / NSIM * 100) + "%"; });
+  } catch (err) {
+    $("notice").hidden = false; $("notice").textContent = "계산 중 오류가 났어요: " + err.message;
+  }
+  simRunning = false;
+  $("progress").hidden = true; $("rerun").disabled = false;
+  render();
+  if (!customSeed) saveHistory();
+}
+function defaultSeed() { return E.hashStr(DATA.k1.asOf + "|" + DATA.k1.results.length + "|" + DATA.k2.results.length); }
+function onData() {
+  if (!DATA.k1 || !DATA.k2) return;
+  const key = defaultSeed() + ":" + DATA.k1.updatedAt + DATA.k2.updatedAt;
+  if (key === simKey) return;
+  simKey = key; customSeed = false;
+  // 이미 치른 경기는 "만약에" 선택에서 뺀다
+  ["k1", "k2"].forEach(lg => {
+    const live = new Set((DATA[lg].fixtures || []).map(fkey));
+    Object.keys(PICKS[lg]).forEach(k => { if (!live.has(k)) delete PICKS[lg][k]; });
+  });
+  runSim(defaultSeed()).then(runBacktest);
+}
+
+// 오늘 확률을 기록해 추이 그래프에 쓴다 (페이지 주인이 열었을 때 하루 한 번)
+async function saveHistory() {
+  if (!db || !isOwner || !SIM || !DATA.k1) return;
+  const asOf = DATA.k1.asOf;
+  if (HISTORY.some(h => h.asOf === asOf)) return;
+  const pack = lg => {
+    const o = {};
+    Object.entries(SIM[lg]).forEach(([t, v]) => {
+      o[t] = { exp: Math.round(v.exp * 10) / 10 };
+      ZONES[lg].forEach(z => o[t][z.key] = Math.round(v[z.key] / SIM.N * 1000) / 10);
+    });
+    return o;
+  };
+  try {
+    const ref = db.doc("history/" + asOf);
+    const snap = await ref.get();
+    // n_k1, n_k2: 이 기록에 들어간 경기 결과 수. 그래프가 몇 라운드까지 끝난 시점인지 판단할 때 쓴다
+    const nRes = d => d.results.filter(r => r[6] !== "P").length;
+    if (!snap.exists) await ref.set({ asOf, N: SIM.N, n_k1: nRes(DATA.k1), n_k2: nRes(DATA.k2), k1: pack("k1"), k2: pack("k2") });
+  } catch { /* 기록 실패는 화면에 영향 없음 */ }
+}
+
+let btStarted = false;
+async function runBacktest() {
+  if (btStarted || !DATA.h1 || !DATA.h2 || !DATA.k1 || !DATA.k2) return;
+  btStarted = true;
+  $("btStatus").textContent = "검증 계산 중…";
+  const md = DATA.k1.asOf.slice(5);
+  try {
+    BT = await call({
+      type: "backtest", N: 20000, seed: 20251014,
+      docs: [DATA.h1, DATA.h2, DATA.k1, DATA.k2],
+      seasons: [{ doc: DATA.h1, cutoff: DATA.h1.season + "-" + md }, { doc: DATA.h2, cutoff: DATA.h2.season + "-" + md }],
+    });
+    $("btStatus").textContent = `${DATA.h1.season}시즌 전체와 ${DATA.k1.season}시즌 현재까지 데이터로 검증`;
+  } catch (err) {
+    $("btStatus").textContent = "검증 계산 실패: " + err.message;
+  }
+  render();
+}
+
+document.addEventListener("click", e => {
+  if (e.target.id === "navScrim") { closeNav(); return; }
+  const b = e.target.closest("button, tr.team"); if (!b) return;
+  if (b.hasAttribute("data-dashboard-select")) { $("myTeam").focus(); $("myTeam").click(); return; }
+  if (b.id === "navToggle") {
+    const open = !document.body.classList.contains("nav-open");
+    document.body.classList.toggle("nav-open", open);
+    b.setAttribute("aria-expanded", String(open));
+  }
+  else if (b.id === "lmbCollapse") setLmbCollapsed(!document.body.classList.contains("lmb-collapsed"), true);   // PC: LMB 접기/펴기
+  else if (b.id === "tabK1" || b.id === "tabK2") { league = b.id === "tabK1" ? "k1" : "k2"; openTeam = null; try { localStorage.setItem("kl-odds-league", league); } catch {} render(); }
+  else if (b.id === "rerun") { customSeed = true; runSim((Math.random() * 2 ** 32) >>> 0); }
+  else if (b.dataset.metric) { metric = b.dataset.metric; renderChart(); }
+  else if (b.id === "trendClear") clearTrendTeams();
+  else if (b.id === "trendAuto") { TSEL[league] = null; saveTrendSel(); renderChart(); }   // 자동 선택으로 되돌리기
+  else if (b.dataset.trendTeam != null) toggleTrendTeam(b.dataset.trendTeam);              // 팀 칩 선택/해제
+  else if (b.dataset.pick != null) {
+    const k = b.dataset.key, v = Number(b.dataset.pick), P = PICKS[league];
+    if (P[k] === v) delete P[k]; else P[k] = v;
+    renderRound();
+  }
+  else if (b.id === "whatifRun") runWhatif();
+  else if (b.id === "whatifClear") { PICKS[league] = {}; if (WHATIF && WHATIF.lg === league) WHATIF = null; renderRound(); }
+  else if (b.dataset.cheerPick != null) { PICKS[league][b.dataset.key] = Number(b.dataset.cheerPick); goPage("round"); renderRound(); }
+  else if (b.dataset.teamPage) { selectedTeamPage = b.dataset.teamPage; goPage("team"); renderTeamPage(); }
+  else if (b.dataset.goPage) goPage(b.dataset.goPage);
+  else if (b.dataset.team) { openTeam = openTeam === b.dataset.team ? null : b.dataset.team; render(); }
+});
+$("trendStartRound").addEventListener("change", e => {
+  const value = Number(e.target.value);
+  if (Number.isFinite(value) && value > 0) TREND_START[league] = value;
+  renderChart();
+});
+$("myTeam").addEventListener("change", e => {
+  MY[league] = e.target.value;
+  try { localStorage.setItem("kl-odds-my-" + league, MY[league]); } catch {}
+  render();
+});
+let resizeTimer = null;
+window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(renderChart, 150); });
+$("lmb").addEventListener("click", e => {
+  const a = e.target.closest("a[href^='#']");
+  if (!a) return;
+  e.preventDefault();
+  goPage(a.getAttribute("href").slice(1));
+});
+window.addEventListener("hashchange", () => { showPage(); window.scrollTo(0, 0); });
+window.addEventListener("popstate", () => { showPage(); window.scrollTo(0, 0); });
+/* ---------- LMB 접기(PC)와 로고 홈 이동 ---------- */
+const LMB_KEY = "kl-odds-lmb-collapsed";   // 접힘 상태를 이 브라우저에 저장
+// on=true면 접고, false면 편다. save=true면 localStorage에 기억한다
+function setLmbCollapsed(on, save) {
+  document.body.classList.toggle("lmb-collapsed", on);
+  const b = $("lmbCollapse");
+  if (b) {
+    b.textContent = on ? "»" : "«";
+    b.setAttribute("aria-label", on ? "메뉴 펴기" : "메뉴 접기");
+    b.title = on ? "메뉴 펴기" : "메뉴 접기";
+    b.setAttribute("aria-expanded", String(!on));
+  }
+  if (save) { try { localStorage.setItem(LMB_KEY, on ? "1" : "0"); } catch {} }
+  // 본문 폭이 바뀌므로 추이 차트는 애니메이션이 끝난 뒤 다시 그린다
+  setTimeout(() => { if (SIM && currentPage() === "trend") renderChart(); }, 230);
+}
+// 홈(root)으로: 주소의 #해시를 지우고 첫 화면(순위표)을 보여준다
+function goHome() {
+  if (location.hash) history.pushState(null, "", location.pathname + location.search);
+  showPage();
+  window.scrollTo(0, 0);
+}
+// 로고(사이드바·상단 제목)를 그냥 클릭하면 새로고침 없이 홈으로. Ctrl/⌘/Shift 클릭이나 휠 클릭은 브라우저 기본 동작(새 탭)에 맡긴다
+document.addEventListener("click", e => {
+  const a = e.target.closest("a.brand, a.home-link");
+  if (!a || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  e.preventDefault();
+  goHome();
+});
+// 저장된 접힘 상태 복원 (모바일 폭에서는 CSS가 접기를 무시한다)
+try { if (localStorage.getItem(LMB_KEY) === "1") setLmbCollapsed(true, false); } catch {}
+showPage();
+breakAtSentenceEnds();
+const sentenceObserver = new MutationObserver(() => breakAtSentenceEnds());
+sentenceObserver.observe(document.querySelector(".wrap"), { childList: true, subtree: true });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeNav();
+  const tr = e.target.closest && e.target.closest("tr.team");
+  if (tr && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); tr.click(); }
+});
+
+/* ---------- 데이터 ---------- */
+(async () => {
+  const fail = msg => { $("tbody").innerHTML = `<tr><td class="empty" colspan="16">${esc(msg)}</td></tr>`; $("cards").innerHTML = `<p class="empty">${esc(msg)}</p>`; $("asOf").textContent = "-"; };
+  if (!window.claude || !window.claude.use) {
+    // claude.ai 밖(GitHub Pages 등): 같은 폴더의 data/*.json을 읽는다
+    STANDALONE = true;
+    try {
+      const get = n => fetch("data/" + n + ".json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).catch(() => null);
+      const [k1, k2, h1, h2, hist] = await Promise.all(["k1", "k2", "k1-2025", "k2-2025", "history"].map(get));
+      if (!k1 || !k2) return fail("데이터 파일(data/k1.json, data/k2.json)을 찾지 못했어요.");
+      HISTORY = Array.isArray(hist) ? hist : [];
+      DATA.h1 = h1; DATA.h2 = h2; DATA.k1 = k1; DATA.k2 = k2;
+      if (!h1 || !h2) $("btStatus").textContent = "지난 시즌 데이터가 없어 검증을 건너뜁니다";
+      onData();
+    } catch { fail("데이터 파일을 불러오지 못했어요."); }
+    return;
+  }
+  db = await claude.use("db");
+  if (!db) return fail("데이터를 불러올 수 없어요. claude.ai에 로그인한 상태에서 열어 주세요.");
+  claude.use("user").then(u => u && u.isOwner()).then(v => { isOwner = !!v; if (isOwner) saveHistory(); }).catch(() => {});
+  [["k1", "leagues/k1"], ["k2", "leagues/k2"]].forEach(([k, path]) => db.doc(path).onSnapshot(snap => {
+    if (!snap.exists) { fail("아직 저장된 데이터가 없어요. 다음 자동 갱신 때 채워집니다."); return; }
+    DATA[k] = snap.data();
+    onData();
+  }, () => fail("데이터 연결이 끊겼어요. 페이지를 새로 고쳐 주세요.")));
+  Promise.all([db.doc("seasons/k1-2025").get(), db.doc("seasons/k2-2025").get()]).then(([a, b]) => {
+    if (a.exists && b.exists) { DATA.h1 = a.data(); DATA.h2 = b.data(); if (SIM) runBacktest(); }
+    else $("btStatus").textContent = "지난 시즌 데이터가 없어 검증을 건너뜁니다";
+  }).catch(() => { $("btStatus").textContent = "지난 시즌 데이터를 불러오지 못했어요"; });
+  db.collection("history").orderBy("asOf").onSnapshot(q => {
+    HISTORY = q.docs.map(x => x.data());
+    renderChart();
+  }, () => {});
+})();
+</script>
+
+</body>
+</html>
