@@ -1139,7 +1139,7 @@ const TEAM_COLORS = {
   "대구FC": { color: "#00a5df" }, "대구": { color: "#00a5df" },
   "대전하나시티즌": { color: "#6f2da8" }, "대전": { color: "#6f2da8" },
   "부천FC1995": { color: "#d71920" }, "부천": { color: "#d71920" },
-  "FC서울": { gradient: "repeating-linear-gradient(90deg,#202020 0 4px,#d71920 4px 8px)" }, "서울": { gradient: "repeating-linear-gradient(90deg,#202020 0 4px,#d71920 4px 8px)" },
+  "FC서울": { gradient: "repeating-linear-gradient(90deg,#202020 0 4px,#d71920 4px 8px)" },
   "수원FC": { gradient: "repeating-linear-gradient(90deg,#d71920 0 4px,#17479e 4px 8px)" },
   "울산HD": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#f2c500 50% 100%)" },
   "울산 HD": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#f2c500 50% 100%)" },
@@ -1154,7 +1154,7 @@ const TEAM_COLORS = {
   "김포FC": { color: "#16834a" }, "김포": { color: "#16834a" },
   "부산아이파크": { gradient: "linear-gradient(90deg,#d71920 0 50%,#202020 50% 100%)" }, "부산": { gradient: "linear-gradient(90deg,#d71920 0 50%,#202020 50% 100%)" },
   "서울이랜드": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#202020 50% 100%)" }, "서울E": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#202020 50% 100%)" },
-  "수원삼성": { color: "#0755a6" }, "수원삼성블루윙즈": { color: "#0755a6" },
+  "수원삼성": { gradient: "linear-gradient(90deg,#0755a6 0 50%,#d71920 50% 100%)" }, "수원삼성블루윙즈": { gradient: "linear-gradient(90deg,#0755a6 0 50%,#d71920 50% 100%)" },
   "김해FC": { gradient: "linear-gradient(90deg,#cb171a 0 50%,#202020 50% 100%)" },
   "김해FC2008": { gradient: "linear-gradient(90deg,#cb171a 0 50%,#202020 50% 100%)" },
   "성남FC": { color: "#303030" }, "성남": { color: "#303030" },
@@ -1178,11 +1178,10 @@ function teamNameHtml(name, extraClass = "") {
   let cfg = TEAM_COLORS[rawName] || normalizedColors[normalized];
   // 데이터마다 구단명 표기가 다른 경우를 위한 별칭 처리
   if (!cfg) {
-    if (normalized === "수원") cfg = league === "k2" ? TEAM_COLORS["수원삼성"] : TEAM_COLORS["수원FC"];
     if (normalized.startsWith("수원삼성")) cfg = TEAM_COLORS["수원삼성"];
     else if (normalized.startsWith("수원fc")) cfg = TEAM_COLORS["수원FC"];
     else if (normalized.startsWith("김해fc") || normalized.startsWith("김해")) cfg = TEAM_COLORS["김해FC"];
-    else if (normalized === "서울" || normalized.startsWith("fc서울") || normalized.startsWith("서울fc")) cfg = TEAM_COLORS["FC서울"];
+    else if (normalized.startsWith("fc서울") || normalized.startsWith("서울fc")) cfg = TEAM_COLORS["FC서울"];
     else if (normalized.startsWith("서울이랜드")) cfg = TEAM_COLORS["서울이랜드"];
     else if (normalized.startsWith("울산hd") || normalized.startsWith("울산현대") || normalized === "울산") cfg = TEAM_COLORS["울산HD"];
   }
@@ -1893,6 +1892,26 @@ function renderWhatif() {
     if (outK) chips.push([`${t.team} ${ZSHORT[league][outK]} 불가`, "bad"]);
     if (league === "k1" && t.team !== exempt && s.po.out && !b.po.out) chips.push([`${t.team} 잔류 확정`, ""]);
   });
+  // 사용자가 선택한 승/무/패를 즉시 반영한 가상 순위표를 구성한다.
+  // 승패만 선택되므로 득점은 승리 1-0, 무승부 0-0으로 가정한다.
+  const projected = d.standings.map(t => ({ ...t, _baseRank: t.rank }));
+  const projectedByTeam = Object.fromEntries(projected.map(t => [t.team, t]));
+  const fixtureByKey = Object.fromEntries((d.fixtures || []).map(f => [fkey(f), f]));
+  Object.entries(w.picks || {}).forEach(([key, outcome]) => {
+    const f = fixtureByKey[key];
+    if (!f || outcome == null) return;
+    const home = projectedByTeam[f[2]], away = projectedByTeam[f[3]];
+    if (!home || !away) return;
+    const hg = outcome === 0 ? 1 : 0;
+    const ag = outcome === 2 ? 1 : 0;
+    home.p++; away.p++;
+    home.gf += hg; home.ga += ag; away.gf += ag; away.ga += hg;
+    if (hg > ag) home.pts += 3;
+    else if (ag > hg) away.pts += 3;
+    else { home.pts++; away.pts++; }
+  });
+  projected.sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf || a._baseRank - b._baseRank);
+  const projectedTable = `<section class="panel" style="padding:14px;margin:10px 0"><h3 class="sub">선택 결과 기준 가상 순위표</h3><p class="meta">선택한 경기만 반영했습니다. 승리는 1-0, 무승부는 0-0으로 가정하며, 미선택 경기와 이후 일정은 반영하지 않습니다. 실제 리그의 세부 순위 결정 기준과 다를 수 있습니다.</p><div class="tablebox"><table><thead><tr><th>예상 순위</th><th>팀</th><th>경기</th><th>승점</th><th>득점</th><th>실점</th><th>득실차</th></tr></thead><tbody>${projected.map((t, i) => `<tr${t.team === me ? ' class="mine"' : ""}><td class="num">${i + 1}</td><td>${teamNameHtml(t.team)}</td><td class="num">${t.p}</td><td class="num"><b>${t.pts}</b></td><td class="num">${t.gf}</td><td class="num">${t.ga}</td><td class="num">${t.gf - t.ga > 0 ? "+" : ""}${t.gf - t.ga}</td></tr>`).join("")}</tbody></table></div></section>`;
   const val = (v, N, s) => s.sure ? 100 : s.out ? 0 : v / N * 100;
   const rows = st.map(t => {
     const cells = zones.map(z => {
@@ -1908,6 +1927,7 @@ function renderWhatif() {
   $("whatif").innerHTML = `
     ${w.picks && JSON.stringify(w.picks) !== JSON.stringify(picks) ? `<div class="notice">고른 결과가 바뀌었어요. 아래는 이전 선택으로 계산한 결과입니다. 다시 계산을 눌러 주세요.</div>` : ""}
     <p><b>가정:</b> ${assumed.map(esc).join(", ")}. 지금 확률 → 이 결과일 때 확률입니다(같은 시드로 ${w.sim.N.toLocaleString()}번).</p>
+    ${projectedTable}
     ${chips.length ? `<div class="changes">${chips.map(([t, c]) => `<span class="chip${c ? " " + c : ""}">${esc(t)}</span>`).join("")}</div>` : ""}
     <div class="tablebox"><table><thead><tr><th>팀</th>${zones.map(z => `<th>${z.label}</th>`).join("")}</tr></thead><tbody>
       ${shown.map(r => `<tr${r.t.team === me ? ' class="mine"' : ""}><td>${r.t.team === me ? '<span class="star">★</span>' : ""}<b>${teamNameHtml(r.t.team)}</b> <small class="rank">${r.t.rank}위</small></td>${r.cells.map(c => `<td>${c.html}</td>`).join("")}</tr>`).join("")}
