@@ -299,6 +299,7 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
 .mrow { display: grid; grid-template-columns: 96px minmax(0, 1.2fr) minmax(0, 1fr) auto; gap: 8px 14px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--line); background: var(--surface); }
 .mrow:last-child { border-bottom: 0; }
 .mrow.picked { background: color-mix(in srgb, var(--accent) 7%, var(--surface)); }
+.mrow.focus-target { outline: 2px solid var(--accent); outline-offset: -2px; background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
 .mdate { font-family: var(--font-data); font-size: 12px; color: var(--muted); }
 .mteams { font-weight: 700; min-width: 0; }
 .mteams small { font-weight: 400; color: var(--muted); }
@@ -544,11 +545,10 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
     </section>
     <div class="dash-grid">
       <section class="dash-panel"><div class="dash-panel-head"><h2 id="dashTeamHeading">응원 팀</h2><button type="button" id="dashTeamDetailBtn" class="dash-link" data-team-page="" hidden>팀 상세 보기 →</button></div><div id="dashTeam"><p class="dash-empty">데이터를 불러오는 중입니다.</p></div></section>
-      <section class="dash-panel"><div class="dash-panel-head"><h2>가장 가까운 경기</h2><button type="button" class="dash-link" data-go-page="round">경기 분석 →</button></div><div id="dashNext"><p class="dash-empty">경기 정보를 불러오는 중입니다.</p></div></section>
+      <section class="dash-panel"><div class="dash-panel-head"><h2>가장 가까운 경기</h2><button type="button" class="dash-link" id="dashFocusMatch" data-focus-match="">해당 경기 분석 →</button></div><div id="dashNext"><p class="dash-empty">경기 정보를 불러오는 중입니다.</p></div></section>
     </div>
     <section class="dash-panel"><div class="dash-panel-head"><h2>리그 순위 미리보기</h2><button type="button" class="dash-link" data-go-page="standings">전체 순위표 →</button></div><div id="dashStandings" class="dash-table"><p class="dash-empty">순위 정보를 불러오는 중입니다.</p></div></section>
     <section><div class="dash-panel-head"><h2>바로가기</h2><span class="meta">기존 분석 기능으로 이동</span></div><div class="dash-shortcuts">
-      <button type="button" class="dash-shortcut" data-go-page="round"><strong>라운드 프리뷰 · 만약에</strong><span>경기별 승률을 확인하고 결과를 바꿔 가며 순위를 시뮬레이션합니다.</span></button>
       <button type="button" class="dash-shortcut" data-go-page="dist"><strong>최종 순위 분포</strong><span>시즌 종료 시 팀별 예상 순위와 주요 목표 달성 확률을 확인합니다.</span></button>
       <button type="button" class="dash-shortcut" data-go-page="trend"><strong>확률 추이</strong><span>팀별 시즌 전망이 데이터에 따라 어떻게 변했는지 살펴봅니다.</span></button>
     </div></section>
@@ -1356,7 +1356,9 @@ function renderDashboard() {
     $("dashTeam").innerHTML = `<div class="dash-team-name">${esc(me)} <span class="dash-team-sub">${mine.rank}위</span></div><div class="dash-team-sub">${mine.p}경기 · ${mine.w ?? ""}${mine.w != null ? "승" : ""}${mine.d != null ? ` ${mine.d}무` : ""}${mine.l != null ? ` ${mine.l}패` : ""}</div><div class="dash-team-stats"><div class="dash-stat"><span>승점</span><b>${mine.pts}</b></div><div class="dash-stat"><span>득점</span><b>${mine.gf}</b></div><div class="dash-stat"><span>실점</span><b>${mine.ga}</b></div><div class="dash-stat"><span>득실차</span><b>${gd > 0 ? "+" : ""}${gd}</b></div></div><div class="dash-form"><span class="dash-form-label">최근 5경기</span><span class="form">${form}</span></div><p class="dash-team-sub">시즌 전망 · ${esc(zones || "확률 정보 없음")}</p>`;
   }
   if (!next) {
-    $("dashNext").innerHTML = `<div class="dash-empty">현재 등록된 남은 경기가 없습니다.</div><button type="button" class="ghost" data-go-page="round">라운드 프리뷰 보기</button>`;
+    $("dashNext").innerHTML = `<div class="dash-empty">현재 등록된 남은 경기가 없습니다.</div>`;
+    $("dashFocusMatch").hidden = true;
+    $("dashFocusMatch").dataset.focusMatch = "";
   } else {
     const home = me ? next[2] === me : true;
     const date = `${next[0]}${next[1] != null ? ` · ${next[1]}R` : ""}`;
@@ -1373,7 +1375,10 @@ function renderDashboard() {
         probLine = `<div class="dash-team-sub" style="margin-top:9px">내 팀 기준 승 ${Math.round(p[0]*100)}% · 무 ${Math.round(p[1]*100)}% · 패 ${Math.round(p[2]*100)}%</div>`;
       }
     }
-    $("dashNext").innerHTML = `<div class="dash-fixture"><div><div class="dash-fixture-team">${esc(homeName)}</div><div class="dash-fixture-meta">홈</div></div><span class="dash-vs">VS</span><div><div class="dash-fixture-team">${esc(awayName)}</div><div class="dash-fixture-meta" style="text-align:right">원정</div></div></div><div class="dash-fixture-meta">${esc(date)}${me && !isMyFixture ? " · 내 팀 경기 외 가장 가까운 일정" : ""}</div>${probLine}<div class="dash-actions" style="margin-top:12px"><button type="button" class="primary" data-go-page="round">경기 분석 보기</button></div>`;
+    $("dashNext").innerHTML = `<div class="dash-fixture"><div><div class="dash-fixture-team">${esc(homeName)}</div><div class="dash-fixture-meta">홈</div></div><span class="dash-vs">VS</span><div><div class="dash-fixture-team">${esc(awayName)}</div><div class="dash-fixture-meta" style="text-align:right">원정</div></div></div><div class="dash-fixture-meta">${esc(date)}${me && !isMyFixture ? " · 내 팀 경기 외 가장 가까운 일정" : ""}</div>${probLine}`;
+    const focusBtn = $("dashFocusMatch");
+    focusBtn.hidden = false;
+    focusBtn.dataset.focusMatch = `${next[0]}|${homeName}|${awayName}`;
   }
   const preview = mine ? st.filter(t => Math.abs(t.rank - mine.rank) <= 2) : st.slice(0, 5);
   const rows = preview.slice().sort((a,b) => a.rank-b.rank).map(t => `<tr class="${t.team === me ? "mine" : ""}"><td>${t.rank}</td><td>${t.team === me ? "★ " : ""}${esc(t.team)}</td><td class="num">${t.p}</td><td class="num">${t.gf}</td><td class="num">${t.ga}</td><td class="num">${t.gf-t.ga > 0 ? "+" : ""}${t.gf-t.ga}</td><td class="num"><b>${t.pts}</b></td></tr>`).join("");
@@ -1748,7 +1753,7 @@ function renderRound() {
     const p = picks[m.key], f = m.f;
     const mineE = me && m.effects.find(e => e.team === me && e.swing >= 1);
     const btn = (o, lab) => `<button type="button" data-pick="${o}" data-key="${esc(m.key)}" aria-pressed="${p === o}">${esc(lab)}</button>`;
-    return `<div class="mrow${p != null ? " picked" : ""}">
+    return `<div class="mrow${p != null ? " picked" : ""}" data-key="${esc(m.key)}">
       <span class="mdate">${f[0].slice(5).replace("-", ".")} (${dow(f[0])})${f[1] !== foc.rd ? ` · ${f[1]}R 연기` : ""}</span>
       <span class="mteams">${esc(f[2])} <small>vs</small> ${esc(f[3])}${hotKeys.has(m.key) ? '<span class="hot">빅매치</span>' : ""}</span>
       ${wdlBar(m.probs)}
@@ -2158,6 +2163,25 @@ document.addEventListener("click", e => {
   if (e.target.id === "navScrim") { closeNav(); return; }
   const b = e.target.closest("button, tr.team"); if (!b) return;
   if (b.hasAttribute("data-dashboard-select")) { $("myTeam").focus(); $("myTeam").click(); return; }
+  if (b.dataset.focusMatch) {
+    const [date, home, away] = b.dataset.focusMatch.split("|");
+    goPage("round");
+    requestAnimationFrame(() => {
+      const rows = [...document.querySelectorAll("#matchList .mrow")];
+      const target = rows.find(row => {
+        const key = row.dataset.key || "";
+        return key === `${date}|${home}|${away}`;
+      });
+      rows.forEach(row => row.classList.remove("focus-target"));
+      if (target) {
+        target.classList.add("focus-target");
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else {
+        $("matchList").scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+    return;
+  }
   if (b.id === "navToggle") {
     const open = !document.body.classList.contains("nav-open");
     document.body.classList.toggle("nav-open", open);
