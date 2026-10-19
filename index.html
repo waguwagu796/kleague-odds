@@ -543,7 +543,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
       <div class="dash-actions"><button type="button" class="ghost" data-go-page="standings">전체 순위표</button><button type="button" class="primary" data-go-page="round">라운드 프리뷰</button></div>
     </section>
     <div class="dash-grid">
-      <section class="dash-panel"><div class="dash-panel-head"><h2 id="dashTeamHeading">내 팀</h2><button type="button" class="dash-link" data-go-page="standings">팀 상세 보기 →</button></div><div id="dashTeam"><p class="dash-empty">데이터를 불러오는 중입니다.</p></div></section>
+      <section class="dash-panel"><div class="dash-panel-head"><h2 id="dashTeamHeading">응원 팀</h2><button type="button" id="dashTeamDetailBtn" class="dash-link" data-team-page="" hidden>팀 상세 보기 →</button></div><div id="dashTeam"><p class="dash-empty">데이터를 불러오는 중입니다.</p></div></section>
       <section class="dash-panel"><div class="dash-panel-head"><h2>가장 가까운 경기</h2><button type="button" class="dash-link" data-go-page="round">경기 분석 →</button></div><div id="dashNext"><p class="dash-empty">경기 정보를 불러오는 중입니다.</p></div></section>
     </div>
     <section class="dash-panel"><div class="dash-panel-head"><h2>리그 순위 미리보기</h2><button type="button" class="dash-link" data-go-page="standings">전체 순위표 →</button></div><div id="dashStandings" class="dash-table"><p class="dash-empty">순위 정보를 불러오는 중입니다.</p></div></section>
@@ -1338,10 +1338,16 @@ function renderDashboard() {
   const fixtures = (d.fixtures || []).filter(f => f[1] != null).slice().sort((a,b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
   const next = me ? fixtures.find(f => f[2] === me || f[3] === me) : fixtures[0];
   const lgName = league === "k1" ? "K리그1" : "K리그2";
-  $("dashIntro").textContent = `${lgName} · ${d.asOf || "기준일 정보 없음"} 기준${me ? ` · ${me} 중심으로 표시 중` : " · 내 팀을 선택하면 팀별 정보가 표시됩니다"}`;
-  $("dashTeamHeading").textContent = me ? `MY TEAM · ${me}` : "내 팀 설정";
+  $("dashIntro").textContent = `${lgName} · ${d.asOf || "기준일 정보 없음"} 기준${me ? ` · ${me} 중심으로 표시 중` : " · 리그 전체 현황을 먼저 살펴보고 응원 팀을 설정해 보세요"}`;
+  $("dashTeamHeading").textContent = mine ? `MY TEAM · ${me}` : "나만의 대시보드 설정";
+  const teamDetailBtn = $("dashTeamDetailBtn");
+  teamDetailBtn.hidden = !mine;
+  if (mine) teamDetailBtn.dataset.teamPage = me;
+  else delete teamDetailBtn.dataset.teamPage;
+  const heroTitle = document.querySelector("#page-dashboard .dash-title");
+  if (heroTitle) heroTitle.textContent = mine ? `${me}의 시즌 현황` : "K리그 현황을 한눈에";
   if (!mine) {
-    $("dashTeam").innerHTML = `<div class="dash-empty">응원 팀을 선택하면 순위, 승점, 득점·실점과 최근 경기 흐름을 이곳에서 확인할 수 있습니다.</div><button type="button" class="primary" data-dashboard-select>내 팀 선택하기</button>`;
+    $("dashTeam").innerHTML = `<div class="dash-team-name">응원 팀을 등록해 보세요</div><p class="dash-empty">팀을 선택하면 순위와 승점, 득점·실점, 최근 5경기 흐름, 시즌 전망을 한곳에서 확인할 수 있습니다.</p><button type="button" class="primary" data-dashboard-select>응원 팀 선택하기</button><p class="dash-team-sub" style="margin-top:10px">선택한 팀은 이 브라우저에 저장되며, 상단의 리그 선택에 따라 K리그1·K리그2를 각각 설정할 수 있습니다.</p>`;
   } else {
     const gd = mine.gf - mine.ga;
     const form = recent.map(f => `<i class="${f.r}" title="${esc(f.date)} ${esc(f.opp)} ${f.my}-${f.op}">${f.r === "W" ? "승" : f.r === "D" ? "무" : "패"}</i>`).join("") || '<span class="dash-team-sub">최근 경기 기록 없음</span>';
