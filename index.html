@@ -152,6 +152,9 @@ button:focus-visible, tr.team:focus-visible { outline: 2px solid var(--accent); 
 .sum em { font-style: normal; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
 
 .tablebox { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+.compare-better { background: color-mix(in srgb, #16a34a 10%, var(--surface)); color: #15803d; font-weight: 800; }
+.compare-better::after { content: " ✓"; font-size: 11px; color: #16a34a; }
+.compare-legend { margin: 8px 0 0; color: var(--muted); font-size: 12px; }
 table { width: 100%; border-collapse: collapse; }
 #main-table { min-width: 1200px; }
 th, td { padding: 9px 9px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
@@ -1460,11 +1463,22 @@ function renderComparePage() {
   const a=teams.find(t=>t.team===aName), b=teams.find(t=>t.team===bName), out=root.querySelector('#compareResult');
   if(!a||!b||aName===bName){out.innerHTML='<p class="empty">서로 다른 두 팀을 선택해 주세요.</p>';}
   else {
-    const rows=[['현재 순위',`${a.rank}위`,`${b.rank}위`],['경기 수',a.p,b.p],['승점',a.pts,b.pts],['승',a.w,b.w],['무',a.d,b.d],['패',a.l,b.l],['득점',a.gf,b.gf],['실점',a.ga,b.ga],['득실차',(a.gf-a.ga>0?'+':'')+(a.gf-a.ga),(b.gf-b.ga>0?'+':'')+(b.gf-b.ga)]];
+    const rows=[
+      {label:'현재 순위',av:`${a.rank}위`,bv:`${b.rank}위`,an:Number(a.rank),bn:Number(b.rank),lower:true},
+      {label:'경기 수',av:a.p,bv:b.p,an:Number(a.p),bn:Number(b.p)},
+      {label:'승점',av:a.pts,bv:b.pts,an:Number(a.pts),bn:Number(b.pts)},
+      {label:'승',av:a.w,bv:b.w,an:Number(a.w),bn:Number(b.w)},
+      {label:'무',av:a.d,bv:b.d,an:Number(a.d),bn:Number(b.d)},
+      {label:'패',av:a.l,bv:b.l,an:Number(a.l),bn:Number(b.l),lower:true},
+      {label:'득점',av:a.gf,bv:b.gf,an:Number(a.gf),bn:Number(b.gf)},
+      {label:'실점',av:a.ga,bv:b.ga,an:Number(a.ga),bn:Number(b.ga),lower:true},
+      {label:'득실차',av:(a.gf-a.ga>0?'+':'')+(a.gf-a.ga),bv:(b.gf-b.ga>0?'+':'')+(b.gf-b.ga),an:Number(a.gf)-Number(a.ga),bn:Number(b.gf)-Number(b.ga)}
+    ];
+    const betterClass=(r,side)=>{const av=r.an,bv=r.bn;if(!Number.isFinite(av)||!Number.isFinite(bv)||av===bv)return '';const aWins=r.lower?av<bv:av>bv;return (side==='a'?aWins:!aWins)?'compare-better':'';};
     const results=(d.results||[]).filter(g=>(g[2]===aName&&g[3]===bName)||(g[2]===bName&&g[3]===aName)).sort((x,y)=>String(y[0]).localeCompare(String(x[0])));
     let aw=0,ad=0,al=0,agf=0,aga=0; results.forEach(g=>{const isHome=g[2]===aName, gf=Number(isHome?g[4]:g[5]),ga=Number(isHome?g[5]:g[4]);agf+=gf;aga+=ga;if(gf>ga)aw++;else if(gf===ga)ad++;else al++;});
     const avgA=results.length?(agf/results.length).toFixed(2):'—',avgB=results.length?(aga/results.length).toFixed(2):'—';
-    out.innerHTML=`<div class="tablebox"><table><thead><tr><th>비교 항목</th><th>${teamNameHtml(aName)}</th><th>${teamNameHtml(bName)}</th></tr></thead><tbody>${rows.map(r=>`<tr><th>${r[0]}</th><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</tbody></table></div>
+    out.innerHTML=`<div class="tablebox"><table><thead><tr><th>비교 항목</th><th>${teamNameHtml(aName)}</th><th>${teamNameHtml(bName)}</th></tr></thead><tbody>${rows.map(r=>`<tr><th>${r.label}</th><td class="${betterClass(r,'a')}">${r.av}</td><td class="${betterClass(r,'b')}">${r.bv}</td></tr>`).join('')}</tbody></table></div><p class="compare-legend">초록색 표시와 ✓는 해당 항목에서 더 나은 기록입니다. 동률인 항목은 표시하지 않습니다.</p>
       <section class="panel" style="margin-top:16px"><h3>이번 시즌 맞대결</h3><p class="meta">${results.length?`총 ${results.length}경기 · ${aName} 기준 ${aw}승 ${ad}무 ${al}패`:'이번 시즌 맞대결 결과 데이터가 없습니다.'}</p>
       <div class="summary"><div><span>${esc(aName)} 평균 득점</span><b>${avgA}</b></div><div><span>${esc(bName)} 평균 득점</span><b>${avgB}</b></div></div>
       ${results.length?`<div class="tablebox"><table><thead><tr><th>날짜</th><th>라운드</th><th>경기</th><th>결과</th></tr></thead><tbody>${results.map(g=>`<tr><td>${esc(g[0]||'—')}</td><td>${esc(String(g[1]??'—'))}</td><td>${teamNameHtml(g[2])} vs ${teamNameHtml(g[3])}</td><td><b>${g[4]} - ${g[5]}</b></td></tr>`).join('')}</tbody></table></div>`:''}</section>`;
