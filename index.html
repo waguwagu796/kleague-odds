@@ -485,6 +485,22 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
   .dist-mobile { display: block; }
 }
 
+/* LMB 하위 메뉴: 응원 작전실 아래의 팀 비교 바로가기 */
+.lmb nav a.lmb-subnav { margin: -3px 0 5px 10px; padding: 7px 10px 7px 12px; border-left: 2px solid var(--line); border-radius: 0 8px 8px 0; color: var(--muted); font-size: 12.5px; }
+.lmb nav a.lmb-subnav:hover, .lmb nav a.lmb-subnav:focus-visible { color: var(--fg); border-left-color: var(--accent); background: var(--surface); }
+/* 팀 비교 선택기: 기본 브라우저 드롭다운보다 강조된 카드형 UI */
+.compare-pickers { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); gap: 12px; align-items: stretch; margin: 16px 0 20px; }
+.compare-pick-card { min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(145deg, var(--surface), var(--bg)); box-shadow: 0 4px 14px rgba(0,0,0,.045); transition: border-color .15s, box-shadow .15s; }
+.compare-pick-card:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent); }
+.compare-pick-label { display: block; margin-bottom: 9px; color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.compare-pick-control { position: relative; display: flex; align-items: center; gap: 9px; }
+.compare-pick-swatch { flex: 0 0 12px; width: 12px; height: 12px; border: 1px solid rgba(127,127,127,.35); border-radius: 50%; background: var(--accent); }
+.compare-pick-card select { width: 100%; min-width: 0; appearance: none; -webkit-appearance: none; border: 0; outline: 0; padding: 5px 25px 5px 0; background: transparent; color: var(--fg); font: inherit; font-size: 15px; font-weight: 750; cursor: pointer; }
+.compare-pick-card select option { background: var(--surface); color: var(--fg); }
+.compare-pick-chevron { position: absolute; right: 1px; pointer-events: none; color: var(--muted); font-size: 15px; }
+.compare-vs-badge { align-self: center; display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 50%; background: var(--surface); color: var(--muted); font-size: 11px; font-weight: 900; letter-spacing: .04em; }
+@media(max-width:600px) { .compare-pickers { grid-template-columns: minmax(0,1fr); gap: 8px; } .compare-pick-card { padding: 12px 13px; } .compare-vs-badge { width: 30px; height: 30px; margin: -2px auto; } }
+
 /* 로고 링크: 사이드바 로고와 상단 제목을 누르면 홈으로 */
 /* 사이드바 상단 헤더: 로고는 왼쪽, 접기 버튼은 같은 줄 오른쪽 */
 .lmb-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -525,6 +541,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
     <a href="#dashboard">대시보드</a>
     <a href="#standings">순위표</a>
     <a href="#cheer">응원 작전실</a>
+    <a href="#compare" class="lmb-subnav">↳ 팀 간 상대 전적 비교</a>
     <a href="#round">라운드 프리뷰·만약에</a>
     <a href="#dist">최종 순위 분포</a>
     <a href="#sched">남은 일정 난이도</a>
@@ -1429,7 +1446,19 @@ function renderComparePage() {
   const savedB = root.querySelector('#compareB')?.value || teams.find(t=>t.team!==savedA)?.team || teams[1]?.team || '';
   const opts = selected => teams.map(t=>`<option value="${esc(t.team)}" ${t.team===selected?'selected':''}>${esc(t.team)}</option>`).join('');
   root.innerHTML = `<div class="section-head"><div><h2>팀 간 상대 전적 비교</h2><p class="meta">${league==='k1'?'K리그1':'K리그2'} · ${esc(d.asOf||'')} 기준</p></div><button type="button" class="ghost" data-go-page="standings">순위표</button></div>
-    <div class="controls" style="margin:12px 0;flex-wrap:wrap"><label>팀 A <select id="compareA">${opts(savedA)}</select></label><span aria-hidden="true">VS</span><label>팀 B <select id="compareB">${opts(savedB)}</select></label></div><div id="compareResult"></div>`;
+    <div class="compare-pickers" aria-label="비교할 팀 선택">
+      <div class="compare-pick-card"><label class="compare-pick-label" for="compareA">TEAM A · 첫 번째 팀</label><div class="compare-pick-control"><i class="compare-pick-swatch" id="compareASwatch" aria-hidden="true"></i><select id="compareA">${opts(savedA)}</select><span class="compare-pick-chevron" aria-hidden="true">⌄</span></div></div>
+      <span class="compare-vs-badge" aria-hidden="true">VS</span>
+      <div class="compare-pick-card"><label class="compare-pick-label" for="compareB">TEAM B · 두 번째 팀</label><div class="compare-pick-control"><i class="compare-pick-swatch" id="compareBSwatch" aria-hidden="true"></i><select id="compareB">${opts(savedB)}</select><span class="compare-pick-chevron" aria-hidden="true">⌄</span></div></div>
+    </div><div id="compareResult"></div>`;
+  const updateSwatches = () => {
+    [['compareA','compareASwatch'],['compareB','compareBSwatch']].forEach(([selectId,swatchId]) => {
+      const select = root.querySelector('#'+selectId), swatch = root.querySelector('#'+swatchId);
+      const cfg = TEAM_COLORS[select.value] || Object.entries(TEAM_COLORS).find(([team]) => team.replace(/[\s·._-]/g,'').toLowerCase() === select.value.replace(/[\s·._-]/g,'').toLowerCase())?.[1];
+      if (swatch) swatch.style.background = cfg ? (cfg.gradient || cfg.color) : 'var(--accent)';
+    });
+  };
+  updateSwatches();
   const aName=root.querySelector('#compareA').value, bName=root.querySelector('#compareB').value;
   const a=teams.find(t=>t.team===aName), b=teams.find(t=>t.team===bName), out=root.querySelector('#compareResult');
   if(!a||!b||aName===bName){out.innerHTML='<p class="empty">서로 다른 두 팀을 선택해 주세요.</p>';}
