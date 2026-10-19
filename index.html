@@ -1305,7 +1305,20 @@ function render() {
     const b = best("champ"), p = best("promo");
     cards.push(["우승 후보 1순위", b.t.team, pct(b)], ["최종 승격 가능성 최고", p.t.team, pct(p)]);
   }
-  cards.push(["남은 일정", (d.fixtures || []).length + "경기", league === "k1" && !d.results.some(r => r[6]) && !(d.fixtures || []).some(f => f[4]) ? "+ 파이널 라운드 30경기" : "정규 라운드"]);
+  // 선택한 팀이 시즌 종료까지 치러야 하는 잔여 경기 수를 표시한다.
+  // K리그1에서 파이널 라운드 대진이 아직 확정되지 않았다면,
+  // 정규 라운드 잔여 경기 외에 팀당 파이널 라운드 5경기를 더한다.
+  const splitPending = league === "k1"
+    && !d.results.some(r => r[6])
+    && !(d.fixtures || []).some(f => f[4]);
+  const myRemainingFixtures = me
+    ? (d.fixtures || []).filter(f => f[2] === me || f[3] === me).length + (splitPending ? 5 : 0)
+    : null;
+  cards.push([
+    "내 팀의 잔여 경기",
+    me ? `${myRemainingFixtures}경기` : "팀 미선택",
+    me ? `${me}의 시즌 종료까지 남은 경기 수` : "상단에서 내 팀을 선택해 주세요."
+  ]);
   const mt = me && st.find(t => t.team === me);
   if (mt) {
     const exempt = (d.format || {}).noPlayoffTeam;
