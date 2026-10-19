@@ -63,6 +63,10 @@
 .dash-shortcut span { color:var(--muted); font-size:12px; line-height:1.45; }
 .dash-empty { padding:18px 0; color:var(--muted); }
 @media(max-width:760px){ .dash-grid { grid-template-columns:1fr; } .dash-team-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } .dash-shortcuts { grid-template-columns:1fr; } .dash-shortcut { min-height:0; } .dash-hero { padding:17px; } }
+
+/* 구단별 팀 컬러: 단색은 글자색, 복수 색상은 글자 안에 컬러 패턴으로 표현 */
+.team-color-name { font-weight: inherit; -webkit-text-stroke: .25px var(--surface); paint-order: stroke fill; }
+.team-color-name.tname { font-weight: 800; }
 </style>
 </head>
 <body class="app">
@@ -1127,6 +1131,44 @@ const MAGIC = {
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const TEAM_COLORS = {
+  "강원FC": { color: "#e85d24" }, "강원": { color: "#e85d24" },
+  "광주FC": { color: "#d5a800" }, "광주": { color: "#d5a800" },
+  "김천상무": { color: "#c92735" }, "김천": { color: "#c92735" },
+  "대구FC": { color: "#00a5df" }, "대구": { color: "#00a5df" },
+  "대전하나시티즌": { color: "#6f2da8" }, "대전": { color: "#6f2da8" },
+  "부천FC1995": { color: "#d71920" }, "부천": { color: "#d71920" },
+  "FC서울": { gradient: "repeating-linear-gradient(90deg,#202020 0 4px,#d71920 4px 8px)" },
+  "수원FC": { gradient: "repeating-linear-gradient(90deg,#d71920 0 4px,#17479e 4px 8px)" },
+  "울산HD": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#f2c500 50% 100%)" },
+  "울산 HD": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#f2c500 50% 100%)" },
+  "인천유나이티드": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#202020 50% 100%)" },
+  "인천": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#202020 50% 100%)" },
+  "전북현대": { color: "#00843d" }, "전북": { color: "#00843d" },
+  "제주SK": { color: "#e87522" }, "제주SK FC": { color: "#e87522" }, "제주": { color: "#e87522" },
+  "포항스틸러스": { gradient: "repeating-linear-gradient(180deg,#d71920 0 3px,#202020 3px 6px)" },
+  "포항": { gradient: "repeating-linear-gradient(180deg,#d71920 0 3px,#202020 3px 6px)" },
+  "경남FC": { gradient: "linear-gradient(90deg,#d71920 0 50%,#202020 50% 100%)" }, "경남": { gradient: "linear-gradient(90deg,#d71920 0 50%,#202020 50% 100%)" },
+  "김포FC": { color: "#16834a" }, "김포": { color: "#16834a" },
+  "부산아이파크": { gradient: "linear-gradient(90deg,#d71920 0 50%,#202020 50% 100%)" }, "부산": { gradient: "linear-gradient(90deg,#d71920 0 50%,#202020 50% 100%)" },
+  "서울이랜드": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#202020 50% 100%)" }, "서울E": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#202020 50% 100%)" },
+  "수원삼성": { gradient: "linear-gradient(90deg,#0755a6 0 50%,#d71920 50% 100%)" }, "수원삼성블루윙즈": { gradient: "linear-gradient(90deg,#0755a6 0 50%,#d71920 50% 100%)" },
+  "성남FC": { color: "#303030" }, "성남": { color: "#303030" },
+  "안산그리너스": { color: "#16834a" }, "안산": { color: "#16834a" },
+  "충남아산": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#f2c500 50% 100%)" }, "충남아산FC": { gradient: "linear-gradient(90deg,#0875c9 0 50%,#f2c500 50% 100%)" },
+  "충북청주": { gradient: "linear-gradient(90deg,#16834a 0 50%,#202020 50% 100%)" }, "충북청주FC": { gradient: "linear-gradient(90deg,#16834a 0 50%,#202020 50% 100%)" },
+  "천안시티FC": { color: "#168dcc" }, "천안": { color: "#168dcc" },
+  "전남드래곤즈": { color: "#d5a800" }, "전남": { color: "#d5a800" },
+  "화성FC": { color: "#d94a32" }, "화성": { color: "#d94a32" },
+  "파주 프런티어 FC": { color: "#e87522" }, "파주": { color: "#e87522" },
+  "용인FC": { color: "#0875c9" }, "용인": { color: "#0875c9" },
+  "안양": { color: "#6f2da8" }, "FC안양": { color: "#6f2da8" }, "FC 안양": { color: "#6f2da8" }
+};
+function teamNameHtml(name, extraClass = "") {
+  const cfg = TEAM_COLORS[String(name ?? "")];
+  const style = cfg ? (cfg.gradient ? `background-image:${cfg.gradient};background-clip:text;-webkit-background-clip:text;color:transparent;-webkit-text-fill-color:transparent;` : `color:${cfg.color};`) : "";
+  return `<span class="team-color-name${extraClass ? ` ${extraClass}` : ""}"${style ? ` style="${style}"` : ""}>${esc(name)}</span>`;
+}
 const DATA = { k1: null, k2: null, h1: null, h2: null };
 let SIM = null, BT = null, HISTORY = [], league = "k1", openTeam = null, selectedTeamPage = null, metric = "champ", customSeed = false;
 const CHEER_GOALS = { k1: [{ key: "champ", label: "우승" }, { key: "acle", label: "ACLE권" }, { key: "finalA", label: "파이널A" }, { key: "safe", source: "po", inverse: true, label: "잔류" }], k2: [{ key: "champ", label: "우승" }, { key: "auto", label: "자동 승격" }, { key: "top6", label: "PO권" }, { key: "promo", label: "최종 승격" }] };
@@ -1348,7 +1390,7 @@ function renderTeamPage() {
   const t = d.standings.find(x => x.team === selectedTeamPage), r = SIM[league][selectedTeamPage];
   if (!t || !r) { root.innerHTML = `<p class="empty">이 팀의 정보를 찾을 수 없어요.</p><button type="button" class="ghost" data-go-page="standings">순위표로 돌아가기</button>`; return; }
   const zones = ZONES[league], dec = decided(d, league)[t.team], form = lastN(d.results, t.team, 5).reverse();
-  root.innerHTML = `<div class="team-page-head"><button type="button" class="ghost" data-go-page="standings">← 순위표</button><div><span class="meta">${league === "k1" ? "K리그1" : "K리그2"} · ${d.asOf || ""} 기준</span><h2>${esc(t.team)}</h2><p>${t.rank}위 · ${t.p}경기 · ${t.pts}점 · 득실 ${t.gf - t.ga > 0 ? "+" : ""}${t.gf - t.ga}</p></div></div>
+  root.innerHTML = `<div class="team-page-head"><button type="button" class="ghost" data-go-page="standings">← 순위표</button><div><span class="meta">${league === "k1" ? "K리그1" : "K리그2"} · ${d.asOf || ""} 기준</span><h2>${teamNameHtml(t.team)}</h2><p>${t.rank}위 · ${t.p}경기 · ${t.pts}점 · 득실 ${t.gf - t.ga > 0 ? "+" : ""}${t.gf - t.ga}</p></div></div>
     <div class="team-page-probs">${zones.map(z => `<article><span>${esc(z.label)}</span><b>${ptxt(r[z.key] / SIM.N * 100, dec[z.key])}</b><i><b style="width:${Math.max(0, Math.min(100, r[z.key] / SIM.N * 100))}%"></b></i></article>`).join("")}</div>
     <div class="team-page-form"><b>최근 5경기</b><span class="form">${form.map(f => `<i class="${f.r}" title="${esc(f.date)} ${f.my}-${f.op}">${f.r === "W" ? "승" : f.r === "D" ? "무" : "패"}</i>`).join("") || "기록 없음"}</span></div>
     <h3 class="sub">일정·전력·최종 순위 전망</h3>${detailInner(d, t, r)}`;
@@ -1380,7 +1422,7 @@ function renderDashboard() {
     const form = recent.map(f => `<i class="${f.r}" title="${esc(f.date)} ${esc(f.opp)} ${f.my}-${f.op}">${f.r === "W" ? "승" : f.r === "D" ? "무" : "패"}</i>`).join("") || '<span class="dash-team-sub">최근 경기 기록 없음</span>';
     const probs = SIM[league][me];
     const zones = ZONES[league].slice(0, 2).map(z => `${z.label} ${fmtP(probs[z.key] / SIM.N * 100)}`).join(" · ");
-    $("dashTeam").innerHTML = `<div class="dash-team-name">${esc(me)} <span class="dash-team-sub">${mine.rank}위</span></div><div class="dash-team-sub">${mine.p}경기 · ${mine.w ?? ""}${mine.w != null ? "승" : ""}${mine.d != null ? ` ${mine.d}무` : ""}${mine.l != null ? ` ${mine.l}패` : ""}</div><div class="dash-team-stats"><div class="dash-stat"><span>승점</span><b>${mine.pts}</b></div><div class="dash-stat"><span>득점</span><b>${mine.gf}</b></div><div class="dash-stat"><span>실점</span><b>${mine.ga}</b></div><div class="dash-stat"><span>득실차</span><b>${gd > 0 ? "+" : ""}${gd}</b></div></div><div class="dash-form"><span class="dash-form-label">최근 5경기</span><span class="form">${form}</span></div><p class="dash-team-sub">시즌 전망 · ${esc(zones || "확률 정보 없음")}</p>`;
+    $("dashTeam").innerHTML = `<div class="dash-team-name">${teamNameHtml(me)} <span class="dash-team-sub">${mine.rank}위</span></div><div class="dash-team-sub">${mine.p}경기 · ${mine.w ?? ""}${mine.w != null ? "승" : ""}${mine.d != null ? ` ${mine.d}무` : ""}${mine.l != null ? ` ${mine.l}패` : ""}</div><div class="dash-team-stats"><div class="dash-stat"><span>승점</span><b>${mine.pts}</b></div><div class="dash-stat"><span>득점</span><b>${mine.gf}</b></div><div class="dash-stat"><span>실점</span><b>${mine.ga}</b></div><div class="dash-stat"><span>득실차</span><b>${gd > 0 ? "+" : ""}${gd}</b></div></div><div class="dash-form"><span class="dash-form-label">최근 5경기</span><span class="form">${form}</span></div><p class="dash-team-sub">시즌 전망 · ${esc(zones || "확률 정보 없음")}</p>`;
   }
   if (!next) {
     $("dashNext").innerHTML = `<div class="dash-empty">현재 등록된 남은 경기가 없습니다.</div>`;
@@ -1402,13 +1444,13 @@ function renderDashboard() {
         probLine = `<div class="dash-team-sub" style="margin-top:9px">내 팀 기준 승 ${Math.round(p[0]*100)}% · 무 ${Math.round(p[1]*100)}% · 패 ${Math.round(p[2]*100)}%</div>`;
       }
     }
-    $("dashNext").innerHTML = `<div class="dash-fixture"><div><div class="dash-fixture-team">${esc(homeName)}</div><div class="dash-fixture-meta">홈</div></div><span class="dash-vs">VS</span><div><div class="dash-fixture-team">${esc(awayName)}</div><div class="dash-fixture-meta" style="text-align:right">원정</div></div></div><div class="dash-fixture-meta">${esc(date)}${me && !isMyFixture ? " · 내 팀 경기 외 가장 가까운 일정" : ""}</div>${probLine}`;
+    $("dashNext").innerHTML = `<div class="dash-fixture"><div><div class="dash-fixture-team">${teamNameHtml(homeName)}</div><div class="dash-fixture-meta">홈</div></div><span class="dash-vs">VS</span><div><div class="dash-fixture-team">${teamNameHtml(awayName)}</div><div class="dash-fixture-meta" style="text-align:right">원정</div></div></div><div class="dash-fixture-meta">${esc(date)}${me && !isMyFixture ? " · 내 팀 경기 외 가장 가까운 일정" : ""}</div>${probLine}`;
     const focusBtn = $("dashFocusMatch");
     focusBtn.hidden = false;
     focusBtn.dataset.focusMatch = `${next[0]}|${homeName}|${awayName}`;
   }
   const preview = mine ? st.filter(t => Math.abs(t.rank - mine.rank) <= 2) : st.slice(0, 5);
-  const rows = preview.slice().sort((a,b) => a.rank-b.rank).map(t => `<tr class="${t.team === me ? "mine" : ""}"><td>${t.rank}</td><td>${t.team === me ? "★ " : ""}${esc(t.team)}</td><td class="num">${t.p}</td><td class="num">${t.gf}</td><td class="num">${t.ga}</td><td class="num">${t.gf-t.ga > 0 ? "+" : ""}${t.gf-t.ga}</td><td class="num"><b>${t.pts}</b></td></tr>`).join("");
+  const rows = preview.slice().sort((a,b) => a.rank-b.rank).map(t => `<tr class="${t.team === me ? "mine" : ""}"><td>${t.rank}</td><td>${t.team === me ? "★ " : ""}${teamNameHtml(t.team)}</td><td class="num">${t.p}</td><td class="num">${t.gf}</td><td class="num">${t.ga}</td><td class="num">${t.gf-t.ga > 0 ? "+" : ""}${t.gf-t.ga}</td><td class="num"><b>${t.pts}</b></td></tr>`).join("");
   $("dashStandings").innerHTML = `<table><thead><tr><th>순위</th><th>팀</th><th>경기</th><th>득점</th><th>실점</th><th>득실차</th><th>승점</th></tr></thead><tbody>${rows}</tbody></table>${mine ? `<p class="dash-team-sub" style="margin:10px 0 0">내 팀 순위를 기준으로 위아래 2개 팀을 표시합니다.</p>` : `<p class="dash-team-sub" style="margin:10px 0 0">상위 5개 팀을 표시합니다. 내 팀을 선택하면 해당 팀 주변 순위로 바뀝니다.</p>`}`;
 }
 
@@ -1480,7 +1522,7 @@ function render() {
     const row = `<tr class="team${t.team === me ? " mine" : ""}" data-team="${esc(t.team)}" aria-expanded="${openTeam === t.team}" tabindex="0">
       <td class="zone" style="background:${zoneColor(league, i, n)}"></td>
       <td class="rank">${t.rank}</td>
-      <td class="sticky">${t.team === me ? '<span class="star" title="내 팀">★</span>' : ""}<span class="tname">${esc(t.team)}</span></td>
+      <td class="sticky">${t.team === me ? '<span class="star" title="내 팀">★</span>' : ""}${teamNameHtml(t.team, "tname")}</td>
       <td class="num">${t.p}</td><td class="num"><b>${t.pts}</b></td><td class="num">${t.gf}</td><td class="num">${t.ga}</td><td class="num">${t.gf - t.ga > 0 ? "+" : ""}${t.gf - t.ga}</td>
       <td><span class="form">${form.map(f => `<i class="${f.r}" title="${esc(f.date)} ${f.home ? "홈" : "원정"} ${esc(f.opp)} ${f.my}-${f.op}">${f.r === "W" ? "승" : f.r === "D" ? "무" : "패"}</i>`).join("")}</span></td>
       <td class="num">${r.exp.toFixed(1)}</td>
@@ -1498,7 +1540,7 @@ function render() {
     const gd = t.gf - t.ga;
     return `<article class="tcard${open ? " open" : ""}${t.team === me ? " mine" : ""}" style="--zone:${zc === "transparent" ? "var(--line)" : zc}">
       <button type="button" class="tcard-head" data-team="${esc(t.team)}" aria-expanded="${open}">
-        <span class="rank">${t.rank}</span>${t.team === me ? '<span class="star">★</span>' : ""}<span class="tname">${esc(t.team)}</span>
+        <span class="rank">${t.rank}</span>${t.team === me ? '<span class="star">★</span>' : ""}${teamNameHtml(t.team, "tname")}
         <span class="tcard-pts"><b class="num">${t.pts}</b>점</span><span class="chev" aria-hidden="true">▼</span>
       </button>
       <div class="tcard-meta"><span>${t.p}경기 · 득점 ${t.gf} · 실점 ${t.ga} · 득실차 ${gd > 0 ? "+" : ""}${gd} · 예상 ${r.exp.toFixed(1)}점</span>
@@ -1665,8 +1707,8 @@ const wdlBar = p => `<div class="wdl"><div class="bar"><i style="width:${p[0] * 
   <div class="lab"><span>홈승 ${Math.round(p[0] * 100)}%</span><span>무 ${Math.round(p[1] * 100)}%</span><span>원정승 ${Math.round(p[2] * 100)}%</span></div></div>`;
 function effLine(e, f, lg, mine) {
   const v = x => x == null ? "-" : fmtP(x);
-  return `<div class="eff"><span class="who">${mine ? '<span class="star">★</span>' : ""}${esc(e.team)} ${ZSHORT[lg][e.k]} 확률</span>
-    <span class="vals"><span>${esc(f[2])} 승 <b>${v(e.p[0])}</b></span><span>무 <b>${v(e.p[1])}</b></span><span>${esc(f[3])} 승 <b>${v(e.p[2])}</b></span></span></div>`;
+  return `<div class="eff"><span class="who">${mine ? '<span class="star">★</span>' : ""}${teamNameHtml(e.team)} ${ZSHORT[lg][e.k]} 확률</span>
+    <span class="vals"><span>${teamNameHtml(f[2])} 승 <b>${v(e.p[0])}</b></span><span>무 <b>${v(e.p[1])}</b></span><span>${teamNameHtml(f[3])} 승 <b>${v(e.p[2])}</b></span></span></div>`;
 }
 
 function renderCheer() {
@@ -1748,7 +1790,7 @@ function renderMyPreview() {
   const strongest = probs ? Math.max(...probs) : 0;
   const outlook = probs ? (strongest === probs[0] ? "모델上 가장 유력한 결과는 승리입니다." : strongest === probs[1] ? "모델上 가장 유력한 결과는 무승부입니다." : "모델上 가장 유력한 결과는 패배입니다.") : "";
   $("myPreviewIntro").textContent = `${me}의 가장 가까운 남은 경기`;
-  root.innerHTML = `<div class="my-preview-match"><div class="my-preview-side"><span class="my-preview-team">${esc(f[2])}</span><span class="my-preview-sub">${home ? "내 팀 · 홈" : "상대 팀 · 홈"}</span></div><span class="my-preview-vs">VS</span><div class="my-preview-side"><span class="my-preview-team">${esc(f[3])}</span><span class="my-preview-sub">${home ? "상대 팀 · 원정" : "내 팀 · 원정"}</span></div></div><div class="my-preview-meta">${esc(dateText)} · ${home ? "홈 경기" : "원정 경기"}</div><div class="my-preview-probs">${probHtml}</div><div class="my-preview-form"><b>최근 5경기</b><span class="form">${formHtml}</span></div><p class="my-preview-note">${esc(outlook)} 확률은 현재 등록된 경기 결과로 추정한 모델 예측이며 실제 결과를 보장하지 않습니다.</p>`;
+  root.innerHTML = `<div class="my-preview-match"><div class="my-preview-side"><span class="my-preview-team">${teamNameHtml(f[2])}</span><span class="my-preview-sub">${home ? "내 팀 · 홈" : "상대 팀 · 홈"}</span></div><span class="my-preview-vs">VS</span><div class="my-preview-side"><span class="my-preview-team">${teamNameHtml(f[3])}</span><span class="my-preview-sub">${home ? "상대 팀 · 원정" : "내 팀 · 원정"}</span></div></div><div class="my-preview-meta">${esc(dateText)} · ${home ? "홈 경기" : "원정 경기"}</div><div class="my-preview-probs">${probHtml}</div><div class="my-preview-form"><b>최근 5경기</b><span class="form">${formHtml}</span></div><p class="my-preview-note">${esc(outlook)} 확률은 현재 등록된 경기 결과로 추정한 모델 예측이며 실제 결과를 보장하지 않습니다.</p>`;
 }
 
 function renderRound() {
@@ -1771,7 +1813,7 @@ function renderRound() {
     const show = m.effects.filter(e => e.swing >= 1.5).slice(0, 2);
     const mine = me && !show.some(e => e.team === me) && m.effects.find(e => e.team === me && e.swing >= 1);
     return `<article class="bigc"><span class="tag">빅매치 ${i + 1}</span>
-      <h3>${esc(m.f[2])} vs ${esc(m.f[3])}<small>${m.f[0].slice(5).replace("-", ".")} (${dow(m.f[0])}) · ${esc(m.f[2])} 홈</small></h3>
+      <h3>${teamNameHtml(m.f[2])} <span class="vs-inline">vs</span> ${teamNameHtml(m.f[3])}<small>${m.f[0].slice(5).replace("-", ".")} (${dow(m.f[0])}) · ${esc(m.f[2])} 홈</small></h3>
       ${wdlBar(m.probs)}
       ${show.map(e => effLine(e, m.f, league, e.team === me)).join("")}${mine ? effLine(mine, m.f, league, true) : ""}
     </article>`;
@@ -1784,10 +1826,10 @@ function renderRound() {
     const btn = (o, lab) => `<button type="button" data-pick="${o}" data-key="${esc(m.key)}" aria-pressed="${p === o}">${esc(lab)}</button>`;
     return `<div class="mrow${p != null ? " picked" : ""}" data-key="${esc(m.key)}">
       <span class="mdate">${f[0].slice(5).replace("-", ".")} (${dow(f[0])})${f[1] !== foc.rd ? ` · ${f[1]}R 연기` : ""}</span>
-      <span class="mteams">${esc(f[2])} <small>vs</small> ${esc(f[3])}${hotKeys.has(m.key) ? '<span class="hot">빅매치</span>' : ""}</span>
+      <span class="mteams">${teamNameHtml(f[2])} <small>vs</small> ${teamNameHtml(f[3])}${hotKeys.has(m.key) ? '<span class="hot">빅매치</span>' : ""}</span>
       ${wdlBar(m.probs)}
       <span class="pick" role="group" aria-label="${esc(f[2])} 대 ${esc(f[3])} 결과 선택">${btn(0, f[2] + " 승")}${btn(1, "무")}${btn(2, f[3] + " 승")}</span>
-      ${mineE ? `<span class="mnote"><span class="star">★</span>${esc(me)} ${ZSHORT[league][mineE.k]}: ${esc(f[2])} 승 <b>${fmtP(mineE.p[0] ?? 0)}</b> · 무 <b>${fmtP(mineE.p[1] ?? 0)}</b> · ${esc(f[3])} 승 <b>${fmtP(mineE.p[2] ?? 0)}</b></span>` : ""}
+      ${mineE ? `<span class="mnote"><span class="star">★</span>${esc(me)} ${ZSHORT[league][mineE.k]}: ${teamNameHtml(f[2])} 승 <b>${fmtP(mineE.p[0] ?? 0)}</b> · 무 <b>${fmtP(mineE.p[1] ?? 0)}</b> · ${teamNameHtml(f[3])} 승 <b>${fmtP(mineE.p[2] ?? 0)}</b></span>` : ""}
     </div>`;
   }).join("");
   renderWhatif();
@@ -1847,7 +1889,7 @@ function renderWhatif() {
     <p><b>가정:</b> ${assumed.map(esc).join(", ")}. 지금 확률 → 이 결과일 때 확률입니다(같은 시드로 ${w.sim.N.toLocaleString()}번).</p>
     ${chips.length ? `<div class="changes">${chips.map(([t, c]) => `<span class="chip${c ? " " + c : ""}">${esc(t)}</span>`).join("")}</div>` : ""}
     <div class="tablebox"><table><thead><tr><th>팀</th>${zones.map(z => `<th>${z.label}</th>`).join("")}</tr></thead><tbody>
-      ${shown.map(r => `<tr${r.t.team === me ? ' class="mine"' : ""}><td>${r.t.team === me ? '<span class="star">★</span>' : ""}<b>${esc(r.t.team)}</b> <small class="rank">${r.t.rank}위</small></td>${r.cells.map(c => `<td>${c.html}</td>`).join("")}</tr>`).join("")}
+      ${shown.map(r => `<tr${r.t.team === me ? ' class="mine"' : ""}><td>${r.t.team === me ? '<span class="star">★</span>' : ""}<b>${teamNameHtml(r.t.team)}</b> <small class="rank">${r.t.rank}위</small></td>${r.cells.map(c => `<td>${c.html}</td>`).join("")}</tr>`).join("")}
     </tbody></table></div>
     ${hidden ? `<p>확률 변화가 0.5%p 미만인 ${hidden}팀은 생략했어요.</p>` : ""}`;
 }
@@ -1879,11 +1921,11 @@ function renderDist() {
     const mode = ps.indexOf(Math.max(...ps));
     const probs = ps.map((p, i) => `<div class="dist-prob${i === t.rank - 1 ? " current" : ""}"><span>${i + 1}위</span><b>${p.toFixed(1)}%</b><i><em style="width:${Math.max(0, Math.min(100, p))}%"></em></i></div>`).join("");
     return {
-      desktop: `<tr${t.team === me ? ' class="mine"' : ""}><td class="tn">${t.team === me ? "★ " : ""}${esc(t.team)}</td>${ps.map((p, i) => {
+      desktop: `<tr${t.team === me ? ' class="mine"' : ""}><td class="tn">${t.team === me ? "★ " : ""}${teamNameHtml(t.team)}</td>${ps.map((p, i) => {
         const a = p > 0 ? Math.min(1, Math.sqrt(p / 100)) : 0;
         return `<td class="h${sep(i)}${i === t.rank - 1 ? " cur" : ""}" style="background:color-mix(in srgb, var(--bar) ${(a * 100).toFixed(0)}%, transparent);${a > 0.55 ? "color:#fff" : ""}" title="${esc(t.team)} ${i + 1}위 ${p.toFixed(1)}%">${cell(p)}</td>`;
       }).join("")}<td class="mode">${mode + 1}위 <small>${fmtP(ps[mode])}</small></td></tr>`,
-      mobile: `<details class="dist-team"${t.team === me ? " open" : ""}><summary><span class="dist-team-name">${t.team === me ? "★ " : ""}${esc(t.team)}<small>현재 ${t.rank}위</small></span><span class="dist-team-mode"><b>최빈 순위 ${mode + 1}위</b><small>${fmtP(ps[mode])}</small></span><span class="dist-chevron" aria-hidden="true">⌄</span></summary><div class="dist-detail"><p class="dist-detail-title">순위별 확률 <span>현재 순위는 테두리로 표시</span></p><div class="dist-prob-grid">${probs}</div></div></details>`
+      mobile: `<details class="dist-team"${t.team === me ? " open" : ""}><summary><span class="dist-team-name">${t.team === me ? "★ " : ""}${teamNameHtml(t.team)}<small>현재 ${t.rank}위</small></span><span class="dist-team-mode"><b>최빈 순위 ${mode + 1}위</b><small>${fmtP(ps[mode])}</small></span><span class="dist-chevron" aria-hidden="true">⌄</span></summary><div class="dist-detail"><p class="dist-detail-title">순위별 확률 <span>현재 순위는 테두리로 표시</span></p><div class="dist-prob-grid">${probs}</div></div></details>`
     };
   });
   $("dist").innerHTML = `<div class="dist-desktop"><div class="tablebox"><table class="heat"><thead><tr><th class="tn">팀</th>${st.map((_, i) => `<th class="${sep(i)}">${i + 1}위</th>`).join("")}<th>가장 유력</th></tr></thead><tbody>${rows.map(r => r.desktop).join("")}</tbody></table></div></div>
@@ -1916,7 +1958,7 @@ function renderSched() {
     const [tl, tc] = tier(i), w = 12 + 88 * (hi - r.e) / span;
     return `<div class="srow${r.t.team === me ? " mine" : ""}">
       <span class="rank">${r.t.rank}</span>
-      <span>${r.t.team === me ? '<span class="star">★</span>' : ""}<span class="tname">${esc(r.t.team)}</span></span>
+      <span>${r.t.team === me ? '<span class="star">★</span>' : ""}<span class="tname">${teamNameHtml(r.t.team, "tname")}</span></span>
       <span class="sbar" title="경기당 ${r.e.toFixed(2)}점 (리그 평균 팀 기준)"><b style="width:${w}%;background:${tc}"></b></span>
       <span class="sv"><span class="tier" style="background:${tc}">${tl}</span>경기당 <b>${r.e.toFixed(2)}</b>점 · ${r.n}경기</span>
       <span class="opps">${r.opps.map(esc).join(" · ")} — 이 팀 전력으로 예상 +${r.own.toFixed(1)}점</span>
