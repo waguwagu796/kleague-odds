@@ -110,7 +110,7 @@ button:focus-visible, tr.team:focus-visible { outline: 2px solid var(--accent); 
 
 .tablebox { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; }
-#main-table { min-width: 1120px; }
+#main-table { min-width: 1200px; }
 th, td { padding: 9px 9px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
 th { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: .02em; background: var(--surface); }
 th.grp { text-align: center; border-bottom: 0; padding-bottom: 0; font-size: 11.5px; letter-spacing: .06em; }
@@ -1328,8 +1328,8 @@ function render() {
   }
   $("summary").innerHTML = cards.map(([a, b, c, cls]) => `<div class="sum${cls ? " " + cls : ""}"><span>${esc(a)}</span><b>${esc(b)}</b><em>${esc(c)}</em></div>`).join("");
 
-  const ncols = 8 + mags.length + zones.length;
-  $("thead").innerHTML = `<tr><th class="zone"></th><th>순위</th><th class="sticky">팀</th><th>경기</th><th>승점</th><th>득실</th><th>최근 5경기</th><th>예상 승점</th>
+  const ncols = 10 + mags.length + zones.length;
+  $("thead").innerHTML = `<tr><th class="zone"></th><th>순위</th><th class="sticky">팀</th><th>경기</th><th>승점</th><th>득점</th><th>실점</th><th>득실차</th><th>최근 5경기</th><th>예상 승점</th>
     ${mags.map(m => `<th${m.title ? ` title="${esc(m.title)}"` : ""}>${m.label}</th>`).join("")}
     ${zones.map(z => `<th class="p">${z.label}</th>`).join("")}</tr>`;
   $("tbody").innerHTML = st.map((t, i) => {
@@ -1339,7 +1339,7 @@ function render() {
       <td class="zone" style="background:${zoneColor(league, i, n)}"></td>
       <td class="rank">${t.rank}</td>
       <td class="sticky">${t.team === me ? '<span class="star" title="내 팀">★</span>' : ""}<span class="tname">${esc(t.team)}</span></td>
-      <td class="num">${t.p}</td><td class="num"><b>${t.pts}</b></td><td class="num">${t.gf - t.ga > 0 ? "+" : ""}${t.gf - t.ga}</td>
+      <td class="num">${t.p}</td><td class="num"><b>${t.pts}</b></td><td class="num">${t.gf}</td><td class="num">${t.ga}</td><td class="num">${t.gf - t.ga > 0 ? "+" : ""}${t.gf - t.ga}</td>
       <td><span class="form">${form.map(f => `<i class="${f.r}" title="${esc(f.date)} ${f.home ? "홈" : "원정"} ${esc(f.opp)} ${f.my}-${f.op}">${f.r === "W" ? "승" : f.r === "D" ? "무" : "패"}</i>`).join("")}</span></td>
       <td class="num">${r.exp.toFixed(1)}</td>
       ${mags.map(m => `<td>${magicCell(dc.m[m.key], SURE_LABEL[m.key])}</td>`).join("")}
@@ -1359,7 +1359,7 @@ function render() {
         <span class="rank">${t.rank}</span>${t.team === me ? '<span class="star">★</span>' : ""}<span class="tname">${esc(t.team)}</span>
         <span class="tcard-pts"><b class="num">${t.pts}</b>점</span><span class="chev" aria-hidden="true">▼</span>
       </button>
-      <div class="tcard-meta"><span>${t.p}경기 · 득실 ${gd > 0 ? "+" : ""}${gd} · 예상 ${r.exp.toFixed(1)}점</span>
+      <div class="tcard-meta"><span>${t.p}경기 · 득점 ${t.gf} · 실점 ${t.ga} · 득실차 ${gd > 0 ? "+" : ""}${gd} · 예상 ${r.exp.toFixed(1)}점</span>
         <span class="form">${form.map(f => `<i class="${f.r}" title="${esc(f.date)} ${f.home ? "홈" : "원정"} ${esc(f.opp)} ${f.my}-${f.op}">${f.r === "W" ? "승" : f.r === "D" ? "무" : "패"}</i>`).join("")}</span></div>
       <div class="tcard-probs">${zones.map(z => `<div><span class="lab">${z.label}</span>${(z.key === "po" && t.team === (d.format || {}).noPlayoffTeam) ? '<span class="mg off">해당 없음</span>' : pcCell(r[z.key], z.danger, dc[z.key])}</div>`).join("")}</div>
       <div class="tcard-magic">${mags.map(m => `<span>${m.label} ${magicCell(dc.m[m.key], SURE_LABEL[m.key])}</span>`).join("")}</div>
