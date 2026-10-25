@@ -146,6 +146,14 @@ button:focus-visible, tr.team:focus-visible { outline: 2px solid var(--accent); 
 .ghost:disabled { opacity: .5; cursor: default; }
 
 .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.champion-banner { display:grid; grid-template-columns:auto 1fr; align-items:center; gap:12px; padding:16px 18px; border:1px solid color-mix(in srgb, #d4a017 45%, var(--line)); border-left:4px solid #d4a017; border-radius:12px; background:linear-gradient(110deg,color-mix(in srgb,#d4a017 12%,var(--surface)),var(--surface)); color:var(--fg); }
+.champion-banner[hidden] { display:none; }
+.champion-mark { width:40px; height:40px; display:grid; place-items:center; border-radius:50%; background:color-mix(in srgb,#d4a017 18%,var(--surface)); color:#9a6700; font-size:22px; font-weight:800; }
+.champion-copy { display:grid; gap:3px; }
+.champion-copy strong { font-size:12px; letter-spacing:.04em; color:#946200; }
+.champion-copy b { font-family:var(--font-display); font-size:22px; font-weight:600; }
+.champion-copy span { color:var(--muted); font-size:12.5px; }
+@media(max-width:600px){ .champion-banner { padding:13px 14px; } .champion-copy b { font-size:19px; } }
 .sum { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; align-content: start; }
 .sum span { font-size: 12.5px; color: var(--muted); }
 .sum b { font-family: var(--font-display); font-weight: 400; font-size: 22px; }
@@ -595,6 +603,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
   </div>
 
   <div class="page" id="page-standings">
+  <section class="champion-banner" id="championBanner" hidden role="status" aria-live="polite"></section>
   <div class="summary" id="summary"></div>
 
   <div class="tablebox" id="mainBox">
@@ -1570,6 +1579,12 @@ function render() {
 
   const st = d.standings.slice().sort((a, b) => a.rank - b.rank);
   const dec = decided(d, league);
+  const champion = st.find(t => dec[t.team]?.m?.champ && !dec[t.team].m.champ.out && dec[t.team].m.champ.need <= 0);
+  const championBanner = $("championBanner");
+  if (championBanner) {
+    championBanner.hidden = !champion;
+    championBanner.innerHTML = champion ? `<span class="champion-mark" aria-hidden="true">★</span><div class="champion-copy"><strong>${league === "k1" ? "K리그1" : "K리그2"} 우승 확정</strong><b>${esc(champion.team)} 우승!</b><span>남은 경기 결과와 관계없이 우승을 확정했습니다.</span></div>` : "";
+  }
   const leader = st[0], lm = dec[leader.team].m.champ;
   const best = key => st.map(t => ({ t, v: res[t.team][key], s: dec[t.team][key] })).sort((a, b) => b.v - a.v)[0];
   const pct = b => b.s && b.s.sure ? "확정" : fmtP(b.v / SIM.N * 100);
