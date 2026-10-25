@@ -171,14 +171,22 @@ button:focus-visible, tr.team:focus-visible { outline: 2px solid var(--accent); 
 .ghost:disabled { opacity: .5; cursor: default; }
 
 .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-.champion-banner { display:grid; grid-template-columns:auto 1fr; align-items:center; gap:12px; padding:16px 18px; border:1px solid color-mix(in srgb, #d4a017 45%, var(--line)); border-left:4px solid #d4a017; border-radius:12px; background:linear-gradient(110deg,color-mix(in srgb,#d4a017 12%,var(--surface)),var(--surface)); color:var(--fg); }
+/* 우승 확정: 트로피·골드 글로우를 활용한 챔피언 세리머니 배너 */
+.champion-banner { position:relative; isolation:isolate; display:grid; grid-template-columns:76px minmax(0,1fr) auto; align-items:center; gap:18px; min-height:142px; overflow:hidden; padding:22px 26px; border:1px solid color-mix(in srgb,#e6bd55 58%,var(--line)); border-radius:16px; color:var(--fg); background:radial-gradient(ellipse at 8% 50%,color-mix(in srgb,#f4c85a 24%,transparent),transparent 42%),linear-gradient(115deg,color-mix(in srgb,#d9a52e 13%,var(--surface)),var(--surface) 72%); box-shadow:0 10px 28px rgba(166,119,23,.10); }
 .champion-banner[hidden] { display:none; }
-.champion-mark { width:40px; height:40px; display:grid; place-items:center; border-radius:50%; background:color-mix(in srgb,#d4a017 18%,var(--surface)); color:#9a6700; font-size:22px; font-weight:800; }
-.champion-copy { display:grid; gap:3px; }
-.champion-copy strong { font-size:12px; letter-spacing:.04em; color:#946200; }
-.champion-copy b { font-family:var(--font-display); font-size:22px; font-weight:600; }
-.champion-copy span { color:var(--muted); font-size:12.5px; }
-@media(max-width:600px){ .champion-banner { padding:13px 14px; } .champion-copy b { font-size:19px; } }
+.champion-banner::before { content:""; position:absolute; z-index:-1; width:220px; height:220px; right:9%; top:-115px; border:1px solid color-mix(in srgb,#d9a52e 25%,transparent); border-radius:50%; box-shadow:0 0 0 18px color-mix(in srgb,#d9a52e 5%,transparent),0 0 0 38px color-mix(in srgb,#d9a52e 4%,transparent); }
+.champion-banner::after { content:"✦  ·  ✧     ✦      ·  ✧"; position:absolute; z-index:-1; right:22px; bottom:14px; color:color-mix(in srgb,#d4a017 45%,var(--muted)); font-size:17px; letter-spacing:9px; opacity:.7; }
+.champion-mark { position:relative; width:76px; height:76px; display:grid; place-items:center; border:1px solid #e7c66c; border-radius:50%; background:linear-gradient(145deg,#fff4c7,#e3b84d 58%,#b98119); color:#6d4800; font-size:36px; box-shadow:0 5px 0 #9b6b16,0 9px 20px rgba(151,105,17,.2),inset 0 2px 4px rgba(255,255,255,.8); }
+.champion-copy { display:grid; gap:5px; min-width:0; }
+.champion-copy strong { color:#a87917; font-size:11px; font-weight:900; letter-spacing:.18em; }
+.champion-copy b { font-family:var(--font-display); font-size:clamp(23px,3vw,32px); font-weight:400; line-height:1.15; overflow-wrap:anywhere; }
+.champion-copy span { color:var(--muted); font-size:13px; }
+.champion-stamp { align-self:center; justify-self:end; display:grid; place-items:center; width:76px; height:76px; border:2px solid color-mix(in srgb,#d4a017 75%,var(--line)); border-radius:50%; color:#a87917; font-size:10px; font-weight:900; line-height:1.45; letter-spacing:.1em; text-align:center; transform:rotate(10deg); }
+.champion-stamp span { font-size:19px; line-height:1; }
+@keyframes champion-arrive { from { opacity:0; transform:translateY(8px) scale(.985); } to { opacity:1; transform:translateY(0) scale(1); } }
+.champion-banner:not([hidden]) { animation:champion-arrive .45s ease-out both; }
+@media(max-width:600px){ .champion-banner { grid-template-columns:54px minmax(0,1fr); gap:12px; min-height:112px; padding:16px 14px; } .champion-mark { width:54px; height:54px; font-size:27px; box-shadow:0 3px 0 #9b6b16,0 6px 13px rgba(151,105,17,.18); } .champion-copy b { font-size:21px; } .champion-copy span { font-size:12px; } .champion-stamp { display:none; } .champion-banner::after { right:6px; bottom:5px; font-size:12px; letter-spacing:5px; } }
+@media(prefers-reduced-motion:reduce){ .champion-banner:not([hidden]) { animation:none; } }
 .sum { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; align-content: start; }
 .sum span { font-size: 12.5px; color: var(--muted); }
 .sum b { font-family: var(--font-display); font-weight: 400; font-size: 22px; }
@@ -1618,7 +1626,7 @@ function render() {
   const championBanner = $("championBanner");
   if (championBanner) {
     championBanner.hidden = !champion;
-    championBanner.innerHTML = champion ? `<span class="champion-mark" aria-hidden="true">★</span><div class="champion-copy"><strong>${league === "k1" ? "K리그1" : "K리그2"} 우승 확정</strong><b>${esc(champion.team)} 우승!</b><span>남은 경기 결과와 관계없이 우승을 확정했습니다.</span></div>` : "";
+    championBanner.innerHTML = champion ? `<span class="champion-mark" aria-hidden="true">♛</span><div class="champion-copy"><strong>${league === "k1" ? "K LEAGUE 1" : "K LEAGUE 2"} · CHAMPIONS</strong><b>${esc(champion.team)} 우승 확정!</b><span>남은 경기 결과와 관계없이 정상에 올랐습니다.</span></div><div class="champion-stamp" aria-hidden="true"><span>★</span> TITLE<br>SECURED</div>` : "";
   }
   const leader = st[0], lm = dec[leader.team].m.champ;
   const best = key => st.map(t => ({ t, v: res[t.team][key], s: dec[t.team][key] })).sort((a, b) => b.v - a.v)[0];
