@@ -97,7 +97,7 @@
   --font-data: "IBM Plex Mono", ui-monospace, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-theme]):not([data-theme="light"]):not([data-theme="dark"]):not([data-theme="ocean"]):not([data-theme="forest"]):not([data-theme="purple"]) {
     --bg: #0b1120; --surface: #131b31; --fg: #e7ebf5; --muted: #98a2bd; --line: #26304d;
     --accent: #3f66e8; --accent-fg: #ffffff; --point: #ff5a4f; --bar: #5b86ff; --bar-bg: #222d4b;
     --win: #3fbf7a; --draw: #7f8aa3; --loss: #ff5a4f; --warn: #f2a33a;
@@ -109,6 +109,26 @@
   --accent: #3f66e8; --accent-fg: #ffffff; --point: #ff5a4f; --bar: #5b86ff; --bar-bg: #222d4b;
   --win: #3fbf7a; --draw: #7f8aa3; --loss: #ff5a4f; --warn: #f2a33a;
   --s1: #7f9cff; --s2: #ff5a4f; --s3: #4cc3ff; --s4: #f2a33a; --s5: #3fbf7a; --s6: #b98ae6; color-scheme: dark;
+}
+/* 사용자가 선택하는 테마 팔레트 */
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="ocean"] {
+  --bg:#071923; --surface:#102b3a; --fg:#e4f5fb; --muted:#9abac8; --line:#254858;
+  --accent:#00a6c7; --accent-fg:#031820; --point:#ff8066; --bar:#19b5d5; --bar-bg:#1d3c4b;
+  --win:#42c98b; --draw:#8ba4b1; --loss:#ff8066; --warn:#ffc15a;
+  --s1:#54d8ef; --s2:#ff8066; --s3:#65c8ff; --s4:#ffc15a; --s5:#42c98b; --s6:#c4a1ff; color-scheme:dark;
+}
+:root[data-theme="forest"] {
+  --bg:#101b16; --surface:#1a2b22; --fg:#e8f3e9; --muted:#a5b9a9; --line:#304739;
+  --accent:#4e9b68; --accent-fg:#ffffff; --point:#e5a34b; --bar:#67b77d; --bar-bg:#293f32;
+  --win:#67c98b; --draw:#8c9c91; --loss:#e87968; --warn:#e5a34b;
+  --s1:#8bd49b; --s2:#e87968; --s3:#76c9b0; --s4:#e5a34b; --s5:#67c98b; --s6:#c5a1e8; color-scheme:dark;
+}
+:root[data-theme="purple"] {
+  --bg:#191426; --surface:#251d38; --fg:#f0eafb; --muted:#b5a9cb; --line:#403452;
+  --accent:#9b7bea; --accent-fg:#ffffff; --point:#f080a0; --bar:#a58bf0; --bar-bg:#362b4a;
+  --win:#62c99b; --draw:#9588a8; --loss:#f080a0; --warn:#f3b85c;
+  --s1:#b8a3ff; --s2:#f080a0; --s3:#7ccfff; --s4:#f3b85c; --s5:#62c99b; --s6:#d0a4ff; color-scheme:dark;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -137,6 +157,11 @@ button:focus-visible, tr.team:focus-visible { outline: 2px solid var(--accent); 
 .meta { color: var(--muted); font-size: 13px; display: grid; gap: 2px; }
 .meta b { color: var(--fg); font-weight: 700; }
 .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+/* 우측 상단 테마 선택기 */
+.theme-control { display:inline-flex; align-items:center; gap:6px; color:var(--muted); font-size:12.5px; white-space:nowrap; }
+.theme-control select { min-height:38px; max-width:150px; padding:7px 30px 7px 10px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--fg); font:inherit; cursor:pointer; }
+.theme-control select option { background:var(--surface); color:var(--fg); }
+@media(max-width:760px) { .theme-control { flex:1 1 auto; } .theme-control select { flex:1; max-width:none; } }
 .tabs { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
 .tabs button { border: 0; background: transparent; color: var(--fg); padding: 8px 16px; font-weight: 500; }
 .tabs button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); }
@@ -346,7 +371,7 @@ tbody tr.team.mine td, #whatif tr.mine td { background: color-mix(in srgb, var(-
 .chip { border-radius: 999px; padding: 3px 11px; font-size: 12.5px; font-weight: 700; background: color-mix(in srgb, var(--accent) 12%, var(--surface)); color: var(--accent); }
 .chip.bad { background: color-mix(in srgb, var(--loss) 12%, var(--surface)); color: var(--loss); }
 :root[data-theme="dark"] .chip:not(.bad) { color: var(--s1); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .chip:not(.bad) { color: var(--s1); } }
+@media (prefers-color-scheme: dark) { :root:not([data-theme]):not([data-theme="light"]):not([data-theme="dark"]):not([data-theme="ocean"]):not([data-theme="forest"]):not([data-theme="purple"]) .chip:not(.bad) { color: var(--s1); } }
 #whatif { display: grid; gap: 10px; }
 #whatif:empty { display: none; }
 
@@ -576,6 +601,16 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
         <button type="button" id="tabK2" aria-pressed="false">K리그2</button>
       </div>
       <label class="mysel">내 팀 <select id="myTeam" aria-label="내 팀 선택"><option value="">선택 안 함</option></select></label>
+      <label class="theme-control" for="themeSelect">테마
+        <select id="themeSelect" aria-label="화면 테마 선택">
+          <option value="system">시스템 설정</option>
+          <option value="light">라이트</option>
+          <option value="dark">다크</option>
+          <option value="ocean">오션 블루</option>
+          <option value="forest">포레스트</option>
+          <option value="purple">퍼플</option>
+        </select>
+      </label>
       <button type="button" class="ghost" id="rerun" disabled>새 시드로 다시 계산</button>
     </div>
   </div>
@@ -2414,6 +2449,26 @@ $("myTeam").addEventListener("change", e => {
   try { localStorage.setItem("kl-odds-my-" + league, MY[league]); } catch {}
   render();
 });
+// 테마 선택: CSS 변수 팔레트를 바꾸고 브라우저에 저장해 다음 방문에도 유지한다
+const themeSelect = $("themeSelect");
+function applyTheme(theme, persist = false) {
+  // system은 data-theme 속성을 제거해 운영체제의 라이트/다크 설정을 따른다
+  if (theme === "system") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme", theme);
+  themeSelect.value = theme;
+  // 저장 기능을 사용할 수 없는 브라우저/비공개 모드에서도 테마 변경 자체는 동작한다
+  if (persist) {
+    try { localStorage.setItem("kl-odds-theme", theme); } catch {}
+  }
+}
+// 저장된 테마가 있으면 적용하고, 없으면 기존 시스템 설정을 유지한다
+let savedTheme = "system";
+try {
+  const storedTheme = localStorage.getItem("kl-odds-theme");
+  if (["system", "light", "dark", "ocean", "forest", "purple"].includes(storedTheme)) savedTheme = storedTheme;
+} catch {}
+applyTheme(savedTheme);
+themeSelect.addEventListener("change", e => applyTheme(e.target.value, true));
 let resizeTimer = null;
 window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(renderChart, 150); });
 $("lmb").addEventListener("click", e => {
