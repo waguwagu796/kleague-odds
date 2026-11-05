@@ -198,7 +198,7 @@ button:focus-visible, tr.team:focus-visible { outline: 2px solid var(--accent); 
 
 .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
 /* 우승 확정: 트로피·골드 글로우를 활용한 챔피언 세리머니 배너 */
-.champion-banner { position:relative; isolation:isolate; display:grid; grid-template-columns:76px minmax(0,1fr) auto; align-items:center; gap:18px; min-height:142px; overflow:hidden; padding:22px 26px; border:1px solid color-mix(in srgb,#e6bd55 58%,var(--line)); border-radius:16px; color:var(--fg); background:radial-gradient(ellipse at 8% 50%,color-mix(in srgb,#f4c85a 24%,transparent),transparent 42%),linear-gradient(115deg,color-mix(in srgb,#d9a52e 13%,var(--surface)),var(--surface) 72%); box-shadow:0 10px 28px rgba(166,119,23,.10); }
+.champion-banner { position:relative; isolation:isolate; display:grid; grid-template-columns:76px minmax(0,1fr) auto; align-items:center; gap:18px; min-height:142px; overflow:hidden; padding:22px 26px; border:1px solid color-mix(in srgb,var(--champion-primary,#d4a017) 58%,var(--line)); border-radius:16px; color:var(--fg); background:radial-gradient(ellipse at 8% 50%,color-mix(in srgb,var(--champion-primary,#d4a017) 24%,transparent),transparent 42%),radial-gradient(ellipse at 92% 15%,color-mix(in srgb,var(--champion-secondary,var(--champion-primary,#d4a017)) 17%,transparent),transparent 44%),linear-gradient(115deg,color-mix(in srgb,var(--champion-primary,#d4a017) 13%,var(--surface)),var(--surface) 72%); box-shadow:0 10px 28px color-mix(in srgb,var(--champion-primary,#d4a017) 16%,transparent); }
 .champion-banner[hidden] { display:none; }
 .champion-banner::before { content:""; position:absolute; z-index:-1; width:220px; height:220px; right:9%; top:-115px; border:1px solid color-mix(in srgb,#d9a52e 25%,transparent); border-radius:50%; box-shadow:0 0 0 18px color-mix(in srgb,#d9a52e 5%,transparent),0 0 0 38px color-mix(in srgb,#d9a52e 4%,transparent); }
 .champion-banner::after { content:"✦  ·  ✧     ✦      ·  ✧"; position:absolute; z-index:-1; right:22px; bottom:14px; color:color-mix(in srgb,#d4a017 45%,var(--muted)); font-size:17px; letter-spacing:9px; opacity:.7; }
@@ -1362,6 +1362,84 @@ const MAGIC = {
   k2: [{ key: "champ", label: "우승까지" }, { key: "auto", label: "자동승격까지", title: "2위 이내를 확정하려면 더 따야 하는 승점" }, { key: "top6", label: "PO권까지", title: "6위 이내(플레이오프 진출 이상)를 확정하려면 더 따야 하는 승점" }],
 };
 
+// 구단별 K리그 우승 횟수 기준값(2025시즌 종료 기준).
+// K리그1과 K리그2 우승은 서로 다른 대회 기록이므로 분리해서 관리합니다.
+// 구단명 변경 및 공식적으로 승계되는 전신 구단 기록은 현재 구단에 합산합니다.
+const LEAGUE_TITLE_COUNTS = {
+  k1: {
+    "전북현대모터스": 10, "전북현대": 10, "전북": 10,
+    "FC서울": 6, "서울": 6, "서울FC": 6,
+    "성남FC": 7, "성남일화천마": 7, "성남": 7,
+    "울산HD": 5, "울산현대": 5, "울산": 5,
+    "포항스틸러스": 5, "포항": 5,
+    "수원삼성블루윙즈": 4, "수원삼성": 4,
+    "부산아이파크": 4, "부산": 4, "부산대우로얄즈": 4,
+    "제주SK": 1, "제주SKFC": 1, "제주유나이티드": 1, "제주": 1,
+    "강원FC": 0, "강원": 0, "광주FC": 0, "광주": 0,
+    "김천상무": 0, "김천": 0, "대구FC": 0, "대구": 0,
+    "대전하나시티즌": 0, "대전": 0, "인천유나이티드": 0, "인천": 0,
+    "수원FC": 0, "수원": 0, "FC안양": 0, "안양": 0
+  },
+  k2: {
+    "광주FC": 2, "광주": 2, "상주상무": 2, "상주": 2,
+    "김천상무": 2, "김천": 2, "대전하나시티즌": 1, "대전시티즌": 1, "대전": 1,
+    "안산무궁화": 1, "안산": 1, "경남FC": 1, "경남": 1,
+    "아산무궁화": 1, "아산": 1, "제주SK": 1, "제주유나이티드": 1, "제주": 1,
+    "FC안양": 1, "안양": 1, "인천유나이티드": 1, "인천": 1,
+    "강원FC": 0, "강원": 0, "대구FC": 0, "대구": 0,
+    "부산아이파크": 0, "부산": 0, "수원FC": 0,
+    "성남FC": 0, "성남": 0, "충남아산": 0, "충남아산FC": 0,
+    "수원삼성": 0, "수원삼성블루윙즈": 0, "전남드래곤즈": 0, "전남": 0,
+    "서울이랜드": 0, "서울E": 0, "김포FC": 0, "김포": 0,
+    "천안시티FC": 0, "천안": 0, "충북청주": 0, "충북청주FC": 0,
+    "화성FC": 0, "화성": 0, "파주프런티어FC": 0, "파주": 0,
+    "용인FC": 0, "용인": 0
+  }
+};
+
+// 우승 확정 카드에 사용할 구단 대표색 1~2개. 미등록 구단은 기존 금색 테마를 유지합니다.
+const CHAMPION_PALETTE = {
+  "강원FC": ["#e85d24", "#202020"], "강원": ["#e85d24", "#202020"],
+  "광주FC": ["#d5a800", "#202020"], "광주": ["#d5a800", "#202020"],
+  "김천상무": ["#c92735", "#202020"], "김천": ["#c92735", "#202020"],
+  "대구FC": ["#00a5df", "#202020"], "대구": ["#00a5df", "#202020"],
+  "대전하나시티즌": ["#6f2da8", "#d71920"], "대전": ["#6f2da8", "#d71920"],
+  "FC서울": ["#202020", "#d71920"], "서울": ["#202020", "#d71920"],
+  "수원FC": ["#d71920", "#17479e"], "수원삼성": ["#0755a6", "#ffffff"],
+  "울산HD": ["#0875c9", "#f2c500"], "울산 HD": ["#0875c9", "#f2c500"], "울산현대": ["#0875c9", "#f2c500"],
+  "인천유나이티드": ["#0875c9", "#202020"], "인천": ["#0875c9", "#202020"],
+  "전북현대": ["#00843d", "#ffffff"], "전북": ["#00843d", "#ffffff"],
+  "제주SK": ["#e87522", "#202020"], "제주": ["#e87522", "#202020"],
+  "포항스틸러스": ["#d71920", "#202020"], "포항": ["#d71920", "#202020"],
+  "경남FC": ["#d71920", "#202020"], "경남": ["#d71920", "#202020"],
+  "부산아이파크": ["#d71920", "#202020"], "부산": ["#d71920", "#202020"],
+  "서울이랜드": ["#0875c9", "#202020"], "서울E": ["#0875c9", "#202020"],
+  "성남FC": ["#202020", "#ffffff"], "성남": ["#202020", "#ffffff"],
+  "안산그리너스": ["#16834a", "#202020"], "안산": ["#16834a", "#202020"],
+  "충남아산": ["#0875c9", "#f2c500"], "충남아산FC": ["#0875c9", "#f2c500"],
+  "전남드래곤즈": ["#d5a800", "#202020"], "전남": ["#d5a800", "#202020"],
+  "FC안양": ["#6f2da8", "#202020"], "안양": ["#6f2da8", "#202020"]
+};
+
+// 이름 표기 차이를 제거해 같은 구단의 우승 횟수와 색상을 찾습니다.
+function normalizeClubKey(name) {
+  return String(name ?? "").replace(/[\s·._-]/g, "").toLowerCase();
+}
+
+// 미등록 팀을 임의로 0회 처리하지 않고 null로 반환해 데이터 오류를 방지합니다.
+function getLeagueTitleCount(lg, teamName) {
+  const source = LEAGUE_TITLE_COUNTS[lg] || {};
+  const key = normalizeClubKey(teamName);
+  const match = Object.entries(source).find(([name]) => normalizeClubKey(name) === key);
+  return match ? match[1] : null;
+}
+
+function getChampionColors(teamName) {
+  const key = normalizeClubKey(teamName);
+  const match = Object.entries(CHAMPION_PALETTE).find(([name]) => normalizeClubKey(name) === key);
+  return match ? match[1] : ["#d4a017", "#b98119"];
+}
+
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const TEAM_COLORS = {
@@ -1787,7 +1865,22 @@ function render() {
   const championBanner = $("championBanner");
   if (championBanner) {
     championBanner.hidden = !champion;
-    championBanner.innerHTML = champion ? `<span class="champion-mark" aria-hidden="true">♛</span><div class="champion-copy"><strong>${league === "k1" ? "K LEAGUE 1" : "K LEAGUE 2"} · CHAMPIONS</strong><b>${esc(champion.team)} 우승 확정!</b><span>남은 경기 결과와 관계없이 정상에 올랐습니다.</span></div><div class="champion-stamp" aria-hidden="true"><span>★</span> TITLE<br>SECURED</div>` : "";
+    if (champion) {
+      // 현재 시즌 우승을 기존 통산 우승 횟수에 1회 더해 이번 우승의 순번을 계산합니다.
+      const pastTitles = getLeagueTitleCount(league, champion.team);
+      const titleNumber = pastTitles === null ? null : pastTitles + 1;
+      const [primary, secondary] = getChampionColors(champion.team);
+      championBanner.style.setProperty("--champion-primary", primary);
+      championBanner.style.setProperty("--champion-secondary", secondary);
+      const titleLine = titleNumber === null
+        ? "통산 우승 횟수 확인 필요"
+        : `통산 ${titleNumber}번째 ${league === "k1" ? "K리그1" : "K리그2"} 우승`;
+      championBanner.innerHTML = `<span class="champion-mark" aria-hidden="true">♛</span><div class="champion-copy"><strong>${league === "k1" ? "K LEAGUE 1" : "K LEAGUE 2"} · CHAMPIONS</strong><b>${esc(champion.team)} 우승 확정!</b><span>${titleLine} · 남은 경기 결과와 관계없이 정상에 올랐습니다.</span></div><div class="champion-stamp" aria-hidden="true"><span>${titleNumber === null ? "★" : `${titleNumber}th`}</span> TITLE<br>SECURED</div>`;
+    } else {
+      championBanner.innerHTML = "";
+      championBanner.style.removeProperty("--champion-primary");
+      championBanner.style.removeProperty("--champion-secondary");
+    }
   }
   const leader = st[0], lm = dec[leader.team].m.champ;
   const best = key => st.map(t => ({ t, v: res[t.team][key], s: dec[t.team][key] })).sort((a, b) => b.v - a.v)[0];
