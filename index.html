@@ -589,6 +589,31 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
 
+
+/* 역대 기록 경신 전망 */
+.records-intro { color: var(--muted); line-height: 1.7; margin: 4px 0 16px; }
+.record-kpis { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; margin: 14px 0 20px; }
+.record-kpi { border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: var(--panel2); }
+.record-kpi span { display:block; color:var(--muted); font-size:12px; }
+.record-kpi b { display:block; margin-top:7px; font-size:22px; }
+.record-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:14px 0 20px; }
+.record-card { border:1px solid var(--line); border-radius:12px; padding:14px; min-width:0; }
+.record-card h3 { font-size:14px; margin:0 0 9px; }
+.record-card .record-value { font-size:22px; font-weight:800; }
+.record-card .record-sub { color:var(--muted); font-size:12px; margin-top:5px; line-height:1.6; }
+.record-card .record-prob { margin-top:10px; font-size:13px; }
+.record-card .record-prob b { font-size:17px; }
+.record-status { display:inline-block; margin-top:8px; border-radius:6px; padding:4px 7px; background:var(--panel2, var(--panel)); color:var(--muted); font-size:11px; font-weight:700; }
+.record-status.strong { color:var(--good,#16834a); }
+.record-status.warn { color:var(--accent,#d58b00); }
+.record-table-wrap { overflow-x:auto; }
+.record-table { width:100%; border-collapse:collapse; min-width:650px; }
+.record-table th,.record-table td { padding:10px 9px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap; }
+.record-table th:first-child,.record-table td:first-child { text-align:left; }
+.record-table thead { color:var(--muted); font-size:12px; }
+.record-footnote { color:var(--muted); font-size:12px; line-height:1.7; margin-top:14px; }
+@media(max-width:700px){.record-grid{grid-template-columns:1fr}.record-kpis{grid-template-columns:1fr}}
+
 /* 비공식 서비스·면책 안내 */
 .site-disclaimer { margin: 24px 0 18px; padding: 14px 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; line-height: 1.7; }
 .site-disclaimer summary { cursor: pointer; color: var(--fg); font-size: 12px; font-weight: 700; }
@@ -612,6 +637,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
     <a href="#cheer">응원 작전실</a>
     <a href="#compare">팀 간 상대 전적 비교</a>
     <a href="#playoffs">승격·강등 플레이오프</a>
+    <a href="#records">역대 기록 경신 전망</a>
     <a href="#round">라운드 프리뷰·만약에</a>
     <a href="#dist">최종 순위 분포</a>
     <a href="#sched">남은 일정 난이도</a>
@@ -666,6 +692,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
       <button type="button" class="dash-shortcut" data-go-page="cheer"><strong>응원 작전실</strong><span>내 팀을 기준으로 이번 라운드에서 응원할 결과와 경우의 수를 살펴봅니다.</span></button>
       <button type="button" class="dash-shortcut" data-go-page="compare"><strong>팀 간 상대 전적 비교</strong><span>두 팀의 시즌 성적과 이번 시즌 맞대결 기록을 비교합니다.</span></button>
       <button type="button" class="dash-shortcut" data-go-page="playoffs"><strong>승격·강등 플레이오프</strong><span>50,000회 시뮬레이션으로 플레이오프 진출, 승격, 잔류·강등 가능성을 확인합니다.</span></button>
+      <button type="button" class="dash-shortcut" data-go-page="records"><strong>역대 기록 경신 전망</strong><span>시즌 최종 기록의 기대값과 확인된 역대 기록 경신 가능성을 살펴봅니다.</span></button>
       <button type="button" class="dash-shortcut" data-go-page="round"><strong>라운드 프리뷰 · 만약에</strong><span>라운드 전체 경기 전망을 확인하고, 경기 결과에 따른 순위 변화를 계산합니다.</span></button>
       <button type="button" class="dash-shortcut" data-go-page="dist"><strong>최종 순위 분포</strong><span>시즌 종료 시 각 팀이 순위별로 마칠 확률을 확인합니다.</span></button>
       <button type="button" class="dash-shortcut" data-go-page="sched"><strong>남은 일정 난이도</strong><span>각 팀의 남은 경기 난이도와 상대 전력, 홈·원정 조건을 비교합니다.</span></button>
@@ -690,6 +717,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
   <div class="page" id="page-team" hidden><section class="panel team-page-content" id="teamPage"></section></div>
   <div class="page" id="page-compare" hidden><section class="panel" id="comparePage"></section></div>
   <div class="page" id="page-playoffs" hidden><section class="panel" id="playoffsPage"></section></div>
+  <div class="page" id="page-records" hidden><section class="panel" id="recordsPage"></section></div>
   <div class="page" id="page-cheer" hidden><section class="panel" id="cheer"></section></div>
   <div class="page" id="page-round" hidden>
   <section class="panel" id="roundPanel">
@@ -935,8 +963,17 @@ function makeCtx(doc, P, opt) {
   const asOf = opt.cutoff || doc.asOf;
   const model = fitModel(teams, known, asOf, P);
   const pts = new Int32Array(n), gf = new Int32Array(n), ga = new Int32Array(n), w = new Int32Array(n), hc = new Int32Array(n);
+  // 기존 경기의 무승부·패배 수도 최종 기록 평균에 포함하기 위해 별도로 집계한다.
+  const draws = new Int32Array(n), losses = new Int32Array(n), played = new Int32Array(n);
   const h2h = new Int32Array(n * n);
-  known.forEach(r => applyRes(ix[r[2]], ix[r[3]], r[4], r[5], n, pts, gf, ga, w, h2h));
+  known.forEach(r => {
+    const h = ix[r[2]], a = ix[r[3]];
+    applyRes(h, a, r[4], r[5], n, pts, gf, ga, w, h2h);
+    played[h]++; played[a]++;
+    if (r[4] === r[5]) { draws[h]++; draws[a]++; }
+    else if (r[4] < r[5]) losses[h]++;
+    else losses[a]++;
+  });
   known.forEach(r => hc[ix[r[2]]]++);
   regFix.forEach(f => hc[f[0]]++);
   let groupA = null;
@@ -945,7 +982,7 @@ function makeCtx(doc, P, opt) {
   (opt.cutoff ? [] : (doc.fixtures || [])).filter(f => f[4] === "A").forEach(f => { aTeams.add(ix[f[2]]); aTeams.add(ix[f[3]]); });
   if (aTeams.size) groupA = aTeams;
   return {
-    teams, n, ix, split, regFix, finFix, groupA, pts, gf, ga, w, h2h, hc,
+    teams, n, ix, split, regFix, finFix, groupA, pts, gf, ga, w, draws, losses, played, h2h, hc,
     att: teams.map(t => model.R[t].att), def: teams.map(t => model.R[t].def),
     seA: teams.map(t => model.R[t].seA), seD: teams.map(t => model.R[t].seD),
     mu: model.mu, home: model.home, away: model.away, rho: model.rho,
@@ -986,6 +1023,8 @@ const outcomeOf = (x, y) => x > y ? 0 : x === y ? 1 : 2;
 function simOnce(c, rnd, outBuf) {
   const n = c.n;
   const pts = c.pts.slice(), gf = c.gf.slice(), ga = c.ga.slice(), w = c.w.slice(), h2h = c.h2h.slice();
+  // 승·무·패를 각각 누적해 시즌 최종 기록 전망에도 재사용한다.
+  const draws = c.draws.slice(), losses = c.losses.slice();
   const att = new Float64Array(n), def = new Float64Array(n);
   for (let i = 0; i < n; i++) { att[i] = c.att[i] * Math.exp(c.seA[i] * gauss(rnd)); def[i] = c.def[i] * Math.exp(c.seD[i] * gauss(rnd)); }
   const play = (h, a, forced, ti) => {
@@ -997,6 +1036,10 @@ function simOnce(c, rnd, outBuf) {
       [x, y] = sampleScore(l, m, c.rho, rnd);
     }
     if (ti >= 0 && outBuf) outBuf[ti] = outcomeOf(x, y);
+    // 순위 계산용 기존 누적 데이터에 더해 무승부·패배 수도 별도로 기록한다.
+    if (x === y) { draws[h]++; draws[a]++; }
+    else if (x < y) losses[h]++;
+    else losses[a]++;
     applyRes(h, a, x, y, n, pts, gf, ga, w, h2h);
   };
   for (const f of c.regFix) play(f[0], f[1], f[3] ?? -1, f[4] ?? -1);
@@ -1020,7 +1063,7 @@ function simOnce(c, rnd, outBuf) {
   } else {
     order = sortIdx(all, n, pts, gf, ga, w, h2h, rnd);
   }
-  return { order, pts, att, def };
+  return { order, pts, gf, ga, w, d: draws, l: losses, att, def };
 }
 
 /* ---------- 현재 시즌: 두 리그를 함께 시뮬레이션 ---------- */
@@ -1058,11 +1101,16 @@ function simulateCurrent(d1, d2, N, seed, onProgress, opts) {
   };
   const z = n => ({ posDist: new Float64Array(n * n), ptsSum: new Float64Array(n) });
   // 리그별 순위·플레이오프 단계별 진입 및 최종 결과를 누적한다.
-  const o1 = Object.assign(z(c1.n), {
+  const statArrays = n => ({
+    winsSum: new Float64Array(n), drawsSum: new Float64Array(n), lossesSum: new Float64Array(n),
+    goalsForSum: new Float64Array(n), goalsAgainstSum: new Float64Array(n),
+    recordWins: new Float64Array(n), recordPoints: new Float64Array(n)
+  });
+  const o1 = Object.assign(z(c1.n), statArrays(c1.n), {
     champ: new Float64Array(c1.n), acle: new Float64Array(c1.n), finalA: new Float64Array(c1.n),
     po: new Float64Array(c1.n), poSurvived: new Float64Array(c1.n), relegated: new Float64Array(c1.n), directRelegated: new Float64Array(c1.n)
   });
-  const o2 = Object.assign(z(c2.n), {
+  const o2 = Object.assign(z(c2.n), statArrays(c2.n), {
     champ: new Float64Array(c2.n), auto: new Float64Array(c2.n), top6: new Float64Array(c2.n), promo: new Float64Array(c2.n),
     poEntry: new Float64Array(c2.n), semiWin: new Float64Array(c2.n), final: new Float64Array(c2.n),
     finalWin: new Float64Array(c2.n), runnerUp: new Float64Array(c2.n), crossPO: new Float64Array(c2.n), crossWin: new Float64Array(c2.n)
@@ -1100,12 +1148,19 @@ function simulateCurrent(d1, d2, N, seed, onProgress, opts) {
     const s1 = simOnce(c1, rnd, ob1), s2 = simOnce(c2, rnd, ob2);
     s1.order.forEach((t, i) => {
       o1.posDist[t * c1.n + i]++; o1.ptsSum[t] += s1.pts[t];
+      o1.winsSum[t] += s1.w[t]; o1.drawsSum[t] += s1.d[t]; o1.lossesSum[t] += s1.l[t];
+      o1.goalsForSum[t] += s1.gf[t]; o1.goalsAgainstSum[t] += s1.ga[t];
       if (i === 0) { o1.champ[t]++; hit1[t * 4] = 1; }
       if (i < 2) { o1.acle[t]++; hit1[t * 4 + 1] = 1; }
       if (i < 6) { o1.finalA[t]++; hit1[t * 4 + 2] = 1; }
     });
     s2.order.forEach((t, i) => {
       o2.posDist[t * c2.n + i]++; o2.ptsSum[t] += s2.pts[t];
+      o2.winsSum[t] += s2.w[t]; o2.drawsSum[t] += s2.d[t]; o2.lossesSum[t] += s2.l[t];
+      o2.goalsForSum[t] += s2.gf[t]; o2.goalsAgainstSum[t] += s2.ga[t];
+      // 공식 K리그 자료에서 확인되는 K리그2 단일 시즌 최다승(25승)·최다 승점(86점) 경신 여부.
+      if (s2.w[t] > 25) o2.recordWins[t]++;
+      if (s2.pts[t] > 86) o2.recordPoints[t]++;
       if (i === 0) { o2.champ[t]++; hit2[t * 4] = 1; }
       if (i < 2) { o2.auto[t]++; o2.promo[t]++; hit2[t * 4 + 1] = 1; hit2[t * 4 + 3] = 1; }
       if (i < 6) { o2.top6[t]++; hit2[t * 4 + 2] = 1; }
@@ -1161,7 +1216,14 @@ function simulateCurrent(d1, d2, N, seed, onProgress, opts) {
   const pack = (c, o, keys) => {
     const out = {};
     c.teams.forEach((t, i) => {
-      out[t] = { posDist: Array.from(o.posDist.slice(i * c.n, (i + 1) * c.n)), exp: o.ptsSum[i] / N };
+      out[t] = {
+        posDist: Array.from(o.posDist.slice(i * c.n, (i + 1) * c.n)), exp: o.ptsSum[i] / N,
+        avgStats: {
+          wins: o.winsSum[i] / N, draws: o.drawsSum[i] / N, losses: o.lossesSum[i] / N,
+          goalsFor: o.goalsForSum[i] / N, goalsAgainst: o.goalsAgainstSum[i] / N, points: o.ptsSum[i] / N
+        },
+        recordBreak: { wins: o.recordWins[i] || 0, points: o.recordPoints[i] || 0 }
+      };
       keys.forEach(k => out[t][k] = o[k][i]);
     });
     return out;
@@ -1409,7 +1471,7 @@ function clearTrendTeams() {
   saveTrendSel();
   renderChart();
 }
-const PAGES = ["dashboard", "standings", "team", "compare", "playoffs", "cheer", "round", "dist", "sched", "trend", "backtest", "method"];
+const PAGES = ["dashboard", "standings", "team", "compare", "playoffs", "records", "cheer", "round", "dist", "sched", "trend", "backtest", "method"];
 function currentPage() {
   const id = decodeURIComponent((location.hash || "").replace(/^#/, ""));
   return PAGES.includes(id) ? id : "dashboard";
@@ -1450,6 +1512,7 @@ function showPage() {
   if (id === "team") renderTeamPage();
   if (id === "compare") renderComparePage();
   if (id === "playoffs") renderPlayoffsPage();
+  if (id === "records") renderRecordsPage();
   if (id === "cheer") renderCheer();
   breakAtSentenceEnds();
 }
@@ -1708,6 +1771,7 @@ function render() {
   const me = MY[league];
   renderDashboard();
   renderPlayoffsPage();
+  if (currentPage() === "records") renderRecordsPage();
   const res = SIM[league], zones = ZONES[league], mags = MAGIC[league], n = d.standings.length;
   $("asOf").textContent = d.asOf || "-";
   $("srcLine").textContent = d.source ? "출처 · " + d.source : "";
@@ -2252,6 +2316,54 @@ function renderPlayoffsPage() {
     <p class="playoff-note">2026시즌에는 김천상무의 고정 강등과 승강 PO 결과를 별도로 누적합니다. 김천이 12위가 아니면 K1 12위와 K2 PO 준우승팀이 승강 PO를 치르며, 승리 팀은 다음 시즌 K리그1에 남거나 올라가고 패배 팀은 K리그2로 향합니다. 김천이 12위이면 승강 PO는 열리지 않습니다. K1 표의 ‘승강 PO 승리·잔류’는 K1 12위 팀이 승강 PO에서 이겨 잔류한 비율입니다.</p>
     <div class="playoff-rule"><strong>모델 가정 및 한계</strong><p>준PO 단판은 무승부 시 정규리그 상위 팀 진출로 처리합니다. 2026시즌 김천 12위 시 K2 PO 홈&원정은 승리 수 → 합산 득실 → 연장·승부차기 단계로 처리하되, 연장·승부차기 승률은 50:50으로 단순화했습니다. K1-K2 승강 PO의 합산 동률 처리와 K2 득점 보정은 기존 모델 가정(P.crossTieK2, P.crossLeague)을 유지합니다. 실제 규정 세부 및 경기력 변수와 차이가 있을 수 있습니다.</p></div>
   `;
+}
+
+/* ---------- 역대 기록 경신 전망 ---------- */
+function renderRecordsPage() {
+  const root = $("recordsPage");
+  if (!root || !SIM || !DATA[league]) return;
+  const lg = league, d = DATA[lg], sim = SIM[lg], n = SIM.N;
+  const leagueName = lg === "k1" ? "K리그1" : "K리그2";
+  // 현재 데이터의 누적 실적과 시뮬레이션이 계산한 시즌 최종 평균을 함께 표시한다.
+  const rows = d.standings.slice().sort((a,b)=>a.rank-b.rank).map(t => {
+    const v = sim[t.team] || {}, a = v.avgStats || {};
+    return { team:t.team, played:t.p, wins:t.w, draws:t.d, losses:t.l, gf:t.gf, ga:t.ga, pts:t.pts,
+      ew:a.wins, ed:a.draws, el:a.losses, egf:a.goalsFor, ega:a.goalsAgainst, epts:a.points };
+  });
+  // 현재 공식 자료로 교차 확인된 K리그2 역대 한 시즌 기록만 숫자를 노출한다.
+  // 2022 광주FC 최종 성적: 25승 86점. K리그 공식 보도자료 기준.
+  const known = lg === "k2" ? [
+    {key:"wins", label:"한 시즌 최다 승리", record:25, holder:"광주FC", season:"2022", unit:"승", probKey:"wins", note:"2022 광주FC 25승"},
+    {key:"points", label:"한 시즌 최다 승점", record:86, holder:"광주FC", season:"2022", unit:"점", probKey:"points", note:"2022 광주FC 86점"}
+  ] : [];
+  const currentBest = (key, direction="max") => rows.reduce((best,r)=>!best || (direction==="max"?r[key]>best[key]:r[key]<best[key])?r:best,null);
+  const metrics = [
+    {key:"wins",label:"승리",unit:"승",dir:"max"}, {key:"draws",label:"무승부",unit:"무",dir:"max"},
+    {key:"losses",label:"패배",unit:"패",dir:"max"}, {key:"gf",label:"득점",unit:"골",dir:"max"},
+    {key:"ga",label:"실점",unit:"골",dir:"max"}, {key:"pts",label:"승점",unit:"점",dir:"max"}
+  ];
+  const knownMap = Object.fromEntries(known.map(x=>[x.key,x]));
+  const cards = metrics.map(m => {
+    const record = knownMap[m.key];
+    const best = currentBest(m.key,m.dir);
+    if (!record) return `<article class="record-card"><h3>${m.label} 기록</h3><div class="record-value">기준 데이터 미확보</div><div class="record-sub">${best ? `현재 1위: ${teamNameHtml(best.team)} · ${best[m.key]}${m.unit}` : "현재 시즌 데이터 없음"}</div><span class="record-status">역대 기록 원자료 확인 필요</span></article>`;
+    const teamRows = rows.map(r=>({team:r.team, avg:r[m.key==="wins"?"ew":"epts"], current:r[m.key==="wins"?"wins":"pts"], p:(sim[r.team]?.recordBreak?.[record.probKey]||0)/n*100}));
+    const leader = teamRows.slice().sort((a,b)=>b.avg-a.avg)[0];
+    const prob = leader ? leader.p : 0;
+    const status = prob >= 80 ? "strong" : prob >= 20 ? "warn" : "";
+    const label = prob >= 80 ? "경신 가능성 높음" : prob >= 20 ? "경신 가능성 있음" : "현재 모델 기준 낮음";
+    return `<article class="record-card"><h3>${m.label}</h3><div class="record-value">${record.record}${m.unit}</div><div class="record-sub">역대 기록 보유: ${record.holder} · ${record.season}시즌<br>${record.note} · 공식 보도자료 확인</div><div class="record-prob">현재 시즌 최종 기록 기대값 1위: <b>${leader?teamNameHtml(leader.team):"—"} ${leader?leader.avg.toFixed(1):"—"}${m.unit}</b></div><div class="record-prob">해당 팀이 기록을 넘을 확률: <b>${prob.toFixed(1)}%</b></div><span class="record-status ${status}">${label}</span></article>`;
+  }).join("");
+  const tableRows = rows.map(r=>`<tr><td>${teamNameHtml(r.team)}</td><td>${r.played}</td><td>${r.wins} / ${r.ew.toFixed(1)}</td><td>${r.draws} / ${r.ed.toFixed(1)}</td><td>${r.losses} / ${r.el.toFixed(1)}</td><td>${r.gf} / ${r.egf.toFixed(1)}</td><td>${r.ga} / ${r.ega.toFixed(1)}</td><td>${r.pts} / ${r.epts.toFixed(1)}</td></tr>`).join("");
+  root.innerHTML = `
+    <div class="panel-head"><div><h2>역대 기록 경신 전망</h2><p class="meta">${leagueName} · 기본 ${n.toLocaleString()}회 시뮬레이션</p></div><button type="button" class="ghost" data-go-page="playoffs">플레이오프 전망 보기</button></div>
+    <p class="records-intro">현재 시즌 성적과 남은 경기 시뮬레이션을 결합해 팀별 시즌 최종 기록의 기대값을 계산합니다. 역대 기록은 공식 출처에서 기준값을 확인한 항목만 경신 확률을 표시합니다.</p>
+    <div class="record-kpis"><div class="record-kpi"><span>기록 비교 범위</span><b>${leagueName} 단일 시즌</b></div><div class="record-kpi"><span>시뮬레이션 횟수</span><b>${n.toLocaleString()}회</b></div><div class="record-kpi"><span>기준값 확인 기록</span><b>${known.length}개</b></div></div>
+    <h3 class="sub">확인된 역대 기록 경신 전망</h3><div class="record-grid">${cards}</div>
+    <h3 class="sub">팀별 시즌 최종 기록 예상</h3>
+    <p class="meta">표기: 현재 누적 기록 / 시즌 종료 시 예상 평균</p>
+    <div class="record-table-wrap"><table class="record-table"><thead><tr><th>팀</th><th>경기</th><th>승리</th><th>무승부</th><th>패배</th><th>득점</th><th>실점</th><th>승점</th></tr></thead><tbody>${tableRows}</tbody></table></div>
+    <p class="record-footnote">중요한 범위 제한: 현재 확보된 공식 근거로는 K리그2 2022 광주FC의 25승·86점 기록만 수치 검증했습니다. K리그1 및 무승부·패배·득점·실점의 역대 최고·최저 기준값은 아직 확인되지 않아 임의의 숫자나 경신 확률을 표시하지 않습니다. 또한 이 화면의 확률은 현재 예측 모델의 시뮬레이션 결과이며, 실제 결과를 보장하지 않습니다. 구단별 역대 기록(예: 광주FC 구단 역사상 최다 실점)과 리그 전체 역대 기록은 기준 범위가 달라 별도 데이터셋으로 추가해야 합니다.</p>`;
 }
 
 /* ---------- 최종 순위 분포 ---------- */
