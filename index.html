@@ -68,6 +68,32 @@
 .team-color-name { display: inline-flex; align-items: baseline; gap: 5px; color: inherit !important; -webkit-text-fill-color: currentColor !important; background: none !important; -webkit-background-clip: initial !important; background-clip: initial !important; }
 .team-color-name.tname { font-weight: 800; }
 .team-color-dot { display: inline-block; width: 8px; height: 8px; flex: 0 0 8px; align-self: center; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent); box-sizing: border-box; }
+
+/* 승격·강등 플레이오프 화면 */
+.playoff-intro { color: var(--muted); line-height: 1.7; margin: 8px 0 18px; }
+.playoff-rule { border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin: 14px 0; background: var(--panel2, var(--panel)); }
+.playoff-rule strong { color: var(--fg); }
+.playoff-rule p { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.65; }
+.playoff-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin: 14px 0; }
+.playoff-stage { min-width: 0; border: 1px solid var(--line); border-radius: 14px; padding: 14px; background: var(--card, var(--panel)); }
+.playoff-stage h3 { font-size: 13px; margin: 0 0 10px; }
+.playoff-match { border: 1px solid var(--line); border-radius: 10px; padding: 10px; margin: 8px 0; font-size: 12px; }
+.playoff-match b { display: block; margin-bottom: 4px; }
+.playoff-match small { color: var(--muted); line-height: 1.55; }
+.playoff-kpis { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 9px; margin: 12px 0 18px; }
+.playoff-kpi { border: 1px solid var(--line); border-radius: 12px; padding: 11px; min-width: 0; }
+.playoff-kpi span { display:block; color:var(--muted); font-size:11px; }
+.playoff-kpi b { display:block; font-size:19px; margin-top:5px; font-variant-numeric:tabular-nums; }
+.playoff-table-wrap { overflow-x:auto; margin: 12px 0 18px; }
+.playoff-table { width:100%; border-collapse:collapse; min-width:680px; font-size:12px; }
+.playoff-table th,.playoff-table td { padding:9px 10px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap; }
+.playoff-table th:first-child,.playoff-table td:first-child { text-align:left; }
+.playoff-table thead th { color:var(--muted); font-weight:600; }
+.playoff-table tr.mine { background:var(--soft, rgba(100,130,180,.12)); }
+.playoff-note { color:var(--muted); font-size:11px; line-height:1.65; }
+.playoff-scenario-link { margin: 12px 0; }
+@media(max-width:760px) { .playoff-grid { grid-template-columns:1fr; } .playoff-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+
 </style>
 </head>
 <body class="app">
@@ -585,6 +611,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
     <a href="#standings">순위표</a>
     <a href="#cheer">응원 작전실</a>
     <a href="#compare">팀 간 상대 전적 비교</a>
+    <a href="#playoffs">승격·강등 플레이오프</a>
     <a href="#round">라운드 프리뷰·만약에</a>
     <a href="#dist">최종 순위 분포</a>
     <a href="#sched">남은 일정 난이도</a>
@@ -638,6 +665,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
     <section><div class="dash-panel-head"><h2>바로가기</h2><span class="meta">분석 기능으로 바로 이동</span></div><div class="dash-shortcuts">
       <button type="button" class="dash-shortcut" data-go-page="cheer"><strong>응원 작전실</strong><span>내 팀을 기준으로 이번 라운드에서 응원할 결과와 경우의 수를 살펴봅니다.</span></button>
       <button type="button" class="dash-shortcut" data-go-page="compare"><strong>팀 간 상대 전적 비교</strong><span>두 팀의 시즌 성적과 이번 시즌 맞대결 기록을 비교합니다.</span></button>
+      <button type="button" class="dash-shortcut" data-go-page="playoffs"><strong>승격·강등 플레이오프</strong><span>50,000회 시뮬레이션으로 플레이오프 진출, 승격, 잔류·강등 가능성을 확인합니다.</span></button>
       <button type="button" class="dash-shortcut" data-go-page="round"><strong>라운드 프리뷰 · 만약에</strong><span>라운드 전체 경기 전망을 확인하고, 경기 결과에 따른 순위 변화를 계산합니다.</span></button>
       <button type="button" class="dash-shortcut" data-go-page="dist"><strong>최종 순위 분포</strong><span>시즌 종료 시 각 팀이 순위별로 마칠 확률을 확인합니다.</span></button>
       <button type="button" class="dash-shortcut" data-go-page="sched"><strong>남은 일정 난이도</strong><span>각 팀의 남은 경기 난이도와 상대 전력, 홈·원정 조건을 비교합니다.</span></button>
@@ -661,6 +689,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
 
   <div class="page" id="page-team" hidden><section class="panel team-page-content" id="teamPage"></section></div>
   <div class="page" id="page-compare" hidden><section class="panel" id="comparePage"></section></div>
+  <div class="page" id="page-playoffs" hidden><section class="panel" id="playoffsPage"></section></div>
   <div class="page" id="page-cheer" hidden><section class="panel" id="cheer"></section></div>
   <div class="page" id="page-round" hidden>
   <section class="panel" id="roundPanel">
@@ -735,8 +764,9 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
       <li><b>무승부 보정</b>: 두 팀의 골 수를 따로 뽑으면 무승부가 실제보다 적게 나옵니다. Dixon-Coles 방식으로 0-0, 1-1 같은 저득점 무승부 확률을 높이고, 보정 정도는 그 시즌 실제 무승부 수에 맞춥니다.</li>
       <li><b>불확실성</b>: 시뮬레이션마다 팀 전력을 추정 오차만큼 흔듭니다. 근거가 된 골 수가 적은 팀일수록 더 크게 흔들립니다.</li>
       <li><b>순위 결정</b>: 승점 → 다득점 → 득실차 → 다승 → 승자승(동률 팀끼리의 승점) 순서로 가리고, 그래도 같으면 추첨합니다. 실제 규정의 벌점 기준은 데이터가 없어 추첨으로 대신합니다.</li>
-      <li><b>K리그1</b>: 33라운드 뒤 상위 6팀(파이널A)과 하위 6팀(파이널B)이 같은 그룹끼리 한 번씩 더 붙습니다. 일정 발표 전에는 시즌 홈 경기가 적은 팀을 홈으로 둡니다. 12위는 K리그2 플레이오프 준우승팀과 승강 플레이오프를 치르고, 김천 상무가 12위면 승강 플레이오프가 없습니다.</li>
-      <li><b>K리그2</b>: 1·2위 자동 승격, 3~6위 플레이오프(3위 대 6위, 4위 대 5위, 결승. 상위 팀 홈, 무승부면 상위 팀 진출). 결승 승자는 승격하고 준우승팀은 승강 플레이오프에 나갑니다. 승강 플레이오프에서 K리그2 팀의 득점 기대값을 0.85배로, 합계 동점이면 K리그2 팀이 45% 확률로 이긴다고 둔 것은 검증 데이터가 없는 가정입니다.</li>
+      <li><b>K리그1</b>: 33라운드 뒤 상위 6팀(파이널A)과 하위 6팀(파이널B)이 같은 그룹끼리 한 번씩 더 붙습니다. 2026시즌 김천상무는 최종 순위와 관계없이 강등됩니다. 김천이 12위이면 추가 강등은 없고 K2 PO 승자가 승격합니다. 김천이 12위가 아니면 K1 12위와 K2 PO 준우승팀이 승강 PO를 치르며, 패한 K1 팀도 강등됩니다.</li>
+      <li><b>K리그2</b>: 1·2위 자동 승격, 3~6위는 3위-6위·4위-5위 준PO를 치릅니다. 2026시즌 김천이 K1 12위이면 K2 PO 결승은 홈&원정 2경기이며 승자가 승격하고 승강 PO는 열리지 않습니다. 김천이 12위가 아니면 K2 PO 결승은 단판이고, 승자는 승격·패자는 K1 12위와 승강 PO를 치릅니다. 2경기 결승은 승리 수 → 합산 득실 → 연장·승부차기 순으로 판정하며, 연장·승부차기는 모델상 50:50으로 단순화했습니다. K1-K2 승강 PO에서 K2 팀 득점 기대값 0.85배, 합계 동점 시 K2 팀 45% 승리 확률은 검증 데이터가 없는 기존 모델 가정입니다.</li>
+      <li><b>플레이오프 통계</b>: 동일한 50,000회 시즌 시뮬레이션에서 PO 진출, 준PO 승리, PO 결승 진출·우승, 승강 PO 진출, 최종 승격, K1 강등을 누적합니다. 2026시즌의 김천 순위에 따른 규칙 분기는 각 시뮬레이션마다 적용합니다.</li>
       
       <li><b>남은 승점</b>: "우승까지", "자동승격까지", "PO권까지", "잔류까지"는 다른 팀 결과와 상관없이 그 목표를 확정하려면 앞으로 더 따야 하는 승점입니다. 경쟁 팀이 남은 경기를 모두 이긴다고 가정하고, 승점이 같아 다득점으로 갈리는 경우를 피하도록 1점을 더 잡았습니다. "자력 불가"는 남은 경기를 다 이겨도 경쟁 팀이 승점을 잃어야 한다는 뜻입니다.</li>
       <li><b>확정·불가</b>: 남은 경기를 모두 이기거나 모두 지는 경우까지 따져 수학적으로 결정된 경우에만 표시합니다. 결정되지 않았으면 아무리 높아도 ">99.9%", 아무리 낮아도 "&lt;0.1%"로 표시합니다.</li>
@@ -1027,9 +1057,44 @@ function simulateCurrent(d1, d2, N, seed, onProgress, opts) {
     }
   };
   const z = n => ({ posDist: new Float64Array(n * n), ptsSum: new Float64Array(n) });
-  const o1 = Object.assign(z(c1.n), { champ: new Float64Array(c1.n), acle: new Float64Array(c1.n), finalA: new Float64Array(c1.n), po: new Float64Array(c1.n), relegated: new Float64Array(c1.n) });
-  const o2 = Object.assign(z(c2.n), { champ: new Float64Array(c2.n), auto: new Float64Array(c2.n), top6: new Float64Array(c2.n), promo: new Float64Array(c2.n) });
+  // 리그별 순위·플레이오프 단계별 진입 및 최종 결과를 누적한다.
+  const o1 = Object.assign(z(c1.n), {
+    champ: new Float64Array(c1.n), acle: new Float64Array(c1.n), finalA: new Float64Array(c1.n),
+    po: new Float64Array(c1.n), relegated: new Float64Array(c1.n), directRelegated: new Float64Array(c1.n)
+  });
+  const o2 = Object.assign(z(c2.n), {
+    champ: new Float64Array(c2.n), auto: new Float64Array(c2.n), top6: new Float64Array(c2.n), promo: new Float64Array(c2.n),
+    poEntry: new Float64Array(c2.n), semiWin: new Float64Array(c2.n), final: new Float64Array(c2.n),
+    finalWin: new Float64Array(c2.n), runnerUp: new Float64Array(c2.n), crossPO: new Float64Array(c2.n), crossWin: new Float64Array(c2.n)
+  });
   const muX = Math.sqrt(c1.mu * c2.mu), rhoX = (c1.rho + c2.rho) / 2;
+  // 2026시즌은 김천상무의 순위에 따라 K리그2 PO 방식이 바뀐다.
+  const seasonNo = Number(String(d1.season || d1.asOf || "").slice(0, 4));
+  const gimcheon = c1.noPlayoff >= 0 ? c1.noPlayoff : c1.teams.findIndex(t => /김천/.test(t));
+  const special2026 = seasonNo === 2026 && gimcheon >= 0;
+  // 홈&원정 2경기: 승리 수 → 합산 득실 → 연장·승부차기(모델상 50:50) 순서로 승자를 정한다.
+  const seriesWinner = (a, b, season2) => {
+    // 1차전은 a팀 홈, 2차전은 b팀 홈으로 각각 홈·원정 기대 득점을 적용한다.
+    const [a1, b1] = sampleScore(
+      c2.mu * c2.home * season2.att[a] * season2.def[b],
+      c2.mu * c2.away * season2.att[b] * season2.def[a],
+      c2.rho, rnd
+    );
+    const [b2, a2] = sampleScore(
+      c2.mu * c2.home * season2.att[b] * season2.def[a],
+      c2.mu * c2.away * season2.att[a] * season2.def[b],
+      c2.rho, rnd
+    );
+    // 연장·승부차기 전에 정규시간 2경기의 승리 수를 먼저 비교한다.
+    const winsA = (a1 > b1 ? 1 : 0) + (a2 > b2 ? 1 : 0);
+    const winsB = (a1 < b1 ? 1 : 0) + (a2 < b2 ? 1 : 0);
+    if (winsA !== winsB) return winsA > winsB ? a : b;
+    // 승리 수가 같으면 두 경기 합산 득실차로 결정한다.
+    const goalsA = a1 + a2, goalsB = b1 + b2;
+    if (goalsA !== goalsB) return goalsA > goalsB ? a : b;
+    // 연장·승부차기 결과는 별도 데이터가 없어 50:50으로 근사한다.
+    return rnd() < 0.5 ? a : b;
+  };
   for (let s = 0; s < N; s++) {
     ob1.fill(-1); ob2.fill(-1); hit1.fill(0); hit2.fill(0);
     const s1 = simOnce(c1, rnd, ob1), s2 = simOnce(c2, rnd, ob2);
@@ -1045,21 +1110,46 @@ function simulateCurrent(d1, d2, N, seed, onProgress, opts) {
       if (i < 2) { o2.auto[t]++; o2.promo[t]++; hit2[t * 4 + 1] = 1; hit2[t * 4 + 3] = 1; }
       if (i < 6) { o2.top6[t]++; hit2[t * 4 + 2] = 1; }
     });
-    // K리그2 플레이오프: 단판, 상위 팀 홈, 무승부면 상위 팀
+    // K리그2 준PO: 3위-6위, 4위-5위 단판. 무승부면 정규리그 상위 팀 진출.
     const tie = (hi, lo) => { const [a, b] = sampleScore(c2.mu * c2.home * s2.att[hi] * s2.def[lo], c2.mu * c2.away * s2.att[lo] * s2.def[hi], c2.rho, rnd); return a >= b ? hi : lo; };
     const sd = s2.order;
+    for (let i = 2; i < 6; i++) o2.poEntry[sd[i]]++;
     const w1 = tie(sd[2], sd[5]), w2 = tie(sd[3], sd[4]);
+    o2.semiWin[w1]++; o2.semiWin[w2]++;
     const hi = sd.indexOf(w1) < sd.indexOf(w2) ? w1 : w2, lo = hi === w1 ? w2 : w1;
-    const champ = tie(hi, lo), runner = champ === hi ? lo : hi;
-    o2.promo[champ]++; hit2[champ * 4 + 3] = 1;
-    // 승강 플레이오프: K리그1 12위(예외 팀 제외) vs K리그2 PO 준우승, 2경기 합산
+    o2.final[hi]++; o2.final[lo]++;
+
+    // K1 최하위와 2026시즌 김천상무의 고정 강등 여부를 먼저 판정한다.
     const last = s1.order[c1.n - 1];
-    if (last !== c1.noPlayoff) {
+    if (special2026) {
+      // 김천은 최종 순위와 무관하게 강등된다.
+      o1.relegated[gimcheon]++; o1.directRelegated[gimcheon]++;
+      if (last !== gimcheon) { o1.po[last]++; hit1[last * 4 + 3] = 1; }
+    } else if (last !== c1.noPlayoff) {
       o1.po[last]++; hit1[last * 4 + 3] = 1;
+    }
+
+    // 김천이 K1 12위이면 K2 PO 결승을 홈&원정으로 치르고 승자만 승격한다.
+    let champ;
+    if (special2026 && last === gimcheon) {
+      champ = seriesWinner(hi, lo, s2);
+    } else {
+      // 그 외에는 단판이며, 정규리그 상위 팀이 홈에서 경기한다.
+      champ = tie(hi, lo);
+    }
+    const runner = champ === hi ? lo : hi;
+    o2.finalWin[champ]++; o2.runnerUp[runner]++;
+    o2.promo[champ]++; hit2[champ * 4 + 3] = 1;
+
+    // 김천이 12위가 아니면 K2 PO 준우승 팀이 K1 12위와 승강 PO를 치른다.
+    if ((!special2026 && last !== c1.noPlayoff) || (special2026 && last !== gimcheon)) {
+      o2.crossPO[runner]++;
       const [a1, b1] = sampleScore(muX * c2.home * s2.att[runner] * s1.def[last] * P.crossLeague, muX * c2.away * s1.att[last] * s2.def[runner], rhoX, rnd);
       const [a2, b2] = sampleScore(muX * c1.home * s1.att[last] * s2.def[runner], muX * c1.away * s2.att[runner] * s1.def[last] * P.crossLeague, rhoX, rnd);
       const k2g = a1 + b2, k1g = b1 + a2;
-      if (k2g > k1g || (k2g === k1g && rnd() < P.crossTieK2)) { o2.promo[runner]++; hit2[runner * 4 + 3] = 1; o1.relegated[last]++; }
+      if (k2g > k1g || (k2g === k1g && rnd() < P.crossTieK2)) {
+        o2.promo[runner]++; o2.crossWin[runner]++; hit2[runner * 4 + 3] = 1; o1.relegated[last]++;
+      }
     }
     tally(T1, ob1, hit1); tally(T2, ob2, hit2);
     if (onProgress && (s + 1) % 2000 === 0) onProgress(s + 1);
@@ -1083,8 +1173,9 @@ function simulateCurrent(d1, d2, N, seed, onProgress, opts) {
   });
   return {
     N, seed,
-    k1: pack(c1, o1, ["champ", "acle", "finalA", "po", "relegated"]),
-    k2: pack(c2, o2, ["champ", "auto", "top6", "promo"]),
+    k1: pack(c1, o1, ["champ", "acle", "finalA", "po", "relegated", "directRelegated"]),
+    k2: pack(c2, o2, ["champ", "auto", "top6", "promo", "poEntry", "semiWin", "final", "finalWin", "runnerUp", "crossPO", "crossWin"]),
+    playoffRules: { season2026: special2026, gimcheon: special2026 ? c1.teams[gimcheon] : null, formatByGimcheonLast: special2026 },
     model: { k1: modelInfo(c1), k2: modelInfo(c2) },
     track: { k1: packTrack(c1, T1, tr1, ZONE_KEYS.k1), k2: packTrack(c2, T2, tr2, ZONE_KEYS.k2) },
   };
@@ -1314,7 +1405,7 @@ function clearTrendTeams() {
   saveTrendSel();
   renderChart();
 }
-const PAGES = ["dashboard", "standings", "team", "compare", "cheer", "round", "dist", "sched", "trend", "backtest", "method"];
+const PAGES = ["dashboard", "standings", "team", "compare", "playoffs", "cheer", "round", "dist", "sched", "trend", "backtest", "method"];
 function currentPage() {
   const id = decodeURIComponent((location.hash || "").replace(/^#/, ""));
   return PAGES.includes(id) ? id : "dashboard";
@@ -1354,6 +1445,7 @@ function showPage() {
   if (id === "trend") requestAnimationFrame(() => renderChart());
   if (id === "team") renderTeamPage();
   if (id === "compare") renderComparePage();
+  if (id === "playoffs") renderPlayoffsPage();
   if (id === "cheer") renderCheer();
   breakAtSentenceEnds();
 }
@@ -1611,6 +1703,7 @@ function render() {
   renderRound(); renderDist(); renderSched();
   const me = MY[league];
   renderDashboard();
+  renderPlayoffsPage();
   const res = SIM[league], zones = ZONES[league], mags = MAGIC[league], n = d.standings.length;
   $("asOf").textContent = d.asOf || "-";
   $("srcLine").textContent = d.source ? "출처 · " + d.source : "";
@@ -2054,6 +2147,15 @@ function renderWhatif() {
       ${virtualRows.map((t, i) => { const old = st.find(x => x.team === t.team); const delta = old.rank - (i + 1); return `<tr${t.team === me ? ' class="mine"' : ""}><td><b>${i + 1}</b></td><td>${t.team === me ? '<span class="star">★</span>' : ""}${teamNameHtml(t.team)}</td><td>${old.rank}위</td><td>${t.p}</td><td>${t.gf}</td><td>${t.ga}</td><td>${t.gf - t.ga > 0 ? "+" : ""}${t.gf - t.ga}</td><td><b>${t.pts}</b></td><td>${delta > 0 ? `▲ ${delta}` : delta < 0 ? `▼ ${Math.abs(delta)}` : "—"}</td></tr>`; }).join("")}
     </tbody></table></div>
     <p class="meta">선택한 결과에 따른 순위표입니다. 실제 경기 점수와 리그의 세부 동률 규정에 따라 최종 순위는 달라질 수 있습니다.</p>
+    <h3 class="sub">가상 순위표 기준 플레이오프 전망</h3>
+    <p>위 경기 결과를 반영한 동일한 50,000회 시뮬레이션입니다. 가상 순위가 바뀌면 준PO 대진, 김천상무의 최종 순위에 따른 승격 방식, 승강 PO 진출팀도 함께 다시 계산됩니다.</p>
+    <div class="playoff-kpis">
+      <div class="playoff-kpi"><span>가상 시나리오의 K2 PO 진출 팀 수</span><b>${(Object.values(w.sim.k2).reduce((a, r) => a + r.poEntry, 0) / w.sim.N).toFixed(2)}<small style="font-size:10px"> 팀</small></b></div>
+      <div class="playoff-kpi"><span>가상 시나리오의 K2 승격 팀 수</span><b>${(Object.values(w.sim.k2).reduce((a, r) => a + r.promo, 0) / w.sim.N).toFixed(2)}<small style="font-size:10px"> 팀</small></b></div>
+      <div class="playoff-kpi"><span>가상 시나리오의 K1 강등 팀 수</span><b>${(Object.values(w.sim.k1).reduce((a, r) => a + r.relegated, 0) / w.sim.N).toFixed(2)}<small style="font-size:10px"> 팀</small></b></div>
+      <div class="playoff-kpi"><span>김천상무 고정 강등</span><b>${w.sim.playoffRules && w.sim.playoffRules.season2026 ? "100.0%" : "해당 없음"}</b></div>
+    </div>
+    <div class="playoff-scenario-link"><button type="button" class="ghost" data-go-page="playoffs">이 시나리오의 플레이오프 대진·팀별 확률 자세히 보기 →</button></div>
     <h3 class="sub">시즌 전망 확률 변화</h3>
     <p>지금 확률 → 선택한 결과를 반영했을 때의 확률입니다(같은 시드로 ${w.sim.N.toLocaleString()}번).</p>
     ${chips.length ? `<div class="changes">${chips.map(([t, c]) => `<span class="chip${c ? " " + c : ""}">${esc(t)}</span>`).join("")}</div>` : ""}
@@ -2076,7 +2178,75 @@ async function runWhatif() {
   }
   whatifRunning = false; $("progress").hidden = true;
   renderWhatif();
+  renderPlayoffsPage();
   if (WHATIF && WHATIF.lg === league) $("whatif").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+/* ---------- 승격·강등 플레이오프 ---------- */
+function renderPlayoffsPage() {
+  const root = $("playoffsPage");
+  if (!root || !SIM || !DATA.k1 || !DATA.k2) { if (root) root.innerHTML = '<p class="empty">시뮬레이션 결과를 불러오는 중입니다.</p>'; return; }
+  // 만약에 결과가 존재하면 그 결과를 우선 사용한다. 가상 순위표와 같은 난수 시뮬레이션이다.
+  const scenario = WHATIF && WHATIF.sim ? WHATIF : null;
+  const sim = scenario ? scenario.sim : SIM;
+  const scenarioStale = !!(scenario && JSON.stringify(PICKS[scenario.lg]) !== JSON.stringify(scenario.picks));
+  const n = sim.N;
+  const pct = v => (v / n * 100).toFixed(1) + "%";
+  const k2d = DATA.k2, k1d = DATA.k1;
+  const k2teams = k2d.standings.slice().sort((a,b)=>a.rank-b.rank);
+  const k1teams = k1d.standings.slice().sort((a,b)=>a.rank-b.rank);
+  const rules = sim.playoffRules || {};
+  const is2026 = !!rules.season2026;
+  const gimcheon = rules.gimcheon || (k1d.format || {}).noPlayoffTeam || "김천상무";
+  const lastNow = k1teams[k1teams.length - 1]?.team || "K리그1 12위";
+  const gimcheonLastChance = is2026 && sim.k1[gimcheon] ? sim.k1[gimcheon].posDist[k1teams.length - 1] / n * 100 : 0;
+  const formatText = is2026
+    ? `김천상무는 최종 순위와 관계없이 강등됩니다. 김천이 12위이면 K2 PO 결승은 홈&원정 2경기이며 승자만 승격합니다. 김천이 12위가 아니면 K2 PO 결승은 단판이고, 패자는 K1 12위와 승강 PO를 치릅니다.`
+    : `K2 정규리그 3~6위가 준PO를 치릅니다. 3위-6위, 4위-5위 단판이며 상위 순위 팀이 홈에서 경기하고 무승부 시 상위 팀이 진출합니다. PO 우승팀은 승격하고, 준우승팀은 K1 12위와 승강 PO를 치릅니다.`;
+  const stageCard = (title, body, note) => `<div class="playoff-stage"><h3>${title}</h3><div class="playoff-match"><b>${body}</b><small>${note}</small></div></div>`;
+  // 현재 순위 3~6위를 대진표에 넣고, 각 팀이 해당 순위로 마칠 시뮬레이션 확률을 함께 표시한다.
+  const seedTeam = rank => k2teams.find(t => t.rank === rank);
+  const seedLabel = rank => {
+    const t = seedTeam(rank);
+    if (!t) return `${rank}위 팀`;
+    const r = sim.k2[t.team];
+    const chance = r && r.posDist ? r.posDist[rank - 1] / n * 100 : 0;
+    return `${teamNameHtml(t.team)} · ${rank}위 유지 ${chance.toFixed(1)}%`;
+  };
+  const k2Rows = k2teams.map(t=>{
+    const r=sim.k2[t.team] || {};
+    return `<tr${t.team===MY.k2?' class="mine"':''}><td>${t.team===MY.k2?'★ ':''}${teamNameHtml(t.team)} <small class="rank">현재 ${t.rank}위</small></td><td>${pct(r.poEntry||0)}</td><td>${pct(r.semiWin||0)}</td><td>${pct(r.final||0)}</td><td>${pct(r.finalWin||0)}</td><td>${pct(r.crossPO||0)}</td><td>${pct(r.promo||0)}</td></tr>`;
+  }).join("");
+  const k1Rows = k1teams.map(t=>{
+    const r=sim.k1[t.team] || {};
+    return `<tr${t.team===MY.k1?' class="mine"':''}><td>${t.team===MY.k1?'★ ':''}${teamNameHtml(t.team)} <small class="rank">현재 ${t.rank}위</small></td><td>${pct(r.po||0)}</td><td>${pct(r.directRelegated||0)}</td><td>${pct(r.relegated||0)}</td></tr>`;
+  }).join("");
+  const expectedMode = is2026 ? `김천 12위 확률 ${gimcheonLastChance.toFixed(1)}% · 두 규칙을 시뮬레이션별 적용` : "일반 시즌: K2 PO 단판 + 승강 PO";
+  root.innerHTML = `
+    <div class="panel-head"><div><h2>승격·강등 플레이오프 시뮬레이터</h2><p class="meta">${scenario ? '가상 순위표에서 선택한 경기 결과를 반영한 시나리오' : '기본 50,000회 시뮬레이션'} · ${n.toLocaleString()}회</p></div><button type="button" class="ghost" data-go-page="round">만약에 결과 수정</button></div>
+    ${scenario ? `<div class="notice">${scenarioStale ? '이전 계산 결과입니다. 경기 결과 선택이 변경되었으므로 라운드 프리뷰에서 다시 계산해 주세요.' : '가상 시나리오 적용 중입니다.'} (${scenario.lg==='k1'?'K리그1':'K리그2'} 경기 결과 선택 반영) <button type="button" class="ghost" data-go-page="round">시나리오 확인</button></div>` : ''}
+    <p class="playoff-intro">${formatText}</p>
+    <div class="playoff-rule"><strong>시뮬레이션 규칙 적용 · ${expectedMode}</strong><p>현재 순위는 참고 정보이며, 실제 대진 및 진행 방식은 시즌 최종 순위로 결정됩니다. 시뮬레이션은 매 반복마다 두 리그의 최종 순위를 먼저 계산한 뒤 그 순위에 맞는 플레이오프 규칙을 적용합니다. ${is2026 ? `김천상무의 12위 확률은 ${gimcheonLastChance.toFixed(1)}%입니다.` : ''}</p></div>
+    <div class="playoff-kpis">
+      <div class="playoff-kpi"><span>K2 PO 진출 팀 수 기대값</span><b>${(Object.values(sim.k2).reduce((a,r)=>a+(r.poEntry||0),0)/n).toFixed(2)}팀</b></div>
+      <div class="playoff-kpi"><span>K2 최종 승격 팀 수 기대값</span><b>${(Object.values(sim.k2).reduce((a,r)=>a+r.promo,0)/n).toFixed(2)}팀</b></div>
+      <div class="playoff-kpi"><span>K1 강등 팀 수 기대값</span><b>${(Object.values(sim.k1).reduce((a,r)=>a+r.relegated,0)/n).toFixed(2)}팀</b></div>
+      <div class="playoff-kpi"><span>김천상무 강등 확률</span><b>${is2026 ? '100.0%' : '—'}</b></div>
+    </div>
+    <h3 class="sub">K리그2 플레이오프 대진 구조</h3>
+    <div class="playoff-grid">
+      ${stageCard('준플레이오프 1', `${seedLabel(3)} vs ${seedLabel(6)}`, '현재 순위 기준 대진 · 단판 · 3위 팀 홈 · 무승부 시 3위 팀 진출')}
+      ${stageCard('준플레이오프 2', `${seedLabel(4)} vs ${seedLabel(5)}`, '현재 순위 기준 대진 · 단판 · 4위 팀 홈 · 무승부 시 4위 팀 진출')}
+      ${stageCard('승격 결정전(PO)', '준PO 1 승자 vs 준PO 2 승자', is2026 ? '김천 12위: 홈&원정 2경기 / 그 외: 단판' : '단판 · 정규리그 상위 팀 홈 · 무승부 시 상위 팀 승격')}
+    </div>
+    <h3 class="sub">K리그2 팀별 플레이오프·승격 확률</h3>
+    <div class="playoff-table-wrap"><table class="playoff-table"><thead><tr><th>팀</th><th>PO 진출</th><th>준PO 승리</th><th>PO 결승 진출</th><th>PO 우승</th><th>승강 PO 진출</th><th>최종 승격</th></tr></thead><tbody>${k2Rows}</tbody></table></div>
+    <p class="playoff-note">대진표의 팀명은 현재 3~6위 팀이며, 옆 확률은 해당 팀이 시즌 최종 순위도 그 순위를 유지할 확률입니다. 실제 준PO 대진은 최종 순위 3위-6위, 4위-5위로 확정됩니다. PO 진출은 정규리그 3~6위, 준PO 승리는 해당 팀이 준PO에서 승리, PO 결승 진출은 결승 진출, PO 우승은 결승 승리, 최종 승격은 자동 승격(1~2위 포함)과 PO·승강 PO를 통한 승격을 모두 포함합니다. 각 팀 확률은 ${n.toLocaleString()}회 중 해당 조건을 만족한 비율입니다.</p>
+    <h3 class="sub">K리그1 플레이오프·강등 확률</h3>
+    <div class="playoff-table-wrap"><table class="playoff-table"><thead><tr><th>팀</th><th>승강 PO 진출</th><th>고정 강등</th><th>최종 강등</th></tr></thead><tbody>${k1Rows}</tbody></table></div>
+    <p class="playoff-note">2026시즌에는 김천상무의 고정 강등과 승강 PO 패배 팀의 강등을 별도로 누적합니다. 따라서 김천이 12위가 아닌 경우에는 K1에서 2개 팀이 강등될 수 있습니다. 김천이 12위이면 승강 PO는 열리지 않습니다.</p>
+    <div class="playoff-rule"><strong>모델 가정 및 한계</strong><p>준PO 단판은 무승부 시 정규리그 상위 팀 진출로 처리합니다. 2026시즌 김천 12위 시 K2 PO 홈&원정은 승리 수 → 합산 득실 → 연장·승부차기 단계로 처리하되, 연장·승부차기 승률은 50:50으로 단순화했습니다. K1-K2 승강 PO의 합산 동률 처리와 K2 득점 보정은 기존 모델 가정(P.crossTieK2, P.crossLeague)을 유지합니다. 실제 규정 세부 및 경기력 변수와 차이가 있을 수 있습니다.</p></div>
+  `;
 }
 
 /* ---------- 최종 순위 분포 ---------- */
