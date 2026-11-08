@@ -166,6 +166,42 @@ body.app { display: grid; grid-template-columns: 228px minmax(0, 1fr); align-ite
 .lmb a { display: block; padding: 9px 12px; border-radius: 8px; color: var(--fg); text-decoration: none; font-weight: 500; font-size: 13.5px; }
 .lmb a:hover { background: var(--bar-bg); }
 .lmb a[aria-current="page"] { background: var(--accent); color: var(--accent-fg); }
+/* 메뉴를 4개 상위 카테고리로 묶어 탐색 항목을 계층화 */
+.lmb nav { display: grid; gap: 8px; }
+.lmb .nav-group { min-width: 0; }
+.lmb .nav-group > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--fg);
+  cursor: pointer;
+  list-style: none;
+  font-size: 13px;
+  font-weight: 800;
+  user-select: none;
+}
+.lmb .nav-group > summary::-webkit-details-marker { display: none; }
+.lmb .nav-group > summary::after {
+  content: "▾";
+  color: var(--muted);
+  font-size: 11px;
+  transition: transform .15s ease;
+}
+.lmb .nav-group:not([open]) > summary::after { transform: rotate(-90deg); }
+.lmb .nav-group > summary:hover { background: var(--bar-bg); }
+.lmb .nav-items { display: grid; gap: 2px; padding: 2px 0 5px 8px; }
+.lmb .nav-items a { padding: 8px 12px; font-size: 12.8px; }
+.lmb .nav-items a[aria-current="page"] { background: var(--accent); color: var(--accent-fg); }
+.lmb .nav-group:has(a[aria-current="page"]) > summary { color: var(--accent); }
+.lmb .nav-group:has(a[aria-current="page"]) > summary::after { color: var(--accent); }
+@media (max-width: 960px) {
+  .lmb nav { gap: 6px; }
+  .lmb .nav-group > summary { min-height: 42px; }
+  .lmb .nav-items a { min-height: 40px; display: flex; align-items: center; }
+}
 .nav-toggle { display: none; }
 .nav-scrim { display: none; }
 .wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 48px; display: grid; gap: 20px; min-width: 0; }
@@ -631,19 +667,46 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
     <a class="brand" href="./" title="홈으로">K LEAGUE INSIGHT</a>
     <button type="button" class="ghost lmb-collapse" id="lmbCollapse" aria-label="메뉴 접기" title="메뉴 접기" aria-expanded="true">«</button>
   </div>
-  <nav>
-    <a href="#dashboard">대시보드</a>
-    <a href="#standings">순위표</a>
-    <a href="#cheer">응원 작전실</a>
-    <a href="#compare">팀 간 상대 전적 비교</a>
-    <a href="#playoffs">승격·강등 플레이오프</a>
-    <a href="#records">역대 기록 경신 전망</a>
-    <a href="#round">라운드 프리뷰·만약에</a>
-    <a href="#dist">최종 순위 분포</a>
-    <a href="#sched">남은 일정 난이도</a>
-    <a href="#trend">확률 추이</a>
-    <a href="#backtest">예측 정확도</a>
-    <a href="#method">계산 방법</a>
+  <nav aria-label="서비스 메뉴">
+    <!-- 홈: 서비스 첫 화면과 기본 순위표 -->
+    <details class="nav-group" open>
+      <summary>홈</summary>
+      <div class="nav-items">
+        <a href="#dashboard">대시보드</a>
+        <a href="#standings">순위표</a>
+      </div>
+    </details>
+
+    <!-- 경기 분석: 경기별 분석과 시나리오 기능 -->
+    <details class="nav-group">
+      <summary>경기 분석</summary>
+      <div class="nav-items">
+        <a href="#cheer">응원 작전실</a>
+        <a href="#round">라운드 프리뷰·만약에</a>
+        <a href="#compare">팀 간 상대 전적 비교</a>
+        <a href="#playoffs">승격·강등 플레이오프</a>
+      </div>
+    </details>
+
+    <!-- 시즌 전망: 시즌 종료 결과와 기록 전망 -->
+    <details class="nav-group">
+      <summary>시즌 전망</summary>
+      <div class="nav-items">
+        <a href="#dist">최종 순위 분포</a>
+        <a href="#sched">남은 일정 난이도</a>
+        <a href="#trend">확률 추이</a>
+        <a href="#records">역대 기록 경신 전망</a>
+      </div>
+    </details>
+
+    <!-- 서비스 정보: 예측 모델의 검증과 계산 방식 -->
+    <details class="nav-group">
+      <summary>서비스 정보</summary>
+      <div class="nav-items">
+        <a href="#backtest">예측 정확도</a>
+        <a href="#method">계산 방법</a>
+      </div>
+    </details>
   </nav>
 </aside>
 <div class="wrap">
@@ -1582,8 +1645,14 @@ function showPage() {
   const id = currentPage();
   PAGES.forEach(p => { const el = $("page-" + p); if (el) el.hidden = p !== id; });
   document.querySelectorAll("#lmb a[href^='#']").forEach(a => {
-    if (a.getAttribute("href") === "#" + id) a.setAttribute("aria-current", "page");
-    else a.removeAttribute("aria-current");
+    if (a.getAttribute("href") === "#" + id) {
+      a.setAttribute("aria-current", "page");
+      // 현재 페이지가 속한 카테고리를 자동으로 펼쳐 현재 위치를 명확히 표시한다.
+      const group = a.closest(".nav-group");
+      if (group) group.open = true;
+    } else {
+      a.removeAttribute("aria-current");
+    }
   });
   closeNav();
   if (id === "trend") requestAnimationFrame(() => renderChart());
