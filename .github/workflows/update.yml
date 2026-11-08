@@ -2,9 +2,10 @@ name: 데이터 갱신
 
 on:
   schedule:
-    - cron: "0 22 * * *"   # 매일 오전 7시(한국 시간) = 22:00 UTC
-    - cron: "30 7,12 * * *"      # 매일 16:30, 21:30 (한국 시간)
-    - cron: "0 10 * * *"         # 매일 19:00 (한국 시간)
+    - cron: "13 07 * * *"  # 07:13 KST
+    - cron: "43 16 * * *"   # 16:43 KST
+    - cron: "13 19 * * *"  # 19:13 KST
+    - cron: "43 21 * * *"  # 21:43 KST
   workflow_dispatch:         # Actions 탭에서 직접 실행하는 버튼
 
 permissions:
