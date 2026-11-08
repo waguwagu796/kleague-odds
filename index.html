@@ -626,6 +626,113 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
 
 
 
+
+/* ---------- 사이드바 UX 개선 ---------- */
+/* 카테고리별 아이콘을 항상 같은 위치에 배치해 시각적 탐색을 돕는다 */
+.lmb .nav-group > summary {
+  position: relative;
+  min-height: 42px;
+  transition: background .15s ease, color .15s ease;
+}
+.lmb .nav-group > summary::before {
+  content: attr(data-icon);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  font-size: 17px;
+  line-height: 1;
+}
+.lmb .nav-group:has(a[aria-current="page"]) > summary {
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  color: var(--accent);
+}
+.lmb .nav-items a {
+  position: relative;
+  transition: background .15s ease, color .15s ease, padding-left .15s ease;
+}
+.lmb .nav-items a[aria-current="page"] {
+  box-shadow: inset 3px 0 0 var(--accent-fg);
+  font-weight: 800;
+}
+.lmb .nav-items a:focus-visible,
+.lmb .nav-group > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* 모바일 메뉴 헤더의 닫기 버튼은 모바일 폭에서만 표시 */
+.lmb-mobile-close { display: none; }
+
+/* PC에서 접힌 메뉴는 아이콘 레일로 유지해 메뉴 탐색을 계속 지원 */
+@media (min-width: 961px) {
+  body.app.lmb-collapsed { grid-template-columns: 72px minmax(0, 1fr); }
+  body.lmb-collapsed .lmb {
+    padding: 18px 8px 24px;
+    overflow: visible;
+    gap: 14px;
+  }
+  body.lmb-collapsed .lmb .brand { display: none; }
+  body.lmb-collapsed .lmb nav { display: grid; gap: 8px; }
+  body.lmb-collapsed .lmb .nav-group > summary {
+    justify-content: center;
+    padding: 10px 4px;
+    font-size: 0;
+    gap: 0;
+    min-height: 44px;
+  }
+  body.lmb-collapsed .lmb .nav-group > summary::before {
+    flex-basis: 30px;
+    width: 30px;
+    height: 30px;
+    font-size: 20px;
+  }
+  body.lmb-collapsed .lmb .nav-group > summary::after { display: none; }
+  body.lmb-collapsed .lmb .nav-items { display: none !important; }
+  body.lmb-collapsed .lmb .nav-group:has(a[aria-current="page"]) > summary {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+  body.lmb-collapsed .lmb-head { justify-content: center; }
+  body.lmb-collapsed .lmb button.lmb-collapse {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+}
+
+/* 모바일 메뉴는 서비스명과 닫기 버튼을 고정된 헤더처럼 제공 */
+@media (max-width: 960px) {
+  .lmb {
+    padding: 16px 12px 24px;
+    gap: 16px;
+  }
+  .lmb-head {
+    position: sticky;
+    top: -16px;
+    z-index: 2;
+    margin: -16px -12px 0;
+    padding: 16px 12px 12px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .lmb-mobile-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    font-size: 22px;
+    line-height: 1;
+  }
+  .lmb .nav-group > summary { min-height: 46px; padding-inline: 12px; }
+  .lmb .nav-items a { min-height: 44px; padding-inline: 14px; }
+}
+
 /* 역대 기록 경신 전망 */
 .records-intro { color: var(--muted); line-height: 1.7; margin: 4px 0 16px; }
 .record-kpis { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; margin: 14px 0 20px; }
@@ -666,11 +773,12 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
   <div class="lmb-head">
     <a class="brand" href="./" title="홈으로">K LEAGUE INSIGHT</a>
     <button type="button" class="ghost lmb-collapse" id="lmbCollapse" aria-label="메뉴 접기" title="메뉴 접기" aria-expanded="true">«</button>
+    <button type="button" class="ghost lmb-mobile-close" id="lmbMobileClose" aria-label="메뉴 닫기" title="메뉴 닫기">×</button>
   </div>
   <nav aria-label="서비스 메뉴">
     <!-- 홈: 서비스 첫 화면과 기본 순위표 -->
     <details class="nav-group" open>
-      <summary>홈</summary>
+      <summary data-icon="⌂" title="홈" aria-label="홈">홈</summary>
       <div class="nav-items">
         <a href="#dashboard">대시보드</a>
         <a href="#standings">순위표</a>
@@ -679,7 +787,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
 
     <!-- 경기 분석: 경기별 분석과 시나리오 기능 -->
     <details class="nav-group">
-      <summary>경기 분석</summary>
+      <summary data-icon="⚽" title="경기 분석" aria-label="경기 분석">경기 분석</summary>
       <div class="nav-items">
         <a href="#cheer">응원 작전실</a>
         <a href="#round">라운드 프리뷰·만약에</a>
@@ -690,7 +798,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
 
     <!-- 시즌 전망: 시즌 종료 결과와 기록 전망 -->
     <details class="nav-group">
-      <summary>시즌 전망</summary>
+      <summary data-icon="▥" title="시즌 전망" aria-label="시즌 전망">시즌 전망</summary>
       <div class="nav-items">
         <a href="#dist">최종 순위 분포</a>
         <a href="#sched">남은 일정 난이도</a>
@@ -701,7 +809,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
 
     <!-- 서비스 정보: 예측 모델의 검증과 계산 방식 -->
     <details class="nav-group">
-      <summary>서비스 정보</summary>
+      <summary data-icon="ⓘ" title="서비스 정보" aria-label="서비스 정보">서비스 정보</summary>
       <div class="nav-items">
         <a href="#backtest">예측 정확도</a>
         <a href="#method">계산 방법</a>
@@ -1641,6 +1749,27 @@ function breakAtSentenceEnds() {
     });
   });
 }
+// 메뉴 그룹은 한 번에 하나만 펼치도록 아코디언 동작을 적용한다.
+const lmbNav = document.querySelector("#lmb nav");
+if (lmbNav) {
+  lmbNav.addEventListener("click", event => {
+    const summary = event.target.closest(".nav-group > summary");
+    if (!summary) return;
+
+    // PC 접힘 상태에서 카테고리를 선택하면 먼저 메뉴를 펼친다.
+    if (window.matchMedia("(min-width: 961px)").matches &&
+        document.body.classList.contains("lmb-collapsed")) {
+      setLmbCollapsed(false, true);
+    }
+
+    // 클릭한 그룹 외의 그룹은 닫는다. 현재 그룹의 열림/닫힘은 브라우저 기본 동작에 맡긴다.
+    const selectedGroup = summary.parentElement;
+    document.querySelectorAll("#lmb .nav-group").forEach(group => {
+      if (group !== selectedGroup) group.open = false;
+    });
+  });
+}
+
 function showPage() {
   const id = currentPage();
   PAGES.forEach(p => { const el = $("page-" + p); if (el) el.hidden = p !== id; });
@@ -1649,7 +1778,12 @@ function showPage() {
       a.setAttribute("aria-current", "page");
       // 현재 페이지가 속한 카테고리를 자동으로 펼쳐 현재 위치를 명확히 표시한다.
       const group = a.closest(".nav-group");
-      if (group) group.open = true;
+      if (group) {
+        // 현재 페이지가 속한 그룹만 열어 메뉴가 세로로 과도하게 길어지지 않게 한다.
+        document.querySelectorAll("#lmb .nav-group").forEach(item => {
+          item.open = item === group;
+        });
+      }
     } else {
       a.removeAttribute("aria-current");
     }
@@ -2849,7 +2983,7 @@ async function runBacktest() {
 }
 
 document.addEventListener("click", e => {
-  if (e.target.id === "navScrim") { closeNav(); return; }
+  if (e.target.id === "navScrim" || e.target.closest("#lmbMobileClose")) { closeNav(); return; }
   const b = e.target.closest("button, tr.team"); if (!b) return;
   if (b.hasAttribute("data-dashboard-select")) { $("myTeam").focus(); $("myTeam").click(); return; }
   if (b.dataset.focusMatch) {
