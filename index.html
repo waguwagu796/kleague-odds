@@ -119,6 +119,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style id="insight-usability">
+.standings-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0;background:var(--surface)}
+.standings-tools label{font-size:12px;color:var(--muted)}
+.standings-tools input{min-height:38px;min-width:min(260px,65vw);padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit}
+.standings-tools .tool-hint{flex:1 1 230px;color:var(--muted);font-size:11.5px}
+.team-page-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+@media(max-width:600px){.standings-tools{align-items:stretch}.standings-tools input{flex:1;min-width:0}.standings-tools .tool-hint{flex-basis:100%}}
+</style>
 </head>
 <body class="app">
 <style>
@@ -918,6 +926,12 @@ body.lmb-collapsed .lmb .nav-group:has(a[aria-current="page"]) > summary::before
 
   <div class="page" id="page-standings">
   <section class="champion-banner" id="championBanner" hidden role="status" aria-live="polite"></section>
+  <div class="standings-tools" aria-label="순위표 도구">
+    <label for="standingsSearch">팀 찾기</label><input id="standingsSearch" type="search" placeholder="팀 이름 검색" autocomplete="off">
+    <button type="button" class="ghost" id="exportStandings">순위표 CSV 저장</button>
+    <span class="tool-hint">확률은 남은 경기를 반복 계산한 추정치이며 확정 결과가 아닙니다. 표는 좌우로 스크롤할 수 있어요.</span>
+    <span id="searchCount" class="tool-hint" aria-live="polite"></span>
+  </div>
   <div class="summary" id="summary"></div>
 
   <div class="tablebox" id="mainBox">
@@ -1973,7 +1987,7 @@ function renderTeamPage() {
   if (!t || !r) { root.innerHTML = `<p class="empty">이 팀의 정보를 찾을 수 없어요.</p><button type="button" class="ghost" data-go-page="standings">순위표로 돌아가기</button>`; return; }
   const zones = ZONES[league], dec = decided(d, league)[t.team], form = lastN(d.results, t.team, 5).reverse();
   root.innerHTML = `<div class="team-page-head"><button type="button" class="ghost" data-go-page="standings">← 순위표</button><div><span class="meta">${league === "k1" ? "K리그1" : "K리그2"} · ${d.asOf || ""} 기준</span><h2>${teamNameHtml(t.team)}</h2><p>${t.rank}위 · ${t.p}경기 · ${t.pts}점 · 득실 ${t.gf - t.ga > 0 ? "+" : ""}${t.gf - t.ga}</p></div></div>
-    <p class="meta">확률은 현재 확보된 경기 데이터와 ${SIM.N.toLocaleString()}회 시즌 시뮬레이션 기준입니다. 확정된 순위·결과는 별도 표시됩니다.</p><div class="team-page-probs">${zones.map(z => `<article><span>${esc(z.label)}</span><b>${ptxt(r[z.key] / SIM.N * 100, dec[z.key])}</b><i><b style="width:${Math.max(0, Math.min(100, r[z.key] / SIM.N * 100))}%"></b></i></article>`).join("")}</div>
+    <div class="team-page-actions"><button type="button" class="ghost" id="shareTeam">이 팀 페이지 공유</button></div><p class="meta">확률은 현재 확보된 경기 데이터와 ${SIM.N.toLocaleString()}회 시즌 시뮬레이션 기준입니다. 확정된 순위·결과는 별도 표시됩니다.</p><div class="team-page-probs">${zones.map(z => `<article><span>${esc(z.label)}</span><b>${ptxt(r[z.key] / SIM.N * 100, dec[z.key])}</b><i><b style="width:${Math.max(0, Math.min(100, r[z.key] / SIM.N * 100))}%"></b></i></article>`).join("")}</div>
     <div class="team-page-form"><b>최근 5경기</b><span class="form">${form.map(f => `<i class="${f.r}" title="${esc(f.date)} ${f.my}-${f.op}">${f.r === "W" ? "승" : f.r === "D" ? "무" : "패"}</i>`).join("") || "기록 없음"}</span></div>
     <h3 class="sub">일정·전력·최종 순위 전망</h3>${detailInner(d, t, r)}<p class="playoff-note">기준일: ${esc(d.asOf || "확인 불가")} · 예측값은 남은 경기 결과를 확률적으로 추정한 값이며 확정 결과가 아닙니다.</p>`;
 }
@@ -2086,6 +2100,45 @@ function renderDashboard() {
   $("dashStandings").innerHTML = `<table><thead><tr><th>순위</th><th>팀</th><th>경기</th><th>득점</th><th>실점</th><th>득실차</th><th>승점</th></tr></thead><tbody>${rows}</tbody></table>${mine ? `<p class="dash-team-sub" style="margin:10px 0 0">내 팀 순위를 기준으로 위아래 2개 팀을 표시합니다.</p>` : `<p class="dash-team-sub" style="margin:10px 0 0">상위 5개 팀을 표시합니다. 내 팀을 선택하면 해당 팀 주변 순위로 바뀝니다.</p>`}`;
 }
 
+function applyStandingsFilter() {
+  const input = $("standingsSearch"), query = (input?.value || "").trim().toLocaleLowerCase("ko");
+  let visible = 0;
+  document.querySelectorAll("#tbody tr.team").forEach(row => {
+    const match = !query || (row.dataset.team || row.textContent).toLocaleLowerCase("ko").includes(query);
+    row.hidden = !match;
+    const detail = row.nextElementSibling;
+    if (detail?.classList.contains("detail")) detail.hidden = !match;
+    if (match) visible++;
+  });
+  document.querySelectorAll("#cards .tcard").forEach(card => {
+    card.hidden = !!query && !card.textContent.toLocaleLowerCase("ko").includes(query);
+  });
+  const count = $("searchCount");
+  if (count) count.textContent = query ? visible + "개 팀 표시" : "";
+}
+function exportStandingsCsv() {
+  const d = DATA[league], sim = SIM && SIM[league];
+  if (!d || !sim) return;
+  const cols = ["순위","팀","경기","승","무","패","득점","실점","득실차","승점","예상 승점"].concat(ZONES[league].map(z => z.label));
+  const q = value => '"' + String(value == null ? "" : value).replaceAll('"','""') + '"';
+  const rows = d.standings.slice().sort((a,b) => a.rank-b.rank).map(t => {
+    const r = sim[t.team];
+    return [t.rank,t.team,t.p,t.w,t.d,t.l,t.gf,t.ga,t.gf-t.ga,t.pts,r.exp.toFixed(1)].concat(ZONES[league].map(z => (r[z.key] / SIM.N * 100).toFixed(2) + "%"));
+  });
+  const csv = "\uFEFF" + [cols].concat(rows).map(row => row.map(q).join(",")).join("\r\n");
+  const url = URL.createObjectURL(new Blob([csv], {type:"text/csv;charset=utf-8"}));
+  const a = document.createElement("a");
+  a.href = url; a.download = "k-league-" + league + "-" + (d.asOf || "standings") + ".csv";
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+async function shareSelectedTeam() {
+  const url = new URL(location.href);
+  url.searchParams.set("shareLeague", league);
+  url.searchParams.set("shareTeam", selectedTeamPage || "");
+  url.hash = "#team";
+  try { await navigator.clipboard.writeText(url.href); alert("팀 페이지 링크를 복사했습니다."); }
+  catch { prompt("아래 링크를 복사해 공유하세요.", url.href); }
+}
 function render() {
   $("tabK1").setAttribute("aria-pressed", league === "k1");
   $("tabK2").setAttribute("aria-pressed", league === "k2");
@@ -2218,6 +2271,7 @@ function render() {
     ? [["var(--accent)", "ACLE 출전권 (1~2위)"], ["var(--bar)", "파이널A (3~6위)"], ["var(--loss)", "승강 플레이오프 (12위)"]]
     : [["var(--accent)", "자동 승격 (1~2위)"], ["var(--warn)", "승격 플레이오프 (3~6위)"]])
     .map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join("") + `<span>팀을 누르면 남은 일정, 전력, 최종 순위 분포를 볼 수 있어요.</span>`;
+  applyStandingsFilter();
   if (currentPage() === "team") renderTeamPage();
   if (currentPage() === "compare") renderComparePage();
   if (currentPage() === "cheer") renderCheer();
@@ -2984,6 +3038,13 @@ async function runSim(seed) {
 function defaultSeed() { return E.hashStr(DATA.k1.asOf + "|" + DATA.k1.results.length + "|" + DATA.k2.results.length); }
 function onData() {
   if (!DATA.k1 || !DATA.k2) return;
+  const shared = new URLSearchParams(location.search);
+  const sharedLeague = shared.get("shareLeague"), sharedTeam = shared.get("shareTeam");
+  if ((sharedLeague === "k1" || sharedLeague === "k2") && sharedTeam && DATA[sharedLeague].standings.some(t => t.team === sharedTeam)) {
+    league = sharedLeague; selectedTeamPage = sharedTeam;
+    if (currentPage() !== "team") goPage("team");
+  }
+  if (!DATA.k1 || !DATA.k2) return;
   const key = defaultSeed() + ":" + DATA.k1.updatedAt + DATA.k2.updatedAt;
   if (key === simKey) return;
   simKey = key; customSeed = false;
@@ -3039,6 +3100,8 @@ async function runBacktest() {
 document.addEventListener("click", e => {
   if (e.target.id === "navScrim" || e.target.closest("#lmbMobileClose")) { closeNav(); return; }
   const b = e.target.closest("button, tr.team"); if (!b) return;
+  if (b.id === "shareTeam") { shareSelectedTeam(); return; }
+  if (b.id === "exportStandings") { exportStandingsCsv(); return; }
   if (b.hasAttribute("data-dashboard-select")) { $("myTeam").focus(); $("myTeam").click(); return; }
   if (b.dataset.focusMatch) {
     const [date, home, away] = b.dataset.focusMatch.split("|");
@@ -3084,6 +3147,7 @@ document.addEventListener("click", e => {
   else if (b.dataset.goPage) goPage(b.dataset.goPage);
   else if (b.dataset.team) { openTeam = openTeam === b.dataset.team ? null : b.dataset.team; render(); }
 });
+$("standingsSearch").addEventListener("input", applyStandingsFilter);
 $("trendStartRound").addEventListener("change", e => {
   const value = Number(e.target.value);
   if (Number.isFinite(value) && value > 0) TREND_START[league] = value;
