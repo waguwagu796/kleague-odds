@@ -94,13 +94,33 @@
 .playoff-scenario-link { margin: 12px 0; }
 @media(max-width:760px) { .playoff-grid { grid-template-columns:1fr; } .playoff-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 
+/* 10개 개선 항목: 데이터 상태·대시보드·표·차트 반응형 */
+.data-status{display:inline-flex;align-items:center;gap:6px;margin-top:4px;color:var(--muted);font-size:11px}
+.data-status::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--warn)}
+.data-status[data-state="ok"]::before{background:#269b68}
+.data-status[data-state="stale"],.data-status[data-state="error"]{color:var(--loss,#c34b4b)}
+.data-status[data-state="error"]::before,.data-status[data-state="stale"]::before{background:var(--loss,#c34b4b)}
+.data-error{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px 14px;border:1px solid var(--loss,#c34b4b);border-radius:10px;background:var(--surface)}
+.dash-hero{align-items:center}.dash-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.dash-panel{display:flex;flex-direction:column}.dash-shortcuts{grid-template-columns:repeat(4,minmax(0,1fr))}.dash-shortcut{min-height:112px}
+.dash-table,.tablebox,.record-table-wrap,.playoff-table-wrap{max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin}
+.dash-table:focus,.tablebox:focus,.record-table-wrap:focus,.playoff-table-wrap:focus{outline:2px solid var(--accent);outline-offset:2px}
+.dash-table table,.tablebox table,.record-table,.playoff-table{font-variant-numeric:tabular-nums}
+.team-page-probs article{min-width:0}.team-page-probs article>span{display:block;color:var(--muted);font-size:12px}
+.team-page-probs article>b{display:block;font-size:clamp(17px,2vw,22px);font-variant-numeric:tabular-nums}
+.team-page-probs article>i{display:block;height:6px;margin-top:8px;overflow:hidden;border-radius:8px;background:var(--bar-bg)}
+.team-page-probs article>i>b{display:block;height:100%;border-radius:inherit;background:var(--accent)}
+#chart{min-width:0}#chart p{color:var(--muted);font-size:12px;line-height:1.65}
+.playoff-match{overflow-wrap:anywhere}.playoff-table th{white-space:normal;min-width:76px}.playoff-table td{white-space:nowrap}
+@media(max-width:760px){.dash-grid{grid-template-columns:1fr}.dash-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-shortcut{min-height:100px}.data-status{display:flex}}
+@media(max-width:480px){.dash-shortcuts{grid-template-columns:1fr}.dash-hero{align-items:flex-start}.dash-actions{width:100%}.dash-actions button{flex:1 1 auto}.playoff-table{min-width:650px}}
 </style>
-</head>
-<body class="app">
 <title>K LEAGUE INSIGHT</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+</head>
+<body class="app">
 <style>
 /* Layout: 왼쪽 메뉴로 페이지 전환. 공통 헤더(기준일·리그) 아래 순위표·빅매치·분포·난이도·추이·검증·계산 방법 */
 /* 색: K리그 느낌의 남색(메인) + 빨강(포인트), 바탕은 푸른 기가 도는 회색 */
@@ -824,6 +844,7 @@ h1 a.home-link:focus-visible, .lmb a.brand:focus-visible { outline: 2px solid va
       <div class="meta">
         <span>데이터 기준 <b id="asOf">불러오는 중</b> · 남은 경기를 <b id="nsim">50,000</b>번 시뮬레이션 <span id="seedNote"></span></span>
         <span id="srcLine"></span>
+        <span id="dataStatus" class="data-status" role="status" aria-live="polite">데이터 확인 중</span>
       </div>
     </div>
     <div class="controls">
@@ -1928,9 +1949,9 @@ function renderTeamPage() {
   if (!t || !r) { root.innerHTML = `<p class="empty">이 팀의 정보를 찾을 수 없어요.</p><button type="button" class="ghost" data-go-page="standings">순위표로 돌아가기</button>`; return; }
   const zones = ZONES[league], dec = decided(d, league)[t.team], form = lastN(d.results, t.team, 5).reverse();
   root.innerHTML = `<div class="team-page-head"><button type="button" class="ghost" data-go-page="standings">← 순위표</button><div><span class="meta">${league === "k1" ? "K리그1" : "K리그2"} · ${d.asOf || ""} 기준</span><h2>${teamNameHtml(t.team)}</h2><p>${t.rank}위 · ${t.p}경기 · ${t.pts}점 · 득실 ${t.gf - t.ga > 0 ? "+" : ""}${t.gf - t.ga}</p></div></div>
-    <div class="team-page-probs">${zones.map(z => `<article><span>${esc(z.label)}</span><b>${ptxt(r[z.key] / SIM.N * 100, dec[z.key])}</b><i><b style="width:${Math.max(0, Math.min(100, r[z.key] / SIM.N * 100))}%"></b></i></article>`).join("")}</div>
+    <p class="meta">확률은 현재 확보된 경기 데이터와 ${SIM.N.toLocaleString()}회 시즌 시뮬레이션 기준입니다. 확정된 순위·결과는 별도 표시됩니다.</p><div class="team-page-probs">${zones.map(z => `<article><span>${esc(z.label)}</span><b>${ptxt(r[z.key] / SIM.N * 100, dec[z.key])}</b><i><b style="width:${Math.max(0, Math.min(100, r[z.key] / SIM.N * 100))}%"></b></i></article>`).join("")}</div>
     <div class="team-page-form"><b>최근 5경기</b><span class="form">${form.map(f => `<i class="${f.r}" title="${esc(f.date)} ${f.my}-${f.op}">${f.r === "W" ? "승" : f.r === "D" ? "무" : "패"}</i>`).join("") || "기록 없음"}</span></div>
-    <h3 class="sub">일정·전력·최종 순위 전망</h3>${detailInner(d, t, r)}`;
+    <h3 class="sub">일정·전력·최종 순위 전망</h3>${detailInner(d, t, r)}<p class="playoff-note">기준일: ${esc(d.asOf || "확인 불가")} · 예측값은 남은 경기 결과를 확률적으로 추정한 값이며 확정 결과가 아닙니다.</p>`;
 }
 
 /* ---------- 팀 간 상대 전적 비교 ---------- */
@@ -1993,7 +2014,7 @@ function renderDashboard() {
   const fixtures = (d.fixtures || []).filter(f => f[1] != null).slice().sort((a,b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
   const next = me ? fixtures.find(f => f[2] === me || f[3] === me) : fixtures[0];
   const lgName = league === "k1" ? "K리그1" : "K리그2";
-  $("dashIntro").textContent = `${lgName} · ${d.asOf || "기준일 정보 없음"} 기준${me ? ` · ${me} 중심으로 표시 중` : " · 리그 전체 현황을 먼저 살펴보고 응원 팀을 설정해 보세요"}`;
+  $("dashIntro").textContent = `${lgName} · 경기 데이터 기준 ${d.asOf || "정보 없음"}${me ? ` · ${me} 중심으로 표시 중` : " · 리그 전체 현황을 먼저 살펴보고 응원 팀을 설정해 보세요"} · 예측은 ${SIM.N.toLocaleString()}회 시뮬레이션 기준`;
   $("dashTeamHeading").textContent = mine ? `MY TEAM · ${me}` : "나만의 대시보드 설정";
   const teamDetailBtn = $("dashTeamDetailBtn");
   teamDetailBtn.hidden = !mine;
@@ -2037,6 +2058,7 @@ function renderDashboard() {
   }
   const preview = mine ? st.filter(t => Math.abs(t.rank - mine.rank) <= 2) : st.slice(0, 5);
   const rows = preview.slice().sort((a,b) => a.rank-b.rank).map(t => `<tr class="${t.team === me ? "mine" : ""}"><td>${t.rank}</td><td>${t.team === me ? "★ " : ""}${teamNameHtml(t.team)}</td><td class="num">${t.p}</td><td class="num">${t.gf}</td><td class="num">${t.ga}</td><td class="num">${t.gf-t.ga > 0 ? "+" : ""}${t.gf-t.ga}</td><td class="num"><b>${t.pts}</b></td></tr>`).join("");
+  $("dashStandings").setAttribute("role", "region"); $("dashStandings").setAttribute("aria-label", "리그 순위 미리보기, 좌우로 스크롤 가능"); $("dashStandings").setAttribute("tabindex", "0");
   $("dashStandings").innerHTML = `<table><thead><tr><th>순위</th><th>팀</th><th>경기</th><th>득점</th><th>실점</th><th>득실차</th><th>승점</th></tr></thead><tbody>${rows}</tbody></table>${mine ? `<p class="dash-team-sub" style="margin:10px 0 0">내 팀 순위를 기준으로 위아래 2개 팀을 표시합니다.</p>` : `<p class="dash-team-sub" style="margin:10px 0 0">상위 5개 팀을 표시합니다. 내 팀을 선택하면 해당 팀 주변 순위로 바뀝니다.</p>`}`;
 }
 
@@ -2055,6 +2077,13 @@ function render() {
   if (currentPage() === "records") renderRecordsPage();
   const res = SIM[league], zones = ZONES[league], mags = MAGIC[league], n = d.standings.length;
   $("asOf").textContent = d.asOf || "-";
+  const statusEl = $("dataStatus");
+  if (statusEl) {
+    const updated = d.updatedAt ? new Date(d.updatedAt) : null;
+    const updatedText = updated && !Number.isNaN(updated.getTime()) ? ` · 파일 갱신 ${updated.toLocaleString("ko-KR")}` : " · 갱신 시각 미제공";
+    statusEl.dataset.state = stale ? "stale" : "ok";
+    statusEl.textContent = stale ? `오래된 데이터 · 기준 ${d.asOf || "미상"}${updatedText}` : `데이터 정상 · 기준 ${d.asOf || "미상"}${updatedText}`;
+  }
   $("srcLine").textContent = d.source ? "출처 · " + d.source : "";
   $("seedNote").textContent = customSeed ? "· 새 시드로 다시 계산한 결과" : "";
   const notes = [d.note].filter(Boolean);
@@ -2589,7 +2618,7 @@ function renderPlayoffsPage() {
   root.innerHTML = `
     <div class="panel-head"><div><h2>승격·강등 플레이오프 시뮬레이터</h2><p class="meta">${scenario ? '가상 순위표에서 선택한 경기 결과를 반영한 시나리오' : '기본 50,000회 시뮬레이션'} · ${n.toLocaleString()}회</p></div><button type="button" class="ghost" data-go-page="round">만약에 결과 수정</button></div>
     ${scenario ? `<div class="notice">${scenarioStale ? '이전 계산 결과입니다. 경기 결과 선택이 변경되었으므로 라운드 프리뷰에서 다시 계산해 주세요.' : '가상 시나리오 적용 중입니다.'} (${scenario.lg==='k1'?'K리그1':'K리그2'} 경기 결과 선택 반영) <button type="button" class="ghost" data-go-page="round">시나리오 확인</button></div>` : ''}
-    <p class="playoff-intro">${formatText}</p>
+    <p class="playoff-intro">${formatText}</p><p class="playoff-note">아래 표는 실제 확정 대진표가 아니라 ${scenario ? "선택한 가상 경기 결과를 반영한" : "현재 데이터 기준의"} 시즌 최종 순위·플레이오프 결과 시뮬레이션입니다. 확률은 전체 ${n.toLocaleString()}회 반복 중 해당 결과가 발생한 비율입니다.</p>
     <div class="playoff-rule"><strong>시뮬레이션 규칙 적용 · ${expectedMode}</strong><p>현재 순위는 참고 정보이며, 실제 대진 및 진행 방식은 시즌 최종 순위로 결정됩니다. 시뮬레이션은 매 반복마다 두 리그의 최종 순위를 먼저 계산한 뒤 그 순위에 맞는 플레이오프 규칙을 적용합니다. ${is2026 ? `김천상무의 12위 확률은 ${gimcheonLastChance.toFixed(1)}%입니다.` : ''}</p></div>
     <div class="playoff-kpis">
       <div class="playoff-kpi"><span>K2 PO 진출 팀 수 기대값</span><b>${(Object.values(sim.k2).reduce((a,r)=>a+(r.poEntry||0),0)/n).toFixed(2)}팀</b></div>
@@ -2605,10 +2634,10 @@ function renderPlayoffsPage() {
       ${stageCard('승강 플레이오프', 'K리그1 12위 vs K리그2 PO 준우승팀', '승리 팀은 다음 시즌 K리그1 참가 · 패배 팀은 K리그2 참가 · 김천이 K1 12위인 경우에는 개최하지 않음')}
     </div>
     <h3 class="sub">K리그2 팀별 플레이오프·승격 확률</h3>
-    <div class="playoff-table-wrap"><table class="playoff-table"><thead><tr><th>팀</th><th>PO 진출</th><th>준PO 승리</th><th>PO 결승 진출</th><th>PO 우승</th><th>승강 PO 진출</th><th>승강 PO 승리</th><th>최종 승격</th></tr></thead><tbody>${k2Rows}</tbody></table></div>
+    <div class="playoff-table-wrap" role="region" aria-label="플레이오프 확률 표, 좌우로 스크롤 가능" tabindex="0"><table class="playoff-table"><thead><tr><th>팀</th><th>PO 진출</th><th>준PO 승리</th><th>PO 결승 진출</th><th>PO 우승</th><th>승강 PO 진출</th><th>승강 PO 승리</th><th>최종 승격</th></tr></thead><tbody>${k2Rows}</tbody></table></div>
     <p class="playoff-note">대진표의 팀명은 현재 3~6위 팀이며, 옆 확률은 해당 팀이 시즌 최종 순위도 그 순위를 유지할 확률입니다. 실제 준PO 대진은 최종 순위 3위-6위, 4위-5위로 확정됩니다. PO 진출은 정규리그 3~6위, 준PO 승리는 해당 팀이 준PO에서 승리, PO 결승 진출은 결승 진출, PO 우승은 결승 승리, 최종 승격은 자동 승격(1~2위 포함)과 PO·승강 PO를 통한 승격을 모두 포함합니다. 각 팀 확률은 ${n.toLocaleString()}회 중 해당 조건을 만족한 비율입니다.</p>
     <h3 class="sub">K리그1 플레이오프·강등 확률</h3>
-    <div class="playoff-table-wrap"><table class="playoff-table"><thead><tr><th>팀</th><th>승강 PO 진출</th><th>승강 PO 승리·잔류</th><th>고정 강등</th><th>최종 강등</th></tr></thead><tbody>${k1Rows}</tbody></table></div>
+    <div class="playoff-table-wrap" role="region" aria-label="플레이오프 확률 표, 좌우로 스크롤 가능" tabindex="0"><table class="playoff-table"><thead><tr><th>팀</th><th>승강 PO 진출</th><th>승강 PO 승리·잔류</th><th>고정 강등</th><th>최종 강등</th></tr></thead><tbody>${k1Rows}</tbody></table></div>
     <p class="playoff-note">2026시즌에는 김천상무의 고정 강등과 승강 PO 결과를 별도로 누적합니다. 김천이 12위가 아니면 K1 12위와 K2 PO 준우승팀이 승강 PO를 치르며, 승리 팀은 다음 시즌 K리그1에 남거나 올라가고 패배 팀은 K리그2로 향합니다. 김천이 12위이면 승강 PO는 열리지 않습니다. K1 표의 ‘승강 PO 승리·잔류’는 K1 12위 팀이 승강 PO에서 이겨 잔류한 비율입니다.</p>
     <div class="playoff-rule"><strong>모델 가정 및 한계</strong><p>준PO 단판은 무승부 시 정규리그 상위 팀 진출로 처리합니다. 2026시즌 김천 12위 시 K2 PO 홈&원정은 승리 수 → 합산 득실 → 연장·승부차기 단계로 처리하되, 연장·승부차기 승률은 50:50으로 단순화했습니다. K1-K2 승강 PO의 합산 동률 처리와 K2 득점 보정은 기존 모델 가정(P.crossTieK2, P.crossLeague)을 유지합니다. 실제 규정 세부 및 경기력 변수와 차이가 있을 수 있습니다.</p></div>
   `;
@@ -2658,7 +2687,7 @@ function renderRecordsPage() {
     <h3 class="sub">확인된 역대 기록 경신 전망</h3><div class="record-grid">${cards}</div>
     <h3 class="sub">팀별 시즌 최종 기록 예상</h3>
     <p class="meta">표기: 현재 누적 기록 / 시즌 종료 시 예상 평균</p>
-    <div class="record-table-wrap"><table class="record-table"><thead><tr><th>팀</th><th>경기</th><th>승리</th><th>무승부</th><th>패배</th><th>득점</th><th>실점</th><th>승점</th></tr></thead><tbody>${tableRows}</tbody></table></div>
+    <div class="record-table-wrap" role="region" aria-label="팀별 시즌 기록 예상 표, 좌우로 스크롤 가능" tabindex="0"><table class="record-table"><thead><tr><th>팀</th><th>경기</th><th>승리</th><th>무승부</th><th>패배</th><th>득점</th><th>실점</th><th>승점</th></tr></thead><tbody>${tableRows}</tbody></table></div>
     <p class="record-footnote">중요한 범위 제한: 현재 확보된 공식 근거로는 K리그2 2022 광주FC의 25승·86점 기록만 수치 검증했습니다. K리그1 및 무승부·패배·득점·실점의 역대 최고·최저 기준값은 아직 확인되지 않아 임의의 숫자나 경신 확률을 표시하지 않습니다. 또한 이 화면의 확률은 현재 예측 모델의 시뮬레이션 결과이며, 실제 결과를 보장하지 않습니다. 구단별 역대 기록(예: 광주FC 구단 역사상 최다 실점)과 리그 전체 역대 기록은 기준 범위가 달라 별도 데이터셋으로 추가해야 합니다.</p>`;
 }
 
@@ -3113,19 +3142,36 @@ document.addEventListener("keydown", e => {
 
 /* ---------- 데이터 ---------- */
 (async () => {
-  const fail = msg => { $("tbody").innerHTML = `<tr><td class="empty" colspan="16">${esc(msg)}</td></tr>`; $("cards").innerHTML = `<p class="empty">${esc(msg)}</p>`; $("asOf").textContent = "-"; };
+  const fail = msg => {
+    const status = $("dataStatus");
+    if (status) { status.dataset.state = "error"; status.textContent = "데이터 오류 · " + msg; }
+    const safe = esc(msg);
+    $("tbody").innerHTML = `<tr><td class="empty" colspan="16"><div class="data-error"><span>${safe}</span><button type="button" class="ghost" onclick="location.reload()">다시 시도</button></div></td></tr>`;
+    $("cards").innerHTML = `<div class="data-error"><span>${safe}</span><button type="button" class="ghost" onclick="location.reload()">다시 시도</button></div>`;
+    $("asOf").textContent = "-";
+    $("notice").hidden = false; $("notice").textContent = "필수 리그 데이터를 불러오지 못했습니다. 네트워크 연결과 데이터 파일을 확인해 주세요.";
+  };
   if (!window.claude || !window.claude.use) {
     // claude.ai 밖(GitHub Pages 등): 같은 폴더의 data/*.json을 읽는다
     STANDALONE = true;
     try {
-      const get = n => fetch("data/" + n + ".json", { cache: "no-cache" }).then(r => r.ok ? r.json() : null).catch(() => null);
-      const [k1, k2, h1, h2, hist] = await Promise.all(["k1", "k2", "k1-2025", "k2-2025", "history"].map(get));
-      if (!k1 || !k2) return fail("데이터 파일(data/k1.json, data/k2.json)을 찾지 못했어요.");
+      const get = async (n, required = false) => {
+        const response = await fetch("data/" + n + ".json", { cache: "no-cache" });
+        if (!response.ok) {
+          if (required) throw new Error(`${n}.json 요청 실패 (HTTP ${response.status})`);
+          return null;
+        }
+        try { return await response.json(); }
+        catch { if (required) throw new Error(`${n}.json 형식이 올바른 JSON이 아닙니다.`); return null; }
+      };
+      const [k1, k2, h1, h2, hist] = await Promise.all([
+        get("k1", true), get("k2", true), get("k1-2025"), get("k2-2025"), get("history")
+      ]);
       HISTORY = Array.isArray(hist) ? hist : [];
       DATA.h1 = h1; DATA.h2 = h2; DATA.k1 = k1; DATA.k2 = k2;
       if (!h1 || !h2) $("btStatus").textContent = "지난 시즌 데이터가 없어 검증을 건너뜁니다";
       onData();
-    } catch { fail("데이터 파일을 불러오지 못했어요."); }
+    } catch (error) { fail("데이터 파일을 불러오지 못했습니다: " + (error && error.message ? error.message : "알 수 없는 오류")); }
     return;
   }
   db = await claude.use("db");
